@@ -18,17 +18,16 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'UtechoKit' do
+target 'DMV' do
   config = use_native_modules!
 
   # Firebase pods
   # pod 'Firebase', :modular_headers => true
-  rn_maps_path = '../node_modules/react-native-maps'
-  pod 'react-native-google-maps', :path => rn_maps_path
+
   pod 'FirebaseCore', :modular_headers => true
   pod 'GoogleUtilities', :modular_headers => true
   pod 'FirebaseCoreInternal', :modular_headers => true
-  pod 'Firebase', '~> 11.8.0', :modular_headers => true
+  pod 'Firebase', '~> 11.11.0', :modular_headers => true
   
   use_react_native!(
     :path => config[:reactNativePath],

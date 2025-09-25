@@ -4,8 +4,6 @@ import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import RNBootSplash
 import Firebase
-import GoogleSignIn  
-import GoogleMaps  // ⬅️ Add this import for Google Maps
 
 @main
 class AppDelegate: RCTAppDelegate {
@@ -15,20 +13,12 @@ class AppDelegate: RCTAppDelegate {
   }
 
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-    // Add Google Maps configuration
-    GMSServices.provideAPIKey("AIzaSyCZLtofoePX_DcD3LIoSYvBg4sKVU-JZR4")
     
     FirebaseApp.configure()
-    self.moduleName = "UtechoKit"
+    self.moduleName = "DMV"
     self.dependencyProvider = RCTAppDependencyProvider()
     self.initialProps = [:]
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-  }
-
-  override func application(_ app: UIApplication,
-                          open url: URL,
-                          options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-    return GIDSignIn.sharedInstance.handle(url)
   }
 
   override func sourceURL(for bridge: RCTBridge) -> URL? {

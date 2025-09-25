@@ -13,6 +13,7 @@ import {
 import ImageFast from "./ImageFast";
 
 import { COLORS } from "../utils/COLORS";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width, height } = Dimensions.get("window");
 
@@ -39,6 +40,9 @@ const ScreenWrapper = ({
   paddingHorizontal = 16,
 }) => {
   const content = () => {
+
+    const inset = useSafeAreaInsets()
+
     return (
       <View
         style={[
@@ -50,6 +54,7 @@ const ScreenWrapper = ({
               ? 0
               : 20,
             backgroundColor: backgroundImage ? "transparent" : backgroundColor,
+            paddingTop:translucent ? 0 : inset.top
           },
         ]}
       >

@@ -9,9 +9,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import ImageFast from '../../../../components/ImageFast';
 import { useTranslation } from 'react-i18next';
 
-const DmvLicensesOnboading = ({navigation}) => {
+const DmvLicensesOnboading = ({ navigation }) => {
     const { t } = useTranslation();
-    
+
     useFocusEffect(
         React.useCallback(() => {
             StatusBar.setHidden(true);
@@ -38,7 +38,7 @@ const DmvLicensesOnboading = ({navigation}) => {
     };
 
     return (
-        <>
+        < >
             <StatusBar hidden />
             <LinearGradient
                 colors={['#ED7D2080', '#F4AE7333', '#FFFFFF00']}
@@ -47,13 +47,14 @@ const DmvLicensesOnboading = ({navigation}) => {
                 start={{ x: 0.5, y: 0 }}
                 end={{ x: 0.5, y: 1 }}
             >
-                <CustomText 
-                    textAlign={'right'} 
-                    marginTop={50} 
-                    fontFamily={fonts.semiBold} 
-                    fontSize={14} 
-                    label={t('skip')} 
-                    onPress={()=>{navigation.navigate('PermitType')}} 
+                <View style={{paddingHorizontal:20}}>
+                <CustomText
+                    textAlign={'right'}
+                    marginTop={50}
+                    fontFamily={fonts.semiBold}
+                    fontSize={14}
+                    label={t('skip')}
+                    onPress={() => { navigation.navigate('PermitType') }}
                 />
 
                 <CustomText
@@ -88,6 +89,7 @@ const DmvLicensesOnboading = ({navigation}) => {
                 />
 
                 <ImageFast source={Images.onboarding} resizeMode={'contain'} style={styles.icon2} />
+                </View>
             </LinearGradient>
         </>
     );
@@ -98,7 +100,6 @@ export default DmvLicensesOnboading;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: 20
     },
     row: {
         flexDirection: 'row',
@@ -121,6 +122,6 @@ const styles = StyleSheet.create({
         height: 287,
         width: 299,
         alignSelf: 'center',
-        marginTop:30,
+        marginTop: 30,
     }
 });

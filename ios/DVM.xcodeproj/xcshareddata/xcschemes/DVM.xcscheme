@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "UtechoKit.app"
-               BlueprintName = "UtechoKit"
-               ReferencedContainer = "container:UtechoKit.xcodeproj">
+               BuildableName = "DMV.app"
+               BlueprintName = "DMV"
+               ReferencedContainer = "container:DMV.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "UtechoKitTests.xctest"
-               BlueprintName = "UtechoKitTests"
-               ReferencedContainer = "container:UtechoKit.xcodeproj">
+               BuildableName = "DMVTests.xctest"
+               BlueprintName = "DMVTests"
+               ReferencedContainer = "container:DMV.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "UtechoKit.app"
-            BlueprintName = "UtechoKit"
-            ReferencedContainer = "container:UtechoKit.xcodeproj">
+            BuildableName = "DMV.app"
+            BlueprintName = "DMV"
+            ReferencedContainer = "container:DMV.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "UtechoKit.app"
-            BlueprintName = "UtechoKit"
-            ReferencedContainer = "container:UtechoKit.xcodeproj">
+            BuildableName = "DMV.app"
+            BlueprintName = "DMV"
+            ReferencedContainer = "container:DMV.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
