@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import CustomText from '../../../../components/CustomText'
 import fonts from '../../../../assets/fonts'
@@ -46,72 +46,65 @@ const Services = () => {
         {
             title: t('realEstateAssistance'),
             image: Images.realstate,
-            function: () => { navigation.navigate('ComingSoon') }
+            function: () => { Alert.alert("Comming Soon") }
         },
         {
             title: t('loans'),
             image: Images.loans,
-            function: () => { navigation.navigate('ComingSoon') }
-        },
+ function: () => { Alert.alert("Comming Soon") }        },
         {
             title: t('interpretation'),
             image: Images.interperation,
-            function: () => { navigation.navigate('ComingSoon') }
-        },
+ function: () => { Alert.alert("Comming Soon") }        },
         {
             title: t('taxation'),
             image: Images.taxation,
-            function: () => { navigation.navigate('ComingSoon') }
-        },
+ function: () => { Alert.alert("Comming Soon") }        },
         {
             title: t('insurance'),
             image: Images.insurance,
-            function: () => { navigation.navigate('ComingSoon') }
-        },
+ function: () => { Alert.alert("Comming Soon") }        },
         {
             title: t('remodelingConstruction'),
             image: Images.remodling,
-            function: () => { navigation.navigate('ComingSoon') }
-        },
+ function: () => { Alert.alert("Comming Soon") }        },
         {
             title: t('plumbingElectricalWork'),
             image: Images.plumbing,
-            function: () => { navigation.navigate('ComingSoon') }
-        },
+ function: () => { Alert.alert("Comming Soon") }        },
         {
             title: t('familyLaw'),
             image: Images.familylaw,
-            function: () => { navigation.navigate('ComingSoon') }
-        },
+ function: () => { Alert.alert("Comming Soon") }        },
         {
             title: t('careerCounseling'),
             image: Images.career,
-            function: () => { navigation.navigate('ComingSoon') }
+             function: () => { Alert.alert("Comming Soon") }
         },
         {
             title: t('callCenters'),
             image: Images.callcenter,
-            function: () => { navigation.navigate('ComingSoon') }
+             function: () => { Alert.alert("Comming Soon") }
         },
         {
             title: t('websiteDigitalMarketing'),
             image: Images.website,
-            function: () => { navigation.navigate('ComingSoon') }
+             function: () => { Alert.alert("Comming Soon") }
         },
         {
             title: t('legalHelpInPakistan'),
             image: Images.legal,
-            function: () => { navigation.navigate('ComingSoon') }
+             function: () => { Alert.alert("Comming Soon") }
         },
         {
             title: t('nadraNicop'),
             image: Images.nadra,
-            function: () => { navigation.navigate('ComingSoon') }
+             function: () => { Alert.alert("Comming Soon") }
         },
         {
             title: t('groceryEatery'),
             image: Images.grocery,
-            function: () => { navigation.navigate('ComingSoon') }
+             function: () => { Alert.alert("Comming Soon") }
         }
     ];
     return (

@@ -54,7 +54,7 @@ const DmvLicensesOnboading = ({ navigation }) => {
                     fontFamily={fonts.semiBold}
                     fontSize={14}
                     label={t('skip')}
-                    onPress={() => { navigation.navigate('PermitType') }}
+                    onPress={() => { navigation.replace('PermitType') }}
                 />
 
                 <CustomText

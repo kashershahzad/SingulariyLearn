@@ -155,6 +155,7 @@ const Congratulations = ({ navigation, route }) => {
           fontFamily={fonts.regular}
           borderWidth={1}
           borderColor={'#ECEFF3'}
+          backgroundColor={'white'}
         />
       </View>
     </ScreenWrapper>

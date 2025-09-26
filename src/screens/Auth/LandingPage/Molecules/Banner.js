@@ -22,9 +22,10 @@ const Banner = () => {
                 fontFamily={fonts.jakartaSemiBold} 
                 fontSize={22} 
                 marginRight={100}
+                width={200}
             />
             
-            <CustomButton  
+            <CustomButton 
                 onPress={() => navigation.navigate('DmvLicensesOnboading')} 
                 title={t('start')} 
                 backgroundColor={COLORS.primaryColor4} 

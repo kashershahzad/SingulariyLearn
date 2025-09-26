@@ -13,19 +13,24 @@ import { ApiRequest } from '../../../../services/ApiRequest'
 import { useSelector } from 'react-redux'
 import Loading from '../../../../components/Loading'
 
-const HowToDo = ({ navigation }) => {
+const HowToDo = ({ navigation , route}) => {
     const currentLanguage = useSelector(state => state.language.language)
     const { t } = useTranslation()
     const [howtodo, sethowtodo] = useState([])
     const [loading, setLoading] = useState(true)
+
+    const { cat_id, title } = route.params 
+
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const body = {
                     type: 'get_data',
-                    table_name: 'useful_information'
+                    table_name: 'useful_information',
+                    cat_id:cat_id
                 }
+                console.log('kjnsd',body)
                 const response = await ApiRequest(body)
                 if (response.status === 200) {
                     console.log('useful_information', response.data)
@@ -60,7 +65,7 @@ const HowToDo = ({ navigation }) => {
         <ScreenWrapper
             headerUnScrollable={() => (
                 <Header2
-                    title={t('howToDoTitle')}
+                    title={title}
                     line='true'
                 />
             )}>
@@ -94,7 +99,7 @@ const HowToDo = ({ navigation }) => {
                                 fontSize={12}
                                 color={'black'}
                                 fontFamily={fonts.medium}
-                                label={item.title}
+                                label={item.headline}
                                 numberOfLines={2}
                             />
                             <ImageFast
