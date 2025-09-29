@@ -28,6 +28,10 @@ const EditProfile = () => {
   const [uploadimage, setuploadimage] = useState('')
 
   useEffect(() => {
+  console.log('dlkj', userData);
+  console.log('user', userData?.name);
+}, [userData]);
+  useEffect(() => {
     if (userData?.images !== "") {
       setProfileImage(userData.images);
     } else {

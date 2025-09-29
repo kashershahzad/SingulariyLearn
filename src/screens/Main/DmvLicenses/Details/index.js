@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View , ScrollView} from 'react-native'
 import React from 'react'
 import Heading from '../Molecules/Heading'
 import { Images } from '../../../../../assets/images'
@@ -15,6 +15,7 @@ const Details = ({ route }) => {
     console.log('Detail Item:', item);
 
     return (
+        <ScrollView>
         <ScreenWrapper
             scrollEnabled
             paddingHorizontal={0}
@@ -35,6 +36,7 @@ const Details = ({ route }) => {
                 />
             </View>
         </ScreenWrapper>
+        </ScrollView>
     )
 }
 

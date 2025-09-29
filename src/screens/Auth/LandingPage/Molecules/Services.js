@@ -36,7 +36,7 @@ const Services = () => {
                 //         navigation.navigate('PermitType')
                 //     }
                 // }
-                navigation.navigate('DmvLicensesOnboading')
+                navigation.navigate('PermitType')
         },
         {
             title: t('immigration'),

@@ -5,6 +5,7 @@ import {usersSlice} from './usersSlice';
 import {chatSlice} from './ChatSlice';
 import { OnBoardingSlice } from './onBoading';
 import { LanguageConfigSlice } from './LanguageConfig';
+import { PackageSlice } from './Packages';
 
 export const rootReducer = combineReducers({
   users: usersSlice.reducer,
@@ -12,4 +13,5 @@ export const rootReducer = combineReducers({
   chat: chatSlice.reducer,
   OnBoarding: OnBoardingSlice.reducer,
   language: LanguageConfigSlice.reducer,
+  package:PackageSlice.reducer
 });

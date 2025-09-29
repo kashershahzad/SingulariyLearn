@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React from 'react'
+import React,{useState, useEffect} from 'react'
 import ScreenWrapper from '../../../../../components/ScreenWrapper'
 import Header2 from '../../Molecules/Header2'
 import CustomText from '../../../../../components/CustomText'
@@ -8,12 +8,86 @@ import CustomHorizontalLine from '../../../../../components/CustomHorizontalLine
 import CustomButton from '../../../../../components/CustomButton'
 import { COLORS } from '../../../../../utils/COLORS'
 import { useTranslation } from 'react-i18next';
+import { ApiRequest } from '../../../../../services/ApiRequest'
+import { initPaymentSheet , presentPaymentSheet} from '@stripe/stripe-react-native'
+import { useDispatch } from 'react-redux'
+import { setPackage } from '../../../../../store/reducer/Packages'
 
 const Checkout = ({ route, navigation }) => {
     const { selectedPackage } = route.params;
     const { title, price, description, vehicle, duration } = selectedPackage;
     const { t } = useTranslation();
     const numericPrice = parseInt(price.replace(/\D/g, ''), 10);
+    const [refreshing, setRefreshing] = useState()
+    const dispatch = useDispatch()
+
+    const openPaymentSheet = async (paymentId) => {
+            const { error } = await presentPaymentSheet();
+            setRefreshing(false);
+    
+            if (error) {
+                Alert.alert(`Error code: ${error.code}`, error.message);
+            } else {
+                console.log("paymentId---->", paymentId);
+                completePayment(paymentId);
+                Alert.alert("Success", "Your payment is confirmed!");
+            }
+        };
+
+
+        const onPayPress = async () => {
+
+             if (refreshing) {
+        return; 
+    }
+            
+                setRefreshing(true);
+        
+                try {
+                    const body = {
+                        type: 'payment_intent',
+                        amount: numericPrice
+                    };
+        
+                    const response = await ApiRequest(body);
+        
+                    console.log("Payment Intent Response:", response.data.result);
+        
+        
+                    const result = response.data.result;
+                    console.log("Payment Intent Result:", result);
+        
+                    const { customer, ephemeralKey, paymentIntent, paymentIntent_id } = result;
+        
+                    const { error } = await initPaymentSheet({
+                        customerId: customer,
+                        customerEphemeralKeySecret: ephemeralKey,
+                        paymentIntentClientSecret: paymentIntent,
+                        merchantDisplayName: "Dvm Permit Test",
+                        allowsDelayedPaymentMethods: false,
+                    });
+        
+                    if (error) {
+                        setRefreshing(false);
+                    } else {
+                        openPaymentSheet(paymentIntent_id);
+                    }
+                } catch (error) {
+                    setRefreshing(false);
+                    console.log("Payment error:", error);
+                }
+        
+        
+            };
+        
+        
+            const completePayment = (paymentId) => {
+                console.log("Payment completed:", paymentId);
+                navigation.replace('Recipient')
+                dispatch(setPackage(true))
+                
+            }
+        
 
     return (
         <ScreenWrapper
@@ -22,9 +96,7 @@ const Checkout = ({ route, navigation }) => {
             footerUnScrollable={() => (
                 <View style={{ marginHorizontal: 16 }}>
                     <CustomButton
-                        onPress={() => {
-                            navigation.navigate('PaymentMethod', { price: numericPrice });
-                        }}
+                        onPress={onPayPress}
                         title={'Pay'}
                         marginTop={53}
                         height={62}

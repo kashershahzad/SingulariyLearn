@@ -7,10 +7,13 @@ import HomeScreen from '../screens/Main/HomeScreen';
 import { useTranslation } from 'react-i18next';
 import DmvTest from '../screens/Main/dmvtest';
 import ProfileScreen from '../screens/Main/profileScreen';
+import { useSelector } from 'react-redux';
 
 const Tab = createBottomTabNavigator();
 const TabStack = () => {
   const { t } = useTranslation();
+  const packages = useSelector((state) => state.package.package); 
+  console.log(packages)
   return (
     <Tab.Navigator
       screenOptions={() => ({
@@ -49,8 +52,8 @@ const TabStack = () => {
         component={HomeScreen}
       />
 
-
-      <Tab.Screen
+{
+  packages === true ? <Tab.Screen
         options={{
           tabBarIcon: ({ focused }) => (
             <Image
@@ -64,7 +67,10 @@ const TabStack = () => {
         }}
         name={t('Dmv Test')}
         component={DmvTest}
-      />
+      /> : null
+}
+
+      
 
 
       <Tab.Screen
