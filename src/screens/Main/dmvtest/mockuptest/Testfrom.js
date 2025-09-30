@@ -89,23 +89,10 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
     }, [currentQuestionIndex, userAnswers]);
 
     useEffect(() => {
-        if (timercomplete) {
-            handleAutoNext();
-        }
-    }, [timercomplete]);
-
-    useEffect(() => {
         if (currentQuestionIndex > 0) {
             setAverageTime(totalTime / currentQuestionIndex);
         }
     }, [totalTime, currentQuestionIndex]);
-
-    const handleAutoNext = () => {
-        setIsTransitioning(true);
-        setTimeout(() => {
-            moveToNextQuestion();
-        }, 1000);
-    };
 
     const moveToNextQuestion = () => {
         if (currentQuestionIndex < parsedQuestions.length - 1) {
@@ -197,36 +184,32 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
         return isSelected ? styles.selectedOption : styles.option;
     };
 
-    const handleNext = () => {
+    const handleShowAnswer = () => {
         if (selectedOption !== null && !isTransitioning) {
             saveCurrentAnswer();
             if (selectedOption === correctAnswers[currentQuestionIndex]) {
                 setScore(prevScore => prevScore + 1);
             }
-
-            // If mockuptest is true, skip feedback and go directly to next question
-            if (mockuptest) {
-                setIsTransitioning(true);
-                setTimeout(() => {
-                    moveToNextQuestion();
-                }, 100); // Short delay for smooth transition
-            } else {
-                // Original behavior: show feedback then auto-next
-                setShowFeedback(true);
-                handleAutoNext();
-            }
+            setShowFeedback(true);
         }
     };
 
+    const handleNext = () => {
+        setIsTransitioning(true);
+        setTimeout(() => {
+            moveToNextQuestion();
+        }, 100); // Short delay for smooth transition
+    };
+
     const getImageUrl = (question) => {
-  if (question.image && 
-      question.image !== "" &&
-      question.image !== 'https://7tracking.com/dmvpermit/images/' &&
-      !question.image.includes('/images/""')) {
-    return { uri: question.image };
-  }
-  return null;
-};
+        if (question.image && 
+            question.image !== "" &&
+            question.image !== 'https://7tracking.com/dmvpermit/images/' &&
+            !question.image.includes('/images/""')) {
+          return { uri: question.image };
+        }
+        return null;
+    };
 
     const handleSubmit = async () => {
         try {
@@ -347,13 +330,13 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
                 </View>
 
                 {getImageUrl(currentQuestion) ? (
-      <ImageFast
-        source={getImageUrl(currentQuestion)}
-        resizeMode={'contain'}
-        style={styles.icon}
-        onError={() => console.log('Image failed to load')}
-      />
-    ) : null}
+                    <ImageFast
+                        source={getImageUrl(currentQuestion)}
+                        resizeMode={'contain'}
+                        style={styles.icon}
+                        onError={() => console.log('Image failed to load')}
+                    />
+                ) : null}
 
                 {currentQuestion.options.map((option, index) => (
                     <TouchableOpacity
@@ -376,51 +359,96 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
                 ))}
             </ScrollView>
 
-            {showFeedback === false && (
-                <View style={styles.btnContainer}>
-                    <View style={styles.btn}>
-                        <CustomButton
-                            width={currentQuestionIndex >= 1 ? 100 : 149}
-                            height={52}
-                            fontSize={16}
-                            title={"Skip"}
-                            color={'black'}
-                            borderColor={'#ECEFF3'}
-                            borderWidth={2}
-                            borderRadius={25}
-                            onPress={handleSkip}
-                            disabled={isTransitioning}
-                        />
-                        {
-                            currentQuestionIndex >= 1 ? <CustomButton
-                                width={100}
+            <View style={styles.btnContainer}>
+                <View style={styles.btn}>
+                    {!showFeedback ? (
+                        // Normal state - user hasn't submitted answer yet
+                        <>
+                            <CustomButton
+                                width={currentQuestionIndex >= 1 ? 100 : 149}
                                 height={52}
                                 fontSize={16}
-                                title={'Back'}
+                                title={"Skip"}
                                 color={'black'}
+                                borderColor={'#ECEFF3'}
+                                borderWidth={2}
+                                borderRadius={25}
+                                onPress={handleSkip}
+                                disabled={isTransitioning}
+                            />
+                            {
+                                currentQuestionIndex >= 1 ? <CustomButton
+                                    width={100}
+                                    height={52}
+                                    fontSize={16}
+                                    title={'Back'}
+                                    color={'black'}
+                                    borderColor={'#ECEFF3'}
+                                    borderWidth={1}
+                                    borderRadius={25}
+                                    onPress={handleBack}
+                                    disabled={currentQuestionIndex === 0 || isTransitioning}
+                                /> : null
+                            }
+                            <CustomButton
+                                disabled={selectedOption === null || isTransitioning}
+                                width={currentQuestionIndex >= 1 ? 100 : 149}
+                                height={52}
+                                fontSize={16}
+                                title={"Next"}
+                                color={'white'}
                                 borderColor={'#ECEFF3'}
                                 borderWidth={1}
                                 borderRadius={25}
-                                onPress={handleBack}
-                                disabled={currentQuestionIndex === 0 || isTransitioning}
-                            /> : null
-                        }
-                        <CustomButton
-                            disabled={selectedOption === null || isTransitioning}
-                            width={currentQuestionIndex >= 1 ? 100 : 149}
-                            height={52}
-                            fontSize={16}
-                            title={currentQuestionIndex === parsedQuestions.length - 1 ? "Submit" : "Next"}
-                            color={'white'}
-                            borderColor={'#ECEFF3'}
-                            borderWidth={1}
-                            borderRadius={25}
-                            backgroundColor={'black'}
-                            onPress={handleNext}
-                        />
-                    </View>
+                                backgroundColor={'black'}
+                                onPress={handleShowAnswer}
+                            />
+                        </>
+                    ) : (
+                        // Feedback state - answer has been shown
+                        <>
+                            <CustomButton
+                                width={currentQuestionIndex >= 1 ? 100 : 149}
+                                height={52}
+                                fontSize={16}
+                                title={"Skip"}
+                                color={'black'}
+                                borderColor={'#ECEFF3'}
+                                borderWidth={2}
+                                borderRadius={25}
+                                onPress={handleSkip}
+                                disabled={isTransitioning}
+                            />
+                            {
+                                currentQuestionIndex >= 1 ? <CustomButton
+                                    width={100}
+                                    height={52}
+                                    fontSize={16}
+                                    title={'Back'}
+                                    color={'black'}
+                                    borderColor={'#ECEFF3'}
+                                    borderWidth={1}
+                                    borderRadius={25}
+                                    onPress={handleBack}
+                                    disabled={currentQuestionIndex === 0 || isTransitioning}
+                                /> : null
+                            }
+                            <CustomButton
+                                width={currentQuestionIndex >= 1 ? 100 : 149}
+                                height={52}
+                                fontSize={16}
+                                title={currentQuestionIndex === parsedQuestions.length - 1 ? "Submit" : "Next"}
+                                color={'white'}
+                                borderColor={'#ECEFF3'}
+                                borderWidth={1}
+                                borderRadius={25}
+                                backgroundColor={'#ED7D20'}
+                                onPress={handleNext}
+                            />
+                        </>
+                    )}
                 </View>
-            )}
+            </View>
         </View>
     );
 };
@@ -437,7 +465,6 @@ const styles = StyleSheet.create({
         padding: 20,
         marginTop: -30,
         paddingBottom: 10,
-        // minHeight:680
     },
     scrollContent: {
         flexGrow: 1,
@@ -491,7 +518,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
     },
     btnContainer: {
-        marginTop: 'auto', // This pushes the buttons to the bottom
+        marginTop: 'auto',
     },
     btn: {
         flexDirection: 'row',

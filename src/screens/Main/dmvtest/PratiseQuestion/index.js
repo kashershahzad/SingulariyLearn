@@ -62,7 +62,7 @@ const PratiseQuestion = () => {
                     setreset={setresettimer}
                     resettimer={resettimer}
                     timercomplete={setquestiontimer}
-                    timer={!isLoading}
+                    timer={false}
                     title={t('Practise Question')} />
             ) : null}
 
