@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
         height: 137,
         width: 137,
         position: 'absolute',
-        left: width * 0.60,
+        left: width * 0.70,
         top: 20,
     },
     icon2: {

@@ -188,6 +188,6 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     position: 'absolute',
     top: 133,
-    right: 100,
+    right: 120,
   }
 })
