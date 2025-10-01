@@ -25,6 +25,7 @@ const ProfileScreen = ({ navigation }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const token = useSelector(state => state.authConfig.token);
+  const userData = useSelector(state => state.users.userData)
   const [loading, setLoading] = useState(true)
   const [data, setdata] = useState()
 
@@ -109,7 +110,7 @@ const ProfileScreen = ({ navigation }) => {
       headerUnScrollable={() => (<Header2 title={t("profileTitle")} line='true' />)}>
       <View style={styles.container}>
         <ImageFast
-          source={data.images && data.images !== "" ? { uri: data.images } : Images.placeholderUser}
+          source={data.images && data.images !== "" ? { uri: userData.images } : Images.placeholderUser}
           resizeMode={'contain'}
           style={styles.icon}
         />
@@ -118,14 +119,14 @@ const ProfileScreen = ({ navigation }) => {
           fontSize={20}
           color={'black'}
           fontFamily={fonts.bold}
-          label={data.name || 'User Name'}
+          label={userData.name || 'User Name'}
         />
         <CustomText
           fontSize={13}
           marginTop={-7}
           color={'#737373'}
           fontFamily={fonts.light}
-          label={data.email}
+          label={userData.email}
         />
       </View>
 

@@ -24,28 +24,42 @@ const HomeScreen = ({ navigation }) => {
     const [data, setdata] = useState()
 
 
-     const fetchUserData = async () => {
-        try {
-          const body = {
-            type: "profile",
-            user_id: token.toString()
-          }
-          const response = await ApiRequest(body)
-          if (response && response.status === 200) {
-            setdata(response.data.profile)
-            console.log("User Data in home ", response.data.profile)
-          }
-        } catch (error) {
-          console.log("Error fetching user data: ", error)
-          setLoading(false)
-        }
-        setLoading(false)
+    //  const fetchUserData = async () => {
+    //     try {
+    //       const body = {
+    //         type: "profile",
+    //         user_id: token.toString()
+    //       }
+    //       const response = await ApiRequest(body)
+    //       if (response && response.status === 200) {
+    //         setdata(response.data.profile)
+    //         console.log("User Data in home ", response.data.profile)
+    //       }
+    //     } catch (error) {
+    //       console.log("Error fetching user data: ", error)
+    //       setLoading(false)
+    //     }
+    //     setLoading(false)
+    //   }
+    
+    //   useEffect(() => {
+    
+    //     fetchUserData()
+    //   }, [isFocus])
+
+        useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+         dispatch(getProfile());
+        setLoading(false);
+      } catch (error) {
+        console.log("Error fetching profile: ", error);
+        setLoading(false);
       }
+    };
     
-      useEffect(() => {
-    
-        fetchUserData()
-      }, [isFocus])
+    fetchProfile();
+  }, [isFocus, dispatch]);
 
     return (
       <ScreenWrapper
