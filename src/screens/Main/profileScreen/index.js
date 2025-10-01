@@ -26,31 +26,31 @@ const ProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const token = useSelector(state => state.authConfig.token);
   const userData = useSelector(state => state.users.userData)
-  const [loading, setLoading] = useState(true)
-  const [data, setdata] = useState()
+  // const [loading, setLoading] = useState(true)
+  // const [data, setdata] = useState()
 
-  const fetchUserData = async () => {
-    try {
-      const body = {
-        type: "profile",
-        user_id: token.toString()
-      }
-      const response = await ApiRequest(body)
-      if (response && response.status === 200) {
-        setdata(response.data.profile)
-        console.log("User Data in profile: ", response.data.profile)
-      }
-    } catch (error) {
-      console.log("Error fetching user data: ", error)
-      setLoading(false)
-    }
-    setLoading(false)
-  }
+  // const fetchUserData = async () => {
+  //   try {
+  //     const body = {
+  //       type: "profile",
+  //       user_id: token.toString()
+  //     }
+  //     const response = await ApiRequest(body)
+  //     if (response && response.status === 200) {
+  //       setdata(response.data.profile)
+  //       console.log("User Data in profile: ", response.data.profile)
+  //     }
+  //   } catch (error) {
+  //     console.log("Error fetching user data: ", error)
+  //     setLoading(false)
+  //   }
+  //   setLoading(false)
+  // }
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    fetchUserData()
-  }, [isFocus])
+  //   fetchUserData()
+  // }, [isFocus])
 
 
   const practiceMenuItems = [
@@ -98,19 +98,19 @@ const ProfileScreen = ({ navigation }) => {
     },
   ];
 
-  if (loading) {
-    return (
-      <>
-        <Loading />
-      </>)
-  }
+  // if (loading) {
+  //   return (
+  //     <>
+  //       <Loading />
+  //     </>)
+  // }
   return (
     <ScreenWrapper
       scrollEnabled
       headerUnScrollable={() => (<Header2 title={t("profileTitle")} line='true' />)}>
       <View style={styles.container}>
         <ImageFast
-          source={data.images && data.images !== "" ? { uri: userData.images } : Images.placeholderUser}
+          source={userData.images !== "" ? { uri: userData.images } : Images.placeholderUser}
           resizeMode={'contain'}
           style={styles.icon}
         />
