@@ -11,7 +11,7 @@ import { ApiRequest } from '../../../../services/ApiRequest';
 import { useSelector } from 'react-redux';
 import Video from 'react-native-video';
 
-const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) => {
+const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mockuptest = false, totalQuestions }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedOption, setSelectedOption] = useState(null);
     const [correctAnswers, setCorrectAnswers] = useState([]);
@@ -30,6 +30,9 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
     const [totalTime, setTotalTime] = useState(0);
     const [averageTime, setAverageTime] = useState(0);
     const [nullimage, setnullimage] = useState(false)
+    const [pageindex, setpageindex] = useState(1)
+    const [allQuestions, setAllQuestions] = useState([])
+    const [hasMoreQuestions, setHasMoreQuestions] = useState(true)
 
     const [isPlaying, setIsPlaying] = useState(false);
 
@@ -37,52 +40,101 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
         setIsPlaying(!isPlaying);
     };
 
+    // Load initial questions
     useEffect(() => {
-        if (questions && questions.length > 0) {
-            const parsed = questions.map(q => {
-                let questionData;
-                try {
-                    questionData = JSON.parse(q.question);
-                } catch (error) {
-                    console.error('Error parsing question:', error);
-                    questionData = { en: { question: q.question }, ur: { question: q.question } };
-                }
-
-                const questionText = questionData[currentLanguage]?.question || 'Question not available';
-
-                const languageAnswers = q.answers.filter(answer => answer.lang === currentLanguage);
-
-                const fallbackAnswers = languageAnswers.length > 0
-                    ? languageAnswers
-                    : q.answers.filter(answer => answer.lang === 'en');
-
-                const options = fallbackAnswers.map(answer => ({
-                    answer: answer.answer,
-                    correct: parseInt(answer.is_correct)
-                }));
-
-                return {
-                    ...q,
-                    question: questionText,
-                    options: options
-                };
-            });
-
-            setParsedQuestions(parsed);
-
-            const initialCorrectAnswers = parsed.map(q => {
-                const correctIndex = q.options.findIndex(option => option.correct === 1);
-                return correctIndex !== -1 ? correctIndex : 0;
-            });
-
-            setCorrectAnswers(initialCorrectAnswers);
-            setUserAnswers(new Array(parsed.length).fill(null));
-            setIsLoading(false);
-
-            setQuestionStartTimes({ 0: Date.now() });
+        if (initialQuestions && initialQuestions.length > 0) {
+            setAllQuestions(initialQuestions);
+            parseQuestions(initialQuestions);
         }
-        console.log("Parsed questions for language:", currentLanguage, questions);
-    }, [questions, currentLanguage]);
+    }, [initialQuestions, currentLanguage]);
+
+    const parseQuestions = (questionsArray) => {
+        const parsed = questionsArray.map(q => {
+            let questionData;
+            try {
+                questionData = JSON.parse(q.question);
+            } catch (error) {
+                console.error('Error parsing question:', error);
+                questionData = { en: { question: q.question }, ur: { question: q.question } };
+            }
+
+            const questionText = questionData[currentLanguage]?.question || 'Question not available';
+
+            const languageAnswers = q.answers.filter(answer => answer.lang === currentLanguage);
+
+            const fallbackAnswers = languageAnswers.length > 0
+                ? languageAnswers
+                : q.answers.filter(answer => answer.lang === 'en');
+
+            const options = fallbackAnswers.map(answer => ({
+                answer: answer.answer,
+                correct: parseInt(answer.is_correct)
+            }));
+
+            return {
+                ...q,
+                question: questionText,
+                options: options
+            };
+        });
+
+        setParsedQuestions(parsed);
+
+        const initialCorrectAnswers = parsed.map(q => {
+            const correctIndex = q.options.findIndex(option => option.correct === 1);
+            return correctIndex !== -1 ? correctIndex : 0;
+        });
+
+        setCorrectAnswers(initialCorrectAnswers);
+        setUserAnswers(new Array(parsed.length).fill(null));
+        setIsLoading(false);
+
+        setQuestionStartTimes({ 0: Date.now() });
+    };
+
+    const loadMoreQuestions = async () => {
+        try {
+            setIsLoading(true);
+            const nextPageIndex = pageindex + 1;
+            
+            const Body = {
+                type: "get_data",
+                table_name: "questions",
+                is_mockup: false,
+                last_id: nextPageIndex
+            }
+
+            console.log("Loading more questions with page:", nextPageIndex);
+            const response = await ApiRequest(Body);
+            console.log("Pagination response:", response.data); 
+            
+            if (response.data && response.data.data && response.data.data.length > 0) {
+                // Add new questions to existing ones
+                const newQuestions = [...allQuestions, ...response.data.data];
+                setAllQuestions(newQuestions);
+                setpageindex(nextPageIndex);
+                
+                // Parse and set the new questions
+                parseQuestions(newQuestions);
+                setHasMoreQuestions(true);
+                
+                console.log("Loaded", response.data.data.length, "more questions. Total:", newQuestions.length);
+            } else {
+                // No more questions available
+                console.log("No more questions available");
+                setHasMoreQuestions(false);
+                setIsLoading(false);
+                // Proceed to submit since no more questions
+                await submitAnswers();
+            }
+        } catch (error) {
+            console.error("API Error loading more questions:", error);
+            setHasMoreQuestions(false);
+            setIsLoading(false);
+            // If there's an error, proceed to submit current answers
+            await submitAnswers();
+        }
+    };
 
     useEffect(() => {
         setSelectedOption(userAnswers[currentQuestionIndex]);
@@ -95,6 +147,11 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
     }, [totalTime, currentQuestionIndex]);
 
     const moveToNextQuestion = () => {
+        console.log('moveToNextQuestion called', { 
+            currentIndex: currentQuestionIndex, 
+            totalQuestions: parsedQuestions.length 
+        });
+        
         if (currentQuestionIndex < parsedQuestions.length - 1) {
             const endTime = Date.now();
             const startTime = questionStartTimes[currentQuestionIndex] || endTime;
@@ -112,7 +169,14 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
             setIsTransitioning(false);
             resettimer(true);
         } else {
-            handleSubmit();
+            console.log('Last question in current batch reached, checking for more questions');
+            // Check if there are more questions to load
+            if (hasMoreQuestions) {
+                loadMoreQuestions();
+            } else {
+                console.log('No more questions, submitting answers');
+                handleSubmit();
+            }
         }
     };
 
@@ -146,7 +210,12 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
             setShowFeedback(false);
             resettimer(true);
         } else {
-            handleSubmit();
+            // Check if there are more questions to load
+            if (hasMoreQuestions) {
+                loadMoreQuestions();
+            } else {
+                handleSubmit();
+            }
         }
     };
 
@@ -198,46 +267,31 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
         setIsTransitioning(true);
         setTimeout(() => {
             moveToNextQuestion();
-        }, 100); // Short delay for smooth transition
+        }, 100); 
     };
 
-    const getImageUrl = (question) => {
-        if (question.image && 
-            question.image !== "" &&
-            question.image !== 'https://7tracking.com/dmvpermit/images/' &&
-            !question.image.includes('/images/""')) {
-          return { uri: question.image };
-        }
-        return null;
-    };
-
-    const handleSubmit = async () => {
+    const submitAnswers = async () => {
         try {
             setsubmitloading(true);
 
-            const finalScore = userAnswers.reduce((total, answer, index) => {
+            // Calculate final score including current question
+            const updatedAnswers = [...userAnswers];
+            if (selectedOption !== null && updatedAnswers[currentQuestionIndex] === null) {
+                updatedAnswers[currentQuestionIndex] = selectedOption;
+                setUserAnswers(updatedAnswers);
+            }
+
+            const finalScore = updatedAnswers.reduce((total, answer, index) => {
                 return total + (answer === correctAnswers[index] ? 1 : 0);
             }, 0);
 
-            if (selectedOption !== null && userAnswers[currentQuestionIndex] === null) {
-                const updatedAnswers = [...userAnswers];
-                updatedAnswers[currentQuestionIndex] = selectedOption;
-                setUserAnswers(updatedAnswers);
-
-                const finalScoreWithLastAnswer = updatedAnswers.reduce((total, answer, index) => {
-                    return total + (answer === correctAnswers[index] ? 1 : 0);
-                }, 0);
-
-                setScore(finalScoreWithLastAnswer);
-            } else {
-                setScore(finalScore);
-            }
+            setScore(finalScore);
 
             const answersData = parsedQuestions.map((question, index) => ({
                 question_id: question.id,
-                selected_option: userAnswers[index],
-                is_correct: userAnswers[index] === correctAnswers[index],
-                skiped: userAnswers[index] === null ? 1 : 0
+                selected_option: updatedAnswers[index],
+                is_correct: updatedAnswers[index] === correctAnswers[index],
+                skiped: updatedAnswers[index] === null ? 1 : 0
             }));
 
             const Body = {
@@ -268,10 +322,48 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
         }
     };
 
+    const handleSubmit = async () => {
+        console.log('handleSubmit called');
+        console.log('Current index:', currentQuestionIndex, 'Total questions:', parsedQuestions.length);
+        
+        // If there are more questions, load them first
+        if (hasMoreQuestions) {
+            console.log('More questions available, loading them...');
+            await loadMoreQuestions();
+        } else {
+            console.log('No more questions, submitting answers');
+            await submitAnswers();
+        }
+    };
+
+    const handleNextOrSubmit = () => {
+        if (currentQuestionIndex === parsedQuestions.length - 1) {
+            handleSubmit();
+        } else {
+            handleNext();
+        }
+    };
+
+    const getImageUrl = (question) => {
+        if (question.image && 
+            question.image !== "" &&
+            question.image !== 'https://7tracking.com/dmvpermit/images/' &&
+            !question.image.includes('/images/""')) {
+          return { uri: question.image };
+        }
+        return null;
+    };
+
     if (isLoading || parsedQuestions.length === 0 || submitloading) {
         return (
             <View style={[styles.centerContent]}>
                 <ActivityIndicator size="large" color={COLORS.primaryColor4} />
+                <CustomText
+                    label={hasMoreQuestions ? "Loading more questions..." : "Submitting answers..."}
+                    fontFamily={fonts.regular}
+                    marginTop={10}
+                    fontSize={14}
+                />
             </View>
         );
     }
@@ -283,9 +375,8 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
         try {
             const audioData = JSON.parse(question.audio);
             return audioData[currentLanguage] ;
-            console.log("Audio Data:", audioData);
         } catch (error) {
-            return question.audio || '';
+            return console.log('No Audio');
         }
     };
 
@@ -297,7 +388,7 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
             >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <CustomText
-                        label={`Question ${currentQuestionIndex + 1}/${parsedQuestions.length}`}
+                        label={`Question ${currentQuestionIndex + 1}/${totalQuestions}`}
                         fontFamily={fonts.jakartaBold}
                         fontSize={16}
                         color={'#4F4F4F'}
@@ -437,13 +528,14 @@ const Testfrom = ({ timercomplete, resettimer, questions, mockuptest = false }) 
                                 width={currentQuestionIndex >= 1 ? 100 : 149}
                                 height={52}
                                 fontSize={16}
-                                title={currentQuestionIndex === parsedQuestions.length - 1 ? "Submit" : "Next"}
+                                title={currentQuestionIndex === parsedQuestions.length - 1 ? 
+                                    (hasMoreQuestions ? "Next" : "Submit") : "Next"}
                                 color={'white'}
                                 borderColor={'#ECEFF3'}
                                 borderWidth={1}
                                 borderRadius={25}
                                 backgroundColor={'#ED7D20'}
-                                onPress={handleNext}
+                                onPress={handleNextOrSubmit}
                             />
                         </>
                     )}
@@ -528,5 +620,9 @@ const styles = StyleSheet.create({
     audio: {
         height: 23,
         width: 23
+    },
+    audioElement: {
+        width: 0,
+        height: 0
     }
 });

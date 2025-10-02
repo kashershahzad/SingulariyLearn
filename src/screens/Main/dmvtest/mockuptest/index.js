@@ -16,6 +16,7 @@ const Mockuptest = () => {
     const [questions, setQuestions] = useState([]);
     const [error, seterror] = useState(false)
     const [isLoading, setIsLoading] = useState(true);
+    const [totalQuestion, settotalQuestion] = useState('')
 
     useEffect(() => {
         const fetchquestion = async () => {
@@ -23,13 +24,15 @@ const Mockuptest = () => {
                 const Body = {
                     type: "get_data",
                     table_name: "questions",
-                    is_mockup: true
+                    is_mockup: true,
+                    last_id:1
                 }
 
                 const response = await ApiRequest(Body)
-                console.log("Mockup response", response);
-
-                if (response.data && response.data.data) {
+                console.log("Pratise response", response.data.total); 
+                settotalQuestion(response.data.total);
+                
+                if (response.data.data) {
                     setQuestions(response.data.data);
                     seterror(false);
                 } else {
@@ -68,7 +71,7 @@ const Mockuptest = () => {
             ) : null}
 
             {!error ? (
-                <Testfrom resettimer={setresettimer} timercomplete={questiontimer} questions={questions} mockuptest={true} />
+                <Testfrom resettimer={setresettimer}  totalQuestions={totalQuestion} timercomplete={questiontimer} questions={questions} mockuptest={true} />
             ) : null}
         </ScreenWrapper>
     )

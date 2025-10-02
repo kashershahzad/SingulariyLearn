@@ -15,60 +15,64 @@ const PratiseQuestion = () => {
     const [resettimer, setresettimer] = useState(false)
     const [questions, setQuestions] = useState([]);
     const [error, seterror] = useState(false)
-    const [isLoading, setIsLoading] = useState(true); 
-    
+    const [isLoading, setIsLoading] = useState(true)
+    const [totalQuestion, settotalQuestion] = useState('')
+
     useEffect(() => {
-            const fetchquestion = async () => {
-                try {
-                    const Body = {
-                        type: "get_data",
-                        table_name: "questions",
-                        is_mockup: false
-                    }
-    
-                    const response = await ApiRequest(Body)
-                    console.log("Pratise response", response);
-                    
-                    if (response.data && response.data.data) {
-                        setQuestions(response.data.data);
-                        seterror(false);
-                    } else {
-                        seterror(true);
-                    }
-                } catch (error) {
-                    console.error("API Error:", error);
-                    seterror(true);
-                } finally {
-                    setIsLoading(false);
+        const fetchquestion = async () => {
+            try {
+                const Body = {
+                    type: "get_data",
+                    table_name: "questions",
+                    is_mockup: false,
+                    last_id:1
                 }
+
+                const response = await ApiRequest(Body)
+                console.log("Pratise response", response.data.total); 
+                settotalQuestion(response.data.total);
+                
+                if (response.data.data) {
+                    setQuestions(response.data.data);
+                    seterror(false);
+                } else {
+                    seterror(true);
+                }
+            } catch (error) {
+                console.error("API Error:", error);
+                seterror(true);
+            } finally {
+                setIsLoading(false);
             }
-            fetchquestion()
-        }, [])
+        }
+        fetchquestion()
+    }, [])
 
     return (
-       <ScreenWrapper
+        <ScreenWrapper
             scrollEnabled
             statusBarColor={COLORS.primaryColor4}
             paddingHorizontal={0}>
 
-            {error ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <Text style={{ color: COLORS.red, fontSize: 16 }}>{"Something Went wrong"}</Text>
-                </View>
-            ) : null}
-
-            {!isLoading && !error ? (
-                <MockupHeader
-                    setreset={setresettimer}
-                    resettimer={resettimer}
-                    timercomplete={setquestiontimer}
-                    timer={false}
-                    title={t('Practise Question')} />
-            ) : null}
-
-            {!error ? (
-                <Testfrom resettimer={setresettimer} timercomplete={questiontimer} questions={questions} />
-            ) : null}
+            {/* Success State */}
+            {!isLoading && !error && (
+                <>
+                    <MockupHeader
+                        setreset={setresettimer}
+                        resettimer={resettimer}
+                        timercomplete={setquestiontimer}
+                        timer={false}
+                        title={t('Practise Question')} 
+                    />
+                    
+                    <Testfrom 
+                        resettimer={setresettimer} 
+                        timercomplete={questiontimer} 
+                        questions={questions} 
+                       totalQuestions={totalQuestion}
+                    />
+                </>
+            )}
         </ScreenWrapper>
     )
 }
@@ -76,5 +80,5 @@ const PratiseQuestion = () => {
 export default PratiseQuestion
 
 const styles = StyleSheet.create({
-
+    // Add your styles here if needed
 })

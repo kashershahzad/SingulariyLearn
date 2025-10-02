@@ -51,7 +51,7 @@ const MockupHeader = ({ timercomplete, resettimer, setreset, timer, title }) => 
                 fontFamily={fonts.regular}
                 fontSize={20}
                 color={'white'}
-                // marginLeft={50}
+                marginLeft={90}
                 // style={timer ? null : { marginLeft: 20 }} // Add margin when timer is false
             />
             {/* {
@@ -76,7 +76,6 @@ const styles = StyleSheet.create({
         height: 90,
         flexDirection: 'row',
         paddingTop: 20,
-        gap:"30%",
         paddingHorizontal: 16,
     },
     icon: {

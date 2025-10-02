@@ -18,60 +18,60 @@ import { useSelector } from 'react-redux';
 const HomeScreen = ({ navigation }) => {
 
   const isFocus = useIsFocused()
-    const dispatch = useDispatch();
-    const token = useSelector(state => state.authConfig.token);
-    const [loading, setLoading] = useState(true)
-    const [data, setdata] = useState()
+  const dispatch = useDispatch();
+  const token = useSelector(state => state.authConfig.token);
+  const [loading, setLoading] = useState(true)
+  const [data, setdata] = useState()
 
 
-    //  const fetchUserData = async () => {
-    //     try {
-    //       const body = {
-    //         type: "profile",
-    //         user_id: token.toString()
-    //       }
-    //       const response = await ApiRequest(body)
-    //       if (response && response.status === 200) {
-    //         setdata(response.data.profile)
-    //         console.log("User Data in home ", response.data.profile)
-    //       }
-    //     } catch (error) {
-    //       console.log("Error fetching user data: ", error)
-    //       setLoading(false)
-    //     }
-    //     setLoading(false)
-    //   }
-    
-    //   useEffect(() => {
-    
-    //     fetchUserData()
-    //   }, [isFocus])
+  //  const fetchUserData = async () => {
+  //     try {
+  //       const body = {
+  //         type: "profile",
+  //         user_id: token.toString()
+  //       }
+  //       const response = await ApiRequest(body)
+  //       if (response && response.status === 200) {
+  //         setdata(response.data.profile)
+  //         console.log("User Data in home ", response.data.profile)
+  //       }
+  //     } catch (error) {
+  //       console.log("Error fetching user data: ", error)
+  //       setLoading(false)
+  //     }
+  //     setLoading(false)
+  //   }
 
-        useEffect(() => {
+  //   useEffect(() => {
+
+  //     fetchUserData()
+  //   }, [isFocus])
+
+  useEffect(() => {
     const fetchProfile = async () => {
       try {
-         dispatch(getProfile());
+        dispatch(getProfile());
         setLoading(false);
       } catch (error) {
         console.log("Error fetching profile: ", error);
         setLoading(false);
       }
     };
-    
+
     fetchProfile();
   }, [isFocus, dispatch]);
 
-    return (
-      <ScreenWrapper
-        scrollEnabled
-        headerUnScrollable={() => (<Header />)}
-      >
-        <Banner />
-        <Services />
-      </ScreenWrapper>
-    )
-  }
+  return (
+    <ScreenWrapper
+      scrollEnabled
+      headerUnScrollable={() => (<Header />)}
+    >
+      <Banner />
+      <Services />
+    </ScreenWrapper>
+  )
+}
 
-  export default HomeScreen
+export default HomeScreen
 
-  const styles = StyleSheet.create({})
+const styles = StyleSheet.create({})

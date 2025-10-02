@@ -498,7 +498,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.DMV;
+				PRODUCT_BUNDLE_IDENTIFIER = com.DMV.app;
 				PRODUCT_NAME = DMV;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -526,7 +526,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.DMV;
+				PRODUCT_BUNDLE_IDENTIFIER = com.DMV.app;
 				PRODUCT_NAME = DMV;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
