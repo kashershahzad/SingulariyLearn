@@ -31,8 +31,8 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
     const [averageTime, setAverageTime] = useState(0);
     const [nullimage, setnullimage] = useState(false)
     const [pageindex, setpageindex] = useState(1)
-    const [allQuestions, setAllQuestions] = useState([])
     const [hasMoreQuestions, setHasMoreQuestions] = useState(true)
+    const [totalSubmittedAnswers, setTotalSubmittedAnswers] = useState(0)
 
     const [isPlaying, setIsPlaying] = useState(false);
 
@@ -43,7 +43,6 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
     // Load initial questions
     useEffect(() => {
         if (initialQuestions && initialQuestions.length > 0) {
-            setAllQuestions(initialQuestions);
             parseQuestions(initialQuestions);
         }
     }, [initialQuestions, currentLanguage]);
@@ -89,7 +88,11 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
         setUserAnswers(new Array(parsed.length).fill(null));
         setIsLoading(false);
 
+        // Reset question start times for new batch
         setQuestionStartTimes({ 0: Date.now() });
+        
+        // Reset timer when new questions are loaded
+        resettimer(true);
     };
 
     const loadMoreQuestions = async () => {
@@ -109,16 +112,24 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
             console.log("Pagination response:", response.data); 
             
             if (response.data && response.data.data && response.data.data.length > 0) {
-                // Add new questions to existing ones
-                const newQuestions = [...allQuestions, ...response.data.data];
-                setAllQuestions(newQuestions);
+                // Calculate total submitted answers from previous batch
+                const previousBatchAnswers = userAnswers.filter(answer => answer !== null).length;
+                setTotalSubmittedAnswers(prev => prev + previousBatchAnswers);
+                
+                // Set ONLY the new questions, don't append to old ones
+                const newQuestions = response.data.data;
                 setpageindex(nextPageIndex);
                 
-                // Parse and set the new questions
+                // Parse and set ONLY the new questions
                 parseQuestions(newQuestions);
+                
+                // Reset to first question of new batch
+                setCurrentQuestionIndex(0);
+                setSelectedOption(null);
+                setShowFeedback(false);
                 setHasMoreQuestions(true);
                 
-                console.log("Loaded", response.data.data.length, "more questions. Total:", newQuestions.length);
+                console.log("Loaded", newQuestions.length, "new questions");
             } else {
                 // No more questions available
                 console.log("No more questions available");
@@ -145,6 +156,31 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
             setAverageTime(totalTime / currentQuestionIndex);
         }
     }, [totalTime, currentQuestionIndex]);
+
+    // Calculate current batch answered questions
+    const getCurrentBatchAnsweredCount = () => {
+        return userAnswers.filter(answer => answer !== null).length;
+    };
+
+    // Calculate total questions across all batches
+    const getTotalQuestionsCount = () => {
+        return totalSubmittedAnswers + parsedQuestions.length;
+    };
+
+    // Calculate total answered questions across all batches
+    const getTotalAnsweredCount = () => {
+        return totalSubmittedAnswers + getCurrentBatchAnsweredCount();
+    };
+
+    // Get current question number starting from 1
+    const getCurrentQuestionNumber = () => {
+        return totalSubmittedAnswers + currentQuestionIndex + 1;
+    };
+
+    // Get total questions starting from 1
+    const getDisplayTotalQuestions = () => {
+        return totalSubmittedAnswers + parsedQuestions.length;
+    };
 
     const moveToNextQuestion = () => {
         console.log('moveToNextQuestion called', { 
@@ -175,7 +211,7 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
                 loadMoreQuestions();
             } else {
                 console.log('No more questions, submitting answers');
-                handleSubmit();
+                submitAnswers();
             }
         }
     };
@@ -214,7 +250,7 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
             if (hasMoreQuestions) {
                 loadMoreQuestions();
             } else {
-                handleSubmit();
+                submitAnswers();
             }
         }
     };
@@ -310,7 +346,7 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
 
             navigation.replace('Congratulations', {
                 score: finalScore,
-                totalQuestions: parsedQuestions.length,
+                totalQuestions: getTotalQuestionsCount(),
                 averageTime: averageTime
             });
 
@@ -368,7 +404,7 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
         );
     }
 
-    const progressWidth = `${((currentQuestionIndex + 1) / parsedQuestions.length) * 100}%`;
+    const progressWidth = `${((currentQuestionIndex + 1) / totalQuestions) * 100}%`;
     const currentQuestion = parsedQuestions[currentQuestionIndex];
 
     const getAudioUrl = (question) => {
@@ -388,7 +424,7 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
             >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <CustomText
-                        label={`Question ${currentQuestionIndex + 1}/${totalQuestions}`}
+                        label={`Question ${getCurrentQuestionNumber()}/${totalQuestions}`}
                         fontFamily={fonts.jakartaBold}
                         fontSize={16}
                         color={'#4F4F4F'}
