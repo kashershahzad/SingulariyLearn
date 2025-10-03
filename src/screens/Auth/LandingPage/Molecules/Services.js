@@ -9,6 +9,7 @@ import { useNavigation, useIsFocused } from '@react-navigation/native'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { useDispatch } from 'react-redux'
+import { ToastMessage } from '../../../../utils/ToastMessage'
 import { setOnBoarding } from '../../../../store/reducer/onBoading'
 
 const Services = () => {
@@ -26,7 +27,7 @@ const Services = () => {
         {
             title: t('dmvLicenses'),
             image: Images.immigration,
-            function: () => 
+            function: () =>
                 // {
                 // if (onboadingstate === false) 
                 //     { navigation.navigate('DmvLicensesOnboading'),
@@ -41,70 +42,77 @@ const Services = () => {
         {
             title: t('immigration'),
             image: Images.immigration,
-            function: () => { navigation.navigate('ImmigrationOnBoading') }
+            function: () => { navigation.navigate('Immigration') }
         },
         {
             title: t('realEstateAssistance'),
             image: Images.realstate,
-            function: () => { Alert.alert("Comming Soon") }
+            function: () => ToastMessage("Coming Soon")
         },
         {
             title: t('loans'),
             image: Images.loans,
- function: () => { Alert.alert("Comming Soon") }        },
+            function: () => ToastMessage("Coming Soon")
+        },
         {
             title: t('interpretation'),
             image: Images.interperation,
- function: () => { Alert.alert("Comming Soon") }        },
+            function: () => ToastMessage("Coming Soon")
+        },
         {
             title: t('taxation'),
             image: Images.taxation,
- function: () => { Alert.alert("Comming Soon") }        },
+            function: () => ToastMessage("Coming Soon")
+        },
         {
             title: t('insurance'),
             image: Images.insurance,
- function: () => { Alert.alert("Comming Soon") }        },
+            function: () => ToastMessage("Coming Soon")
+        },
         {
             title: t('remodelingConstruction'),
             image: Images.remodling,
- function: () => { Alert.alert("Comming Soon") }        },
+            function: () => ToastMessage("Coming Soon")
+        },
         {
             title: t('plumbingElectricalWork'),
             image: Images.plumbing,
- function: () => { Alert.alert("Comming Soon") }        },
+            function: () => ToastMessage("Coming Soon")
+        },
         {
             title: t('familyLaw'),
             image: Images.familylaw,
- function: () => { Alert.alert("Comming Soon") }        },
+            function: () => ToastMessage("Coming Soon")
+        },
         {
             title: t('careerCounseling'),
             image: Images.career,
-             function: () => { Alert.alert("Comming Soon") }
+            function: () => ToastMessage("Coming Soon")
         },
         {
             title: t('callCenters'),
             image: Images.callcenter,
-             function: () => { Alert.alert("Comming Soon") }
+            function: () => ToastMessage("Coming Soon")
         },
         {
             title: t('websiteDigitalMarketing'),
             image: Images.website,
-             function: () => { Alert.alert("Comming Soon") }
+            function: () => ToastMessage("Coming Soon")
         },
         {
             title: t('legalHelpInPakistan'),
             image: Images.legal,
-             function: () => { Alert.alert("Comming Soon") }
+            function: () => ToastMessage("Coming Soon")
         },
         {
             title: t('nadraNicop'),
             image: Images.nadra,
-             function: () => { Alert.alert("Comming Soon") }
+            function: () => ToastMessage("Coming Soon")
         },
         {
             title: t('groceryEatery'),
             image: Images.grocery,
-             function: () => { Alert.alert("Comming Soon") }
+            function: () => ToastMessage("Coming Soon")
         }
     ];
     return (

@@ -124,7 +124,7 @@ const SignupScreen = ({ navigation }) => {
           <>
           <CustomInput
               marginTop={15}
-              placeholder={t('Enter your name')}
+              placeholder={t('enterYourName')}
               placeholderTextColor={COLORS.graytext}
               borderRadius={10}
               borderColor={'#EFEFEF'}

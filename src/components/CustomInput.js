@@ -109,6 +109,7 @@ const CustomInput = ({
               paddingVertical: multiline ? 18 : 0,
               marginLeft: iconImage && iconPosition === 'left' ? 10 : 0,
               marginRight: iconImage && iconPosition === 'right' ? 10 : 0,
+              paddingRight: secureTextEntry ? 10 : 0,
             },
           ]}
           secureTextEntry={secureTextEntry ? (hidePass ? true : false) : false}
