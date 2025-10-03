@@ -11,28 +11,28 @@ import { ApiRequest } from '../../../../services/ApiRequest';
 import { useSelector } from 'react-redux';
 import Video from 'react-native-video';
 
-const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mockuptest = false, totalQuestions }) => {
+const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestions }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedOption, setSelectedOption] = useState(null);
-    const [correctAnswers, setCorrectAnswers] = useState([]);
     const [showFeedback, setShowFeedback] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [parsedQuestions, setParsedQuestions] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [submitloading, setsubmitloading] = useState(false)
-    const [userAnswers, setUserAnswers] = useState([]);
+    const [submitloading, setsubmitloading] = useState(false);
+    
+    // Store ALL answers across all pages
+    const [allAnswers, setAllAnswers] = useState([]);
+    
     const navigation = useNavigation();
-    const token = useSelector(state => state.authConfig.token)
+    const token = useSelector(state => state.authConfig.token);
     const currentLanguage = useSelector(state => state.language.language);
 
     const [score, setScore] = useState(0);
     const [questionStartTimes, setQuestionStartTimes] = useState({});
     const [totalTime, setTotalTime] = useState(0);
     const [averageTime, setAverageTime] = useState(0);
-    const [nullimage, setnullimage] = useState(false)
-    const [pageindex, setpageindex] = useState(1)
-    const [hasMoreQuestions, setHasMoreQuestions] = useState(true)
-    const [totalSubmittedAnswers, setTotalSubmittedAnswers] = useState(0)
+    const [currentPageIndex, setCurrentPageIndex] = useState(1);
+    const [totalQuestionsAnswered, setTotalQuestionsAnswered] = useState(0);
 
     const [isPlaying, setIsPlaying] = useState(false);
 
@@ -40,12 +40,53 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
         setIsPlaying(!isPlaying);
     };
 
-    // Load initial questions
+    // Load initial questions on mount
     useEffect(() => {
-        if (initialQuestions && initialQuestions.length > 0) {
-            parseQuestions(initialQuestions);
+        loadQuestions(1);
+    }, []);
+
+    const loadQuestions = async (pageIndex) => {
+
+        
+        try {
+            setIsLoading(true);
+            
+            const Body = {
+                type: "get_data",
+                table_name: "questions",
+                is_mockup: false,
+                last_id: pageIndex
+            };
+
+            console.log("Loading questions with page:", pageIndex);
+            const response = await ApiRequest(Body);
+            console.log("API response:", response.data);
+            
+            if (response.data && response.data.data && response.data.data.length > 0) {
+                const newQuestions = response.data.data;
+                parseQuestions(newQuestions);
+                setCurrentPageIndex(pageIndex);
+                setCurrentQuestionIndex(0);
+                setSelectedOption(null);
+                setShowFeedback(false);
+                setQuestionStartTimes({ 0: Date.now() });
+                resettimer(true);
+            } else {
+                // No more questions available - submit all answers
+                console.log("No more questions available, submitting all answers");
+                await submitAllAnswers();
+            }
+        } catch (error) {
+            console.error("API Error loading questions:", error);
+            // If error and we have answers, submit them
+            if (allAnswers.length > 0) {
+                await submitAllAnswers();
+            } else {
+                Alert.alert('Error', 'Failed to load questions. Please try again.');
+                setIsLoading(false);
+            }
         }
-    }, [initialQuestions, currentLanguage]);
+    };
 
     const parseQuestions = (questionsArray) => {
         const parsed = questionsArray.map(q => {
@@ -70,125 +111,29 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
                 correct: parseInt(answer.is_correct)
             }));
 
+            const correctIndex = options.findIndex(option => option.correct === 1);
+
             return {
                 ...q,
                 question: questionText,
-                options: options
+                options: options,
+                correctAnswerIndex: correctIndex !== -1 ? correctIndex : 0
             };
         });
 
         setParsedQuestions(parsed);
-
-        const initialCorrectAnswers = parsed.map(q => {
-            const correctIndex = q.options.findIndex(option => option.correct === 1);
-            return correctIndex !== -1 ? correctIndex : 0;
-        });
-
-        setCorrectAnswers(initialCorrectAnswers);
-        setUserAnswers(new Array(parsed.length).fill(null));
         setIsLoading(false);
-
-        // Reset question start times for new batch
-        setQuestionStartTimes({ 0: Date.now() });
-        
-        // Reset timer when new questions are loaded
-        resettimer(true);
-    };
-
-    const loadMoreQuestions = async () => {
-        try {
-            setIsLoading(true);
-            const nextPageIndex = pageindex + 1;
-            
-            const Body = {
-                type: "get_data",
-                table_name: "questions",
-                is_mockup: false,
-                last_id: nextPageIndex
-            }
-
-            console.log("Loading more questions with page:", nextPageIndex);
-            const response = await ApiRequest(Body);
-            console.log("Pagination response:", response.data); 
-            
-            if (response.data && response.data.data && response.data.data.length > 0) {
-                // Calculate total submitted answers from previous batch
-                const previousBatchAnswers = userAnswers.filter(answer => answer !== null).length;
-                setTotalSubmittedAnswers(prev => prev + previousBatchAnswers);
-                
-                // Set ONLY the new questions, don't append to old ones
-                const newQuestions = response.data.data;
-                setpageindex(nextPageIndex);
-                
-                // Parse and set ONLY the new questions
-                parseQuestions(newQuestions);
-                
-                // Reset to first question of new batch
-                setCurrentQuestionIndex(0);
-                setSelectedOption(null);
-                setShowFeedback(false);
-                setHasMoreQuestions(true);
-                
-                console.log("Loaded", newQuestions.length, "new questions");
-            } else {
-                // No more questions available
-                console.log("No more questions available");
-                setHasMoreQuestions(false);
-                setIsLoading(false);
-                // Proceed to submit since no more questions
-                await submitAnswers();
-            }
-        } catch (error) {
-            console.error("API Error loading more questions:", error);
-            setHasMoreQuestions(false);
-            setIsLoading(false);
-            // If there's an error, proceed to submit current answers
-            await submitAnswers();
-        }
     };
 
     useEffect(() => {
-        setSelectedOption(userAnswers[currentQuestionIndex]);
-    }, [currentQuestionIndex, userAnswers]);
-
-    useEffect(() => {
-        if (currentQuestionIndex > 0) {
-            setAverageTime(totalTime / currentQuestionIndex);
+        if (currentQuestionIndex > 0 && totalTime > 0) {
+            setAverageTime(totalTime / (totalQuestionsAnswered + currentQuestionIndex));
         }
-    }, [totalTime, currentQuestionIndex]);
-
-    // Calculate current batch answered questions
-    const getCurrentBatchAnsweredCount = () => {
-        return userAnswers.filter(answer => answer !== null).length;
-    };
-
-    // Calculate total questions across all batches
-    const getTotalQuestionsCount = () => {
-        return totalSubmittedAnswers + parsedQuestions.length;
-    };
-
-    // Calculate total answered questions across all batches
-    const getTotalAnsweredCount = () => {
-        return totalSubmittedAnswers + getCurrentBatchAnsweredCount();
-    };
-
-    // Get current question number starting from 1
-    const getCurrentQuestionNumber = () => {
-        return totalSubmittedAnswers + currentQuestionIndex + 1;
-    };
-
-    // Get total questions starting from 1
-    const getDisplayTotalQuestions = () => {
-        return totalSubmittedAnswers + parsedQuestions.length;
-    };
+    }, [totalTime, currentQuestionIndex, totalQuestionsAnswered]);
 
     const moveToNextQuestion = () => {
-        console.log('moveToNextQuestion called', { 
-            currentIndex: currentQuestionIndex, 
-            totalQuestions: parsedQuestions.length 
-        });
-        
         if (currentQuestionIndex < parsedQuestions.length - 1) {
+            // Move to next question in current batch
             const endTime = Date.now();
             const startTime = questionStartTimes[currentQuestionIndex] || endTime;
             const timeTaken = (endTime - startTime) / 1000;
@@ -200,31 +145,32 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
                 [currentQuestionIndex + 1]: Date.now()
             }));
 
-            setCurrentQuestionIndex(currentQuestionIndex + 1);
+            const nextIndex = currentQuestionIndex + 1;
+            setCurrentQuestionIndex(nextIndex);
             setShowFeedback(false);
             setIsTransitioning(false);
+            setSelectedOption(null); // Clear selection for next question
             resettimer(true);
         } else {
-            console.log('Last question in current batch reached, checking for more questions');
-            // Check if there are more questions to load
-            if (hasMoreQuestions) {
-                loadMoreQuestions();
-            } else {
-                console.log('No more questions, submitting answers');
-                submitAnswers();
-            }
-        }
-    };
-
-    const handleBack = () => {
-        if (currentQuestionIndex > 0 && !isTransitioning) {
-            const updatedAnswers = [...userAnswers];
-            updatedAnswers[currentQuestionIndex] = null;
-            setUserAnswers(updatedAnswers);
-
-            setCurrentQuestionIndex(currentQuestionIndex - 1);
+            // Last question of current batch - load next batch
+            console.log('Last question in current batch, loading next page');
+            
+            // Calculate time for last question
+            const endTime = Date.now();
+            const startTime = questionStartTimes[currentQuestionIndex] || endTime;
+            const timeTaken = (endTime - startTime) / 1000;
+            setTotalTime(prevTotal => prevTotal + timeTaken);
+            
+            // Update total questions answered
+            setTotalQuestionsAnswered(prev => prev + parsedQuestions.length);
+            
+            // Reset states before loading next page
             setShowFeedback(false);
-            resettimer(true);
+            setIsTransitioning(false);
+            setSelectedOption(null);
+            
+            // Load next page
+            loadQuestions(currentPageIndex + 1);
         }
     };
 
@@ -234,7 +180,13 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
         const timeTaken = (endTime - startTime) / 1000;
         setTotalTime(prevTotal => prevTotal + timeTaken);
 
-        saveCurrentAnswer();
+        // Save skipped answer (null) only if not already saved
+        const currentQuestion = parsedQuestions[currentQuestionIndex];
+        const alreadySaved = allAnswers.some(ans => ans.question_id === currentQuestion.id);
+        
+        if (!alreadySaved) {
+            saveCurrentAnswer(null);
+        }
 
         if (currentQuestionIndex < parsedQuestions.length - 1) {
             setQuestionStartTimes(prev => ({
@@ -244,39 +196,44 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
 
             setCurrentQuestionIndex(currentQuestionIndex + 1);
             setShowFeedback(false);
+            setSelectedOption(null);
             resettimer(true);
         } else {
-            // Check if there are more questions to load
-            if (hasMoreQuestions) {
-                loadMoreQuestions();
-            } else {
-                submitAnswers();
-            }
+            // Last question - load next batch
+            setTotalQuestionsAnswered(prev => prev + parsedQuestions.length);
+            loadQuestions(currentPageIndex + 1);
         }
     };
 
     const handleOptionSelect = (index) => {
         if (!isTransitioning) {
             setSelectedOption(index);
-            saveAnswer(index);
         }
     };
 
-    const saveCurrentAnswer = () => {
-        if (selectedOption !== null) {
-            saveAnswer(selectedOption);
-        }
-    };
+    const saveCurrentAnswer = (answerIndex) => {
+        const currentQuestion = parsedQuestions[currentQuestionIndex];
+        const isCorrect = answerIndex === currentQuestion.correctAnswerIndex;
+        
+        const answerData = {
+            question_id: currentQuestion.id,
+            selected_option: answerIndex,
+            is_correct: isCorrect,
+            skiped: answerIndex === null ? 1 : 0
+        };
 
-    const saveAnswer = (answerIndex) => {
-        const updatedAnswers = [...userAnswers];
-        updatedAnswers[currentQuestionIndex] = answerIndex;
-        setUserAnswers(updatedAnswers);
+        // Add to allAnswers array
+        setAllAnswers(prev => [...prev, answerData]);
+        
+        // Update score if correct
+        if (isCorrect) {
+            setScore(prevScore => prevScore + 1);
+        }
     };
 
     const getOptionStyle = (index) => {
         const isSelected = selectedOption === index;
-        const isCorrect = index === correctAnswers[currentQuestionIndex];
+        const isCorrect = index === parsedQuestions[currentQuestionIndex]?.correctAnswerIndex;
 
         if (showFeedback) {
             if (isSelected) {
@@ -291,9 +248,12 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
 
     const handleShowAnswer = () => {
         if (selectedOption !== null && !isTransitioning) {
-            saveCurrentAnswer();
-            if (selectedOption === correctAnswers[currentQuestionIndex]) {
-                setScore(prevScore => prevScore + 1);
+            // Only save if not already saved
+            const currentQuestion = parsedQuestions[currentQuestionIndex];
+            const alreadySaved = allAnswers.some(ans => ans.question_id === currentQuestion.id);
+            
+            if (!alreadySaved) {
+                saveCurrentAnswer(selectedOption);
             }
             setShowFeedback(true);
         }
@@ -303,51 +263,36 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
         setIsTransitioning(true);
         setTimeout(() => {
             moveToNextQuestion();
-        }, 100); 
+        }, 100);
     };
 
-    const submitAnswers = async () => {
+    const submitAllAnswers = async () => {
         try {
             setsubmitloading(true);
 
-            // Calculate final score including current question
-            const updatedAnswers = [...userAnswers];
-            if (selectedOption !== null && updatedAnswers[currentQuestionIndex] === null) {
-                updatedAnswers[currentQuestionIndex] = selectedOption;
-                setUserAnswers(updatedAnswers);
-            }
-
-            const finalScore = updatedAnswers.reduce((total, answer, index) => {
-                return total + (answer === correctAnswers[index] ? 1 : 0);
-            }, 0);
-
-            setScore(finalScore);
-
-            const answersData = parsedQuestions.map((question, index) => ({
-                question_id: question.id,
-                selected_option: updatedAnswers[index],
-                is_correct: updatedAnswers[index] === correctAnswers[index],
-                skiped: updatedAnswers[index] === null ? 1 : 0
-            }));
+            // Calculate final average time
+            const finalAverageTime = totalTime / allAnswers.length || 0;
 
             const Body = {
                 type: "add_data",
                 user_id: token,
                 table_name: 'user_questionnaire',
-                questions: JSON.stringify(answersData),
-                score: finalScore,
-                average_time: averageTime
+                questions: JSON.stringify(allAnswers),
+                score: score,
+                average_time: finalAverageTime
             };
 
-            console.log('Submitting Answers:', Body);
+            console.log('Submitting All Answers:', Body);
+            console.log('Total answers:', allAnswers.length);
+            console.log('Final score:', score);
 
             const response = await ApiRequest(Body);
             console.log('API Response:', response);
 
             navigation.replace('Congratulations', {
-                score: finalScore,
-                totalQuestions: getTotalQuestionsCount(),
-                averageTime: averageTime
+                score: score,
+                totalQuestions: allAnswers.length,
+                averageTime: finalAverageTime
             });
 
         } catch (error) {
@@ -358,23 +303,10 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
         }
     };
 
-    const handleSubmit = async () => {
-        console.log('handleSubmit called');
-        console.log('Current index:', currentQuestionIndex, 'Total questions:', parsedQuestions.length);
-        
-        // If there are more questions, load them first
-        if (hasMoreQuestions) {
-            console.log('More questions available, loading them...');
-            await loadMoreQuestions();
-        } else {
-            console.log('No more questions, submitting answers');
-            await submitAnswers();
-        }
-    };
-
     const handleNextOrSubmit = () => {
         if (currentQuestionIndex === parsedQuestions.length - 1) {
-            handleSubmit();
+            // Last question of current batch
+            handleNext();
         } else {
             handleNext();
         }
@@ -390,12 +322,21 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
         return null;
     };
 
+    const getAudioUrl = (question) => {
+        try {
+            const audioData = JSON.parse(question.audio);
+            return audioData[currentLanguage];
+        } catch (error) {
+            return console.log('No Audio');
+        }
+    };
+
     if (isLoading || parsedQuestions.length === 0 || submitloading) {
         return (
             <View style={[styles.centerContent]}>
                 <ActivityIndicator size="large" color={COLORS.primaryColor4} />
                 <CustomText
-                    label={hasMoreQuestions ? "Loading more questions..." : "Submitting answers..."}
+                    label={submitloading ? "Submitting answers..." : "Loading questions..."}
                     fontFamily={fonts.regular}
                     marginTop={10}
                     fontSize={14}
@@ -404,17 +345,9 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
         );
     }
 
-    const progressWidth = `${((currentQuestionIndex + 1) / totalQuestions) * 100}%`;
+    const currentQuestionNumber = totalQuestionsAnswered + currentQuestionIndex + 1;
+    const progressWidth = `${((currentQuestionNumber) / totalQuestions) * 100}%`;
     const currentQuestion = parsedQuestions[currentQuestionIndex];
-
-    const getAudioUrl = (question) => {
-        try {
-            const audioData = JSON.parse(question.audio);
-            return audioData[currentLanguage] ;
-        } catch (error) {
-            return console.log('No Audio');
-        }
-    };
 
     return (
         <View style={styles.container}>
@@ -424,7 +357,7 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
             >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <CustomText
-                        label={`Question ${getCurrentQuestionNumber()}/${totalQuestions}`}
+                        label={`Question ${currentQuestionNumber}/${totalQuestions}`}
                         fontFamily={fonts.jakartaBold}
                         fontSize={16}
                         color={'#4F4F4F'}
@@ -489,10 +422,9 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
             <View style={styles.btnContainer}>
                 <View style={styles.btn}>
                     {!showFeedback ? (
-                        // Normal state - user hasn't submitted answer yet
                         <>
                             <CustomButton
-                                width={currentQuestionIndex >= 1 ? 100 : 149}
+                                width={149}
                                 height={52}
                                 fontSize={16}
                                 title={"Skip"}
@@ -503,23 +435,9 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
                                 onPress={handleSkip}
                                 disabled={isTransitioning}
                             />
-                            {
-                                currentQuestionIndex >= 1 ? <CustomButton
-                                    width={100}
-                                    height={52}
-                                    fontSize={16}
-                                    title={'Back'}
-                                    color={'black'}
-                                    borderColor={'#ECEFF3'}
-                                    borderWidth={1}
-                                    borderRadius={25}
-                                    onPress={handleBack}
-                                    disabled={currentQuestionIndex === 0 || isTransitioning}
-                                /> : null
-                            }
                             <CustomButton
                                 disabled={selectedOption === null || isTransitioning}
-                                width={currentQuestionIndex >= 1 ? 100 : 149}
+                                width={149}
                                 height={52}
                                 fontSize={16}
                                 title={"Next"}
@@ -532,10 +450,9 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
                             />
                         </>
                     ) : (
-                        // Feedback state - answer has been shown
                         <>
                             <CustomButton
-                                width={currentQuestionIndex >= 1 ? 100 : 149}
+                                width={149}
                                 height={52}
                                 fontSize={16}
                                 title={"Skip"}
@@ -546,26 +463,11 @@ const Testfrom = ({ timercomplete, resettimer, questions: initialQuestions, mock
                                 onPress={handleSkip}
                                 disabled={isTransitioning}
                             />
-                            {
-                                currentQuestionIndex >= 1 ? <CustomButton
-                                    width={100}
-                                    height={52}
-                                    fontSize={16}
-                                    title={'Back'}
-                                    color={'black'}
-                                    borderColor={'#ECEFF3'}
-                                    borderWidth={1}
-                                    borderRadius={25}
-                                    onPress={handleBack}
-                                    disabled={currentQuestionIndex === 0 || isTransitioning}
-                                /> : null
-                            }
                             <CustomButton
-                                width={currentQuestionIndex >= 1 ? 100 : 149}
+                                width={149}
                                 height={52}
                                 fontSize={16}
-                                title={currentQuestionIndex === parsedQuestions.length - 1 ? 
-                                    (hasMoreQuestions ? "Next" : "Submit") : "Next"}
+                                title={"Next"}
                                 color={'white'}
                                 borderColor={'#ECEFF3'}
                                 borderWidth={1}
