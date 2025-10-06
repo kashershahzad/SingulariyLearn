@@ -14,9 +14,12 @@ export const usersSlice = createSlice({
     setLocation(state, action) {
       state.location = action.payload;
     },
+    logoutUser(state, action){
+      state.userData=""
+       console.log('data set when logout:', state.userData);
+    }
   },
 });
 
-export const {setUserData, setLocation} = usersSlice.actions;
-
+export const {setUserData, setLocation,logoutUser} = usersSlice.actions;
 export default usersSlice.reducer;

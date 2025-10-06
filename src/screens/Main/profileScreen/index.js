@@ -18,6 +18,7 @@ import Loading from '../../../components/Loading'
 import { getProfile } from '../../../utils/constants'
 import { useIsFocused } from '@react-navigation/native'
 import { CommonActions } from '@react-navigation/native';
+import { logoutUser } from '../../../store/reducer/usersSlice'
 
 const ProfileScreen = ({ navigation }) => {
 
@@ -52,6 +53,16 @@ const ProfileScreen = ({ navigation }) => {
   //   fetchUserData()
   // }, [isFocus])
 
+   const handleLogout = () => {
+  
+    dispatch(logoutUser());
+    dispatch(logout());
+    
+    // Navigate after state updates
+    setTimeout(() => {
+      navigation.navigate("AuthStack");
+    }, 50);
+  };
 
   const practiceMenuItems = [
     {
@@ -86,15 +97,7 @@ const ProfileScreen = ({ navigation }) => {
     {
       title: t("logout"),
       icon: Images.logouticon,
-      fnc: () => {
-        dispatch(logout(token));
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: 'AuthStack' }],
-          })
-        );
-      }
+      fnc: handleLogout
     },
   ];
 

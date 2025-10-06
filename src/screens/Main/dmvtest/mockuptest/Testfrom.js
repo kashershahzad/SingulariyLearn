@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ApiRequest } from '../../../../services/ApiRequest';
 import { useSelector } from 'react-redux';
 import Video from 'react-native-video';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestions }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -36,18 +37,162 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
 
     const [isPlaying, setIsPlaying] = useState(false);
 
+    // Local storage keys
+    const STORAGE_KEYS = {
+        ALL_ANSWERS: 'test_all_answers',
+        CURRENT_PROGRESS: 'test_current_progress',
+        SCORE: 'test_score',
+        TOTAL_TIME: 'test_total_time',
+        CURRENT_PAGE: 'test_current_page',
+        TOTAL_ANSWERED: 'test_total_answered'
+    };
+
     const togglePlayback = () => {
         setIsPlaying(!isPlaying);
     };
 
-    // Load initial questions on mount
+    // Load saved progress and questions on mount
     useEffect(() => {
-        loadQuestions(1);
+        loadSavedProgress();
     }, []);
 
-    const loadQuestions = async (pageIndex) => {
+    // Save progress whenever important states change
+    useEffect(() => {
+        if (allAnswers.length > 0 || currentPageIndex > 1) {
+            saveProgressToStorage();
+        }
+    }, [allAnswers, currentPageIndex, currentQuestionIndex, score, totalTime, totalQuestionsAnswered]);
 
-        
+    const loadSavedProgress = async () => {
+        try {
+            setIsLoading(true);
+            
+            // Load all saved data from local storage
+            const [
+                savedAnswers,
+                savedProgress,
+                savedScore,
+                savedTotalTime,
+                savedCurrentPage,
+                savedTotalAnswered
+            ] = await Promise.all([
+                AsyncStorage.getItem(STORAGE_KEYS.ALL_ANSWERS),
+                AsyncStorage.getItem(STORAGE_KEYS.CURRENT_PROGRESS),
+                AsyncStorage.getItem(STORAGE_KEYS.SCORE),
+                AsyncStorage.getItem(STORAGE_KEYS.TOTAL_TIME),
+                AsyncStorage.getItem(STORAGE_KEYS.CURRENT_PAGE),
+                AsyncStorage.getItem(STORAGE_KEYS.TOTAL_ANSWERED)
+            ]);
+
+            console.log('=== LOCAL STORAGE CONTENTS ===');
+            console.log('savedAnswers:', savedAnswers);
+            console.log('savedProgress:', savedProgress);
+            console.log('savedScore:', savedScore);
+            console.log('savedTotalTime:', savedTotalTime);
+            console.log('savedCurrentPage:', savedCurrentPage);
+            console.log('savedTotalAnswered:', savedTotalAnswered);
+            console.log('==============================');
+
+            if (savedAnswers && savedProgress) {
+                // Parse saved data
+                const answers = JSON.parse(savedAnswers);
+                const progress = JSON.parse(savedProgress);
+                
+                console.log('📊 LOADED SAVED PROGRESS:');
+                console.log('Progress data:', progress);
+                console.log('Answers count:', answers.length);
+                console.log('Current question index:', progress.currentQuestionIndex);
+                console.log('Current page index:', progress.currentPageIndex);
+                console.log('Score:', savedScore);
+                console.log('Total time:', savedTotalTime);
+                console.log('Total questions answered:', savedTotalAnswered);
+
+                // Restore all states
+                setAllAnswers(answers);
+                setScore(savedScore ? parseInt(savedScore) : 0);
+                setTotalTime(savedTotalTime ? parseFloat(savedTotalTime) : 0);
+                setCurrentPageIndex(savedCurrentPage ? parseInt(savedCurrentPage) : 1);
+                setTotalQuestionsAnswered(savedTotalAnswered ? parseInt(savedTotalAnswered) : 0);
+
+                // Load questions from the saved page
+                await loadQuestions(savedCurrentPage ? parseInt(savedCurrentPage) : 1, progress.currentQuestionIndex);
+            } else {
+                console.log('🚀 No saved progress found, starting fresh');
+                // No saved progress, start fresh
+                await loadQuestions(1);
+            }
+        } catch (error) {
+            console.error('❌ Error loading saved progress:', error);
+            // Start fresh if there's an error
+            await loadQuestions(1);
+        }
+    };
+
+    const saveProgressToStorage = async () => {
+        try {
+            const progressData = {
+                currentQuestionIndex,
+                currentPageIndex,
+                timestamp: Date.now(),
+                date: new Date().toISOString()
+            };
+
+            console.log('💾 SAVING PROGRESS TO STORAGE:');
+            console.log('Current question index:', currentQuestionIndex);
+            console.log('Current page index:', currentPageIndex);
+            console.log('Total answers:', allAnswers.length);
+            console.log('Score:', score);
+            console.log('Total time:', totalTime);
+            console.log('Total questions answered:', totalQuestionsAnswered);
+
+            await Promise.all([
+                AsyncStorage.setItem(STORAGE_KEYS.ALL_ANSWERS, JSON.stringify(allAnswers)),
+                AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROGRESS, JSON.stringify(progressData)),
+                AsyncStorage.setItem(STORAGE_KEYS.SCORE, score.toString()),
+                AsyncStorage.setItem(STORAGE_KEYS.TOTAL_TIME, totalTime.toString()),
+                AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PAGE, currentPageIndex.toString()),
+                AsyncStorage.setItem(STORAGE_KEYS.TOTAL_ANSWERED, totalQuestionsAnswered.toString())
+            ]);
+
+            // Verify the save by reading back
+            const verifySave = async () => {
+                const [verifiedAnswers, verifiedProgress] = await Promise.all([
+                    AsyncStorage.getItem(STORAGE_KEYS.ALL_ANSWERS),
+                    AsyncStorage.getItem(STORAGE_KEYS.CURRENT_PROGRESS)
+                ]);
+                
+                console.log('✅ VERIFY SAVE - Answers count:', verifiedAnswers ? JSON.parse(verifiedAnswers).length : 0);
+                console.log('✅ VERIFY SAVE - Progress:', verifiedProgress ? JSON.parse(verifiedProgress) : 'None');
+            };
+
+            verifySave();
+
+            console.log('✅ Progress saved successfully');
+        } catch (error) {
+            console.error('❌ Error saving progress:', error);
+        }
+    };
+
+    const clearSavedProgress = async () => {
+        try {
+            console.log('🗑️ Clearing all saved progress from storage');
+            
+            await Promise.all([
+                AsyncStorage.removeItem(STORAGE_KEYS.ALL_ANSWERS),
+                AsyncStorage.removeItem(STORAGE_KEYS.CURRENT_PROGRESS),
+                AsyncStorage.removeItem(STORAGE_KEYS.SCORE),
+                AsyncStorage.removeItem(STORAGE_KEYS.TOTAL_TIME),
+                AsyncStorage.removeItem(STORAGE_KEYS.CURRENT_PAGE),
+                AsyncStorage.removeItem(STORAGE_KEYS.TOTAL_ANSWERED)
+            ]);
+
+            console.log('✅ Progress cleared successfully');
+        } catch (error) {
+            console.error('❌ Error clearing progress:', error);
+        }
+    };
+
+    const loadQuestions = async (pageIndex, savedQuestionIndex = 0) => {
         try {
             setIsLoading(true);
             
@@ -58,26 +203,32 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 last_id: pageIndex
             };
 
-            console.log("Loading questions with page:", pageIndex);
+            console.log("📥 Loading questions with page:", pageIndex, "and question index:", savedQuestionIndex);
             const response = await ApiRequest(Body);
-            console.log("API response:", response.data);
+            console.log("📥 API response data count:", response.data?.data?.length || 0);
             
             if (response.data && response.data.data && response.data.data.length > 0) {
                 const newQuestions = response.data.data;
                 parseQuestions(newQuestions);
                 setCurrentPageIndex(pageIndex);
-                setCurrentQuestionIndex(0);
+                
+                // Restore the saved question index or start from 0
+                setCurrentQuestionIndex(savedQuestionIndex);
                 setSelectedOption(null);
                 setShowFeedback(false);
-                setQuestionStartTimes({ 0: Date.now() });
+                
+                // Initialize timing for the current question
+                setQuestionStartTimes({ [savedQuestionIndex]: Date.now() });
                 resettimer(true);
+
+                console.log(`✅ Loaded page ${pageIndex}, question ${savedQuestionIndex + 1} of ${newQuestions.length}`);
             } else {
                 // No more questions available - submit all answers
-                console.log("No more questions available, submitting all answers");
+                console.log("🎯 No more questions available, submitting all answers");
                 await submitAllAnswers();
             }
         } catch (error) {
-            console.error("API Error loading questions:", error);
+            console.error("❌ API Error loading questions:", error);
             // If error and we have answers, submit them
             if (allAnswers.length > 0) {
                 await submitAllAnswers();
@@ -123,6 +274,8 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
 
         setParsedQuestions(parsed);
         setIsLoading(false);
+        
+        console.log(`✅ Parsed ${parsed.length} questions for language: ${currentLanguage}`);
     };
 
     useEffect(() => {
@@ -151,9 +304,11 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             setIsTransitioning(false);
             setSelectedOption(null); // Clear selection for next question
             resettimer(true);
+
+            console.log(`➡️ Moving to next question: ${nextIndex + 1} of ${parsedQuestions.length}`);
         } else {
             // Last question of current batch - load next batch
-            console.log('Last question in current batch, loading next page');
+            console.log('🔄 Last question in current batch, loading next page');
             
             // Calculate time for last question
             const endTime = Date.now();
@@ -169,8 +324,8 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             setIsTransitioning(false);
             setSelectedOption(null);
             
-            // Load next page
-            loadQuestions(currentPageIndex + 1);
+            // Load next page starting from question 0
+            loadQuestions(currentPageIndex + 1, 0);
         }
     };
 
@@ -186,6 +341,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
         
         if (!alreadySaved) {
             saveCurrentAnswer(null);
+            console.log(`⏭️ Skipped question ${currentQuestionIndex + 1}, question_id: ${currentQuestion.id}`);
         }
 
         if (currentQuestionIndex < parsedQuestions.length - 1) {
@@ -201,13 +357,14 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
         } else {
             // Last question - load next batch
             setTotalQuestionsAnswered(prev => prev + parsedQuestions.length);
-            loadQuestions(currentPageIndex + 1);
+            loadQuestions(currentPageIndex + 1, 0);
         }
     };
 
     const handleOptionSelect = (index) => {
         if (!isTransitioning) {
             setSelectedOption(index);
+            console.log(`🔘 Selected option ${index} for question ${currentQuestionIndex + 1}`);
         }
     };
 
@@ -219,15 +376,32 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             question_id: currentQuestion.id,
             selected_option: answerIndex,
             is_correct: isCorrect,
-            skiped: answerIndex === null ? 1 : 0
+            skiped: answerIndex === null ? 1 : 0,
+            timestamp: Date.now()
         };
 
-        // Add to allAnswers array
-        setAllAnswers(prev => [...prev, answerData]);
+        console.log(`💾 Saving answer for question ${currentQuestionIndex + 1}:`, {
+            question_id: currentQuestion.id,
+            selected_option: answerIndex,
+            is_correct: isCorrect,
+            skipped: answerIndex === null
+        });
+
+        // Add to allAnswers array, avoiding duplicates
+        setAllAnswers(prev => {
+            const filtered = prev.filter(ans => ans.question_id !== currentQuestion.id);
+            const newAnswers = [...filtered, answerData];
+            console.log(`📊 Total answers now: ${newAnswers.length}`);
+            return newAnswers;
+        });
         
         // Update score if correct
         if (isCorrect) {
-            setScore(prevScore => prevScore + 1);
+            setScore(prevScore => {
+                const newScore = prevScore + 1;
+                console.log(`🎯 Correct answer! Score updated to: ${newScore}`);
+                return newScore;
+            });
         }
     };
 
@@ -256,6 +430,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 saveCurrentAnswer(selectedOption);
             }
             setShowFeedback(true);
+            console.log(`👁️ Showing feedback for question ${currentQuestionIndex + 1}`);
         }
     };
 
@@ -282,12 +457,17 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 average_time: finalAverageTime
             };
 
-            console.log('Submitting All Answers:', Body);
+            console.log('🎯 SUBMITTING ALL ANSWERS:');
             console.log('Total answers:', allAnswers.length);
             console.log('Final score:', score);
+            console.log('Average time:', finalAverageTime);
+            console.log('Submission Body:', Body);
 
             const response = await ApiRequest(Body);
-            console.log('API Response:', response);
+            console.log('📨 API Response:', response);
+
+            // Clear saved progress after successful submission
+            await clearSavedProgress();
 
             navigation.replace('Congratulations', {
                 score: score,
@@ -296,7 +476,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             });
 
         } catch (error) {
-            console.error('API Error:', error);
+            console.error('❌ API Error:', error);
             Alert.alert('Error', 'Failed to submit answers. Please try again.');
         } finally {
             setsubmitloading(false);
@@ -327,7 +507,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             const audioData = JSON.parse(question.audio);
             return audioData[currentLanguage];
         } catch (error) {
-            return console.log('No Audio');
+            return null;
         }
     };
 

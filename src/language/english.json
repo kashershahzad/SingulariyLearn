@@ -4,6 +4,7 @@
   "email_placeholder": "Email",
   "password_placeholder": "Password",
   "forgot_password": "Forget Password?",
+  "LoginRequid": "Login Required",
   "login_button": "Login",
   "no_account": "Don't have an account?",
   "sign_up": "Sign Up",
