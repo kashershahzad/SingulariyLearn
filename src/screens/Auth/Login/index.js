@@ -1,4 +1,4 @@
-import {appleAuth} from '@invertase/react-native-apple-authentication';
+// import {appleAuth} from '@invertase/react-native-apple-authentication';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useEffect, useMemo, useState} from 'react';
@@ -148,51 +148,53 @@ const Login = ({navigation}) => {
     errorCheck();
   }, [errorCheck]);
 
-  const onAppleButtonPress = async () => {
-    setAppleLoading(true);
-    const FCMTOKEN = await AsyncStorage.getItem('fcmToken');
-    const appleData = await appleAuth.performRequest({
-      requestedOperation: appleAuth.Operation.LOGIN,
-      requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
-    });
-    if (appleData.identityToken) {
-      let res;
-      if (appleData.email == null || appleData.email == undefined) {
-        res = jwt_decode(appleData.identityToken);
-      } else {
-        res = appleData;
-      }
-      try {
-        const payload = {
-          email: res?.email,
-          fcmtoken: FCMTOKEN ? FCMTOKEN : '',
-          name: res?.fullName?.familyName + res?.fullName?.givenName,
-          type: 'customer',
-        };
-        const response = await post('auth/social-login', payload);
-        if (response.data.token) {
-          await AsyncStorage.setItem('token', response.data?.token);
-          dispatch(setToken(response.data?.token));
-          dispatch(setUserData(response.data?.user));
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: 'MainStack',
-              },
-            ],
-          });
-          setGoogleLoading(false);
-        }
-      } catch (error) {
-        ToastMessage(error.response.data.message);
-        setAppleLoading(false);
-      }
-    } else {
-      ToastMessage('An error has occurred. Please try again later.');
-      setAppleLoading(false);
-    }
-  };
+  // const onAppleButtonPress = async () => {
+  //   setAppleLoading(true);
+  //   const FCMTOKEN = await AsyncStorage.getItem('fcmToken');
+  //   // const appleData = await appleAuth.performRequest({
+  //   //   requestedOperation: appleAuth.Operation.LOGIN,
+  //   //   requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+  //   // });
+  //   if (appleData.identityToken) {
+  //     // let res;
+  //     // if (appleData.email == null || appleData.email == undefined) {
+  //     //   res = jwt_decode(appleData.identityToken);
+  //     // } else {
+  //     //   res = appleData;
+  //     // }
+  //     try {
+  //       const payload = {
+  //         email: res?.email,
+  //         fcmtoken: FCMTOKEN ? FCMTOKEN : '',
+  //         name: res?.fullName?.familyName + res?.fullName?.givenName,
+  //         type: 'customer',
+  //       };
+  //       const response = await post('auth/social-login', payload);
+  //       if (response.data.token) {
+  //         await AsyncStorage.setItem('token', response.data?.token);
+  //         dispatch(setToken(response.data?.token));
+  //         dispatch(setUserData(response.data?.user));
+  //         navigation.reset({
+  //           index: 0,
+  //           routes: [
+  //             {
+  //               name: 'MainStack',
+  //             },
+  //           ],
+  //         });
+  //         setGoogleLoading(false);
+  //       }
+  //     } catch (error) {
+  //       ToastMessage(error.response.data.message);
+  //       setAppleLoading(false);
+  //     }
+  //   } 
+    
+  //   else {
+  //     ToastMessage('An error has occurred. Please try again later.');
+  //     setAppleLoading(false);
+  //   }
+  // };
 
   useEffect(() => {
     dispatch(setLocation(locationData));
