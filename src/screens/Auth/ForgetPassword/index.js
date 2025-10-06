@@ -14,7 +14,6 @@ import { useTranslation } from 'react-i18next';
 import { ApiRequest } from '../../../services/ApiRequest'
 import {ToastMessage} from '../../../utils/ToastMessage'
 
-
 const ForgetPassword = ({ navigation }) => {
     const { t } = useTranslation();
     const loginSchema = yup.object().shape({
@@ -32,8 +31,9 @@ const ForgetPassword = ({ navigation }) => {
         const response = await ApiRequest(body)
         console.log(response)
         if(response.data.user_id === false){
-         ToastMessage("Email not found")
+         ToastMessage(t('emailNotFound'), 'error')
         }else{
+            ToastMessage(t('otpSent'), 'success')
             navigation.navigate('OTPScreen',{code:response.data.code, user:response.data.user_id});
         }
         console.log('Login values:', values);
@@ -104,8 +104,6 @@ const ForgetPassword = ({ navigation }) => {
                     </>
                 )}
             </Formik>
-
-
         </ScreenWrapper>
     );
 };

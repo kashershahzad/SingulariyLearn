@@ -1,7 +1,6 @@
 {
   "welcome_back": "خوش آمدید!",
   "enter_details": "اپنی تفصیلات نیچے درج کریں",
-  "email_placeholder": "ای میل",
   "password_placeholder": "پاس ورڈ",
   "forgot_password": "پاسورڈ بھول گے؟",
   "login_button": "لاگ ان",
@@ -10,6 +9,14 @@
   "select_language": "اپنی پسندیدہ زبان منتخب کریں",
   "English": "انگریزی",
   "urdu": "اردو",
+    "Forget Password?": "پاس ورڈ بھول گئے؟",
+  "Enter your email to reset password": "اپنا ای میل درج کریں تاکہ پاس ورڈ ری سیٹ ہو سکے",
+  "invalidEmail": "براہ کرم درست ای میل ایڈریس درج کریں",
+  "emailRequired": "ای میل درج کرنا ضروری ہے",
+  "email_placeholder": "اپنا ای میل درج کریں",
+  "Submit": "جمع کرائیں",
+  "emailNotFound": "ای میل نہیں ملا",
+  "otpSent": "او ٹی پی کامیابی سے بھیج دیا گیا",
   "LoginRequid": "لاگ ان ضروری ہے",
   "arabic": "عربی",
   "french": "فرانسیسی",
@@ -412,12 +419,27 @@
   "dmvAnswer": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   "testQuestion": "میں ڈی ایم وی ٹیسٹ کیسے پاس کروں؟",
   "testAnswer": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
-
-"invalidEmail": "براہ کرم درست ای میل ایڈریس درج کریں",
-"emailRequired": "ای میل ضروری ہے",
 "passwordMinLength": "پاس ورڈ کم از کم 6 حروف کا ہونا چاہیے",
 "passwordRequired": "پاس ورڈ ضروری ہے",
 "passwordsMustMatch": "پاس ورڈز ایک جیسے ہونے چاہئیں",
-"confirmPasswordRequired": "تصدیق پاس ورڈ ضروری ہے"
+"confirmPasswordRequired": "تصدیق پاس ورڈ ضروری ہے",
+
+
+  "Verify Email": "ای میل کی تصدیق کریں",
+  "Enter the verification code we just sent on your email address.": "تصدیقی کوڈ درج کریں جو ہم نے ابھی آپ کے ای میل پتے پر بھیجا ہے۔",
+  "Verify": "تصدیق کریں",
+  "invalidOTP": "براہ کرم درست 4 ہندسوں والا OTP درج کریں",
+  "otpVerified": "OTP کامیابی سے تصدیق ہو گیا!",
+  "incorrectOTP": "غلط OTP کوڈ",
+  "verificationFailed": "تصدیق ناکام ہوئی۔ براہ کرم دوبارہ کوشش کریں۔",
+  "resendOTP": "OTP دوبارہ بھیجیں",
+  "resendIn": "دوبارہ بھیجیں",
+  "seconds": "سیکنڈز",
+  "New Password": "نیا پاس ورڈ",
+  "Enter your new Password": "اپنا نیا پاس ورڈ درج کریں",
+  "Change password": "پاس ورڈ تبدیل کریں",
+  "passwordChanged": "پاس ورڈ کامیابی سے تبدیل ہو گیا",
+  "credentialsMissing": "کریڈنشلز غائب ہیں",
+  "somethingWentWrong": "کچھ غلط ہوا"
 
 }

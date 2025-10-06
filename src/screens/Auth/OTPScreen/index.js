@@ -32,7 +32,7 @@ const OTPScreen = ({ navigation, route }) => {
 
   const handleSubmit = async () => {
     if (otp.length !== 4) {
-      ToastMessage("Please enter a valid 4-digit OTP");
+      ToastMessage(t('invalidOTP'), 'error');
       return;
     }
 
@@ -47,15 +47,15 @@ const OTPScreen = ({ navigation, route }) => {
       console.log("values:", code, user, otp);
       const response = await ApiRequest(body);
       console.log("API Response:", response);
-      if (response.data.result===true) {
-        ToastMessage("OTP verified successfully!");
-        navigation.navigate("Newpassword",{user: user});
+      if (response.data.result === true) {
+        ToastMessage(t('otpVerified'), 'success');
+        navigation.navigate("Newpassword", { user: user });
       } else {
-        ToastMessage( "Incorrect OTP code");
+        ToastMessage(t('incorrectOTP'), 'error');
       }
     } catch (error) {
       console.error("OTP verification error:", error);
-      ToastMessage("Verification failed. Please try again.");
+      ToastMessage(t('verificationFailed'), 'error');
     } finally {
       setLoading(false);
     }
@@ -67,13 +67,13 @@ const OTPScreen = ({ navigation, route }) => {
       footerUnScrollable={() => (
         <View style={{ paddingHorizontal: 20 }}>
           <CustomButton
-            title="Verify"
+            title={t('Verify')}
             marginTop={40}
             marginBottom={20}
             loading={loading}
             disabled={otp.length !== 4}
             onPress={handleSubmit}
-            testID="verify-button" // Add for testing
+            testID="verify-button"
           />
         </View>
       )}>

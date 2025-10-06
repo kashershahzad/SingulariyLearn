@@ -15,8 +15,8 @@ import { ApiRequest } from '../../../services/ApiRequest';
 import { useDispatch } from 'react-redux';
 import { setToken } from '../../../store/reducer/AuthConfig';
 import { ToastMessage } from '../../../utils/ToastMessage';
-const signupSchema = yup.object().shape({
 
+const signupSchema = yup.object().shape({
   password: yup
     .string()
     .min(6, 'passwordMinLength')
@@ -42,21 +42,18 @@ const Newpassword = ({ navigation, route }) => {
       console.log(user, values.password)
       const response = await ApiRequest(body)
       console.log(response)
-      if(response.data.result===true){
-        ToastMessage("Password changes Sucessfully")
+      if(response.data.result === true){
+        ToastMessage(t('passwordChanged'), 'success')
         navigation.replace("LoginScreen")
-      }else{
-        ToastMessage("Credientails are missing")
+      } else {
+        ToastMessage(t('credentialsMissing'), 'error')
       }
-      
     } catch {
-      ToastMessage("Something went wrong ")
+      ToastMessage(t('somethingWentWrong'), 'error')
     }
   }
 
   return (
-
-
     <ScreenWrapper
       backgroundColor='white'
       scrollEnabled
@@ -102,7 +99,6 @@ const Newpassword = ({ navigation, route }) => {
           touched
         }) => (
           <>
-
             <CustomInput
               placeholder={t('passwordPlaceholder')}
               placeholderTextColor={COLORS.graytext}
