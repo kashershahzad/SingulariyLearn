@@ -199,7 +199,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             const Body = {
                 type: "get_data",
                 table_name: "questions",
-                is_mockup: false,
+                is_mockup: mockuptest,
                 last_id: pageIndex
             };
 
@@ -362,9 +362,31 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
     };
 
     const handleOptionSelect = (index) => {
-        if (!isTransitioning) {
+        if (!isTransitioning && !showFeedback) {
             setSelectedOption(index);
             console.log(`🔘 Selected option ${index} for question ${currentQuestionIndex + 1}`);
+            
+            if (mockuptest) {
+                // For mockup test: Save answer but don't show feedback
+                const currentQuestion = parsedQuestions[currentQuestionIndex];
+                const alreadySaved = allAnswers.some(ans => ans.question_id === currentQuestion.id);
+                
+                if (!alreadySaved) {
+                    saveCurrentAnswer(index);
+                }
+                // Don't set showFeedback for mockup tests
+            } else {
+                // For regular test: Immediately show feedback and save answer
+                setShowFeedback(true);
+                
+                // Save the answer immediately
+                const currentQuestion = parsedQuestions[currentQuestionIndex];
+                const alreadySaved = allAnswers.some(ans => ans.question_id === currentQuestion.id);
+                
+                if (!alreadySaved) {
+                    saveCurrentAnswer(index);
+                }
+            }
         }
     };
 
@@ -409,7 +431,8 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
         const isSelected = selectedOption === index;
         const isCorrect = index === parsedQuestions[currentQuestionIndex]?.correctAnswerIndex;
 
-        if (showFeedback) {
+        // Only show feedback styles if it's NOT a mockup test AND feedback is showing
+        if (showFeedback && !mockuptest) {
             if (isSelected) {
                 return isCorrect ? styles.correctOption : styles.incorrectOption;
             }
@@ -417,21 +440,9 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 return styles.correctOption;
             }
         }
+        
+        // For mockup tests or when no feedback, just show selection
         return isSelected ? styles.selectedOption : styles.option;
-    };
-
-    const handleShowAnswer = () => {
-        if (selectedOption !== null && !isTransitioning) {
-            // Only save if not already saved
-            const currentQuestion = parsedQuestions[currentQuestionIndex];
-            const alreadySaved = allAnswers.some(ans => ans.question_id === currentQuestion.id);
-            
-            if (!alreadySaved) {
-                saveCurrentAnswer(selectedOption);
-            }
-            setShowFeedback(true);
-            console.log(`👁️ Showing feedback for question ${currentQuestionIndex + 1}`);
-        }
     };
 
     const handleNext = () => {
@@ -529,6 +540,9 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
     const progressWidth = `${((currentQuestionNumber) / totalQuestions) * 100}%`;
     const currentQuestion = parsedQuestions[currentQuestionIndex];
 
+    // Determine if we should show feedback state in buttons
+    const shouldShowFeedback = showFeedback && !mockuptest;
+
     return (
         <View style={styles.container}>
             <ScrollView 
@@ -586,7 +600,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                             getOptionStyle(index)
                         ]}
                         onPress={() => handleOptionSelect(index)}
-                        disabled={showFeedback || isTransitioning}
+                        disabled={(showFeedback && !mockuptest) || isTransitioning}
                     >
                         <CustomText
                             textAlign={'center'}
@@ -601,7 +615,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
 
             <View style={styles.btnContainer}>
                 <View style={styles.btn}>
-                    {!showFeedback ? (
+                    {!shouldShowFeedback ? (
                         <>
                             <CustomButton
                                 width={149}
@@ -616,7 +630,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                                 disabled={isTransitioning}
                             />
                             <CustomButton
-                                disabled={selectedOption === null || isTransitioning}
+                                disabled={(selectedOption === null && !mockuptest) || isTransitioning}
                                 width={149}
                                 height={52}
                                 fontSize={16}
@@ -626,7 +640,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                                 borderWidth={1}
                                 borderRadius={25}
                                 backgroundColor={'black'}
-                                onPress={handleShowAnswer}
+                                onPress={handleNext}
                             />
                         </>
                     ) : (
