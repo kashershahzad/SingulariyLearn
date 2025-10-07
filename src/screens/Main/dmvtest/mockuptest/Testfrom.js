@@ -20,24 +20,18 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
     const [parsedQuestions, setParsedQuestions] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [submitloading, setsubmitloading] = useState(false);
-    
-    // Store ALL answers across all pages
     const [allAnswers, setAllAnswers] = useState([]);
-    
     const navigation = useNavigation();
     const token = useSelector(state => state.authConfig.token);
     const currentLanguage = useSelector(state => state.language.language);
-
     const [score, setScore] = useState(0);
     const [questionStartTimes, setQuestionStartTimes] = useState({});
     const [totalTime, setTotalTime] = useState(0);
     const [averageTime, setAverageTime] = useState(0);
     const [currentPageIndex, setCurrentPageIndex] = useState(1);
     const [totalQuestionsAnswered, setTotalQuestionsAnswered] = useState(0);
-
     const [isPlaying, setIsPlaying] = useState(false);
 
-    // Local storage keys
     const STORAGE_KEYS = {
         ALL_ANSWERS: 'test_all_answers',
         CURRENT_PROGRESS: 'test_current_progress',
@@ -51,12 +45,10 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
         setIsPlaying(!isPlaying);
     };
 
-    // Load saved progress and questions on mount
     useEffect(() => {
         loadSavedProgress();
     }, []);
 
-    // Save progress whenever important states change
     useEffect(() => {
         if (allAnswers.length > 0 || currentPageIndex > 1) {
             saveProgressToStorage();
@@ -67,7 +59,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
         try {
             setIsLoading(true);
             
-            // Load all saved data from local storage
             const [
                 savedAnswers,
                 savedProgress,
@@ -84,46 +75,21 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 AsyncStorage.getItem(STORAGE_KEYS.TOTAL_ANSWERED)
             ]);
 
-            console.log('=== LOCAL STORAGE CONTENTS ===');
-            console.log('savedAnswers:', savedAnswers);
-            console.log('savedProgress:', savedProgress);
-            console.log('savedScore:', savedScore);
-            console.log('savedTotalTime:', savedTotalTime);
-            console.log('savedCurrentPage:', savedCurrentPage);
-            console.log('savedTotalAnswered:', savedTotalAnswered);
-            console.log('==============================');
-
             if (savedAnswers && savedProgress) {
-                // Parse saved data
                 const answers = JSON.parse(savedAnswers);
                 const progress = JSON.parse(savedProgress);
                 
-                console.log('📊 LOADED SAVED PROGRESS:');
-                console.log('Progress data:', progress);
-                console.log('Answers count:', answers.length);
-                console.log('Current question index:', progress.currentQuestionIndex);
-                console.log('Current page index:', progress.currentPageIndex);
-                console.log('Score:', savedScore);
-                console.log('Total time:', savedTotalTime);
-                console.log('Total questions answered:', savedTotalAnswered);
-
-                // Restore all states
                 setAllAnswers(answers);
                 setScore(savedScore ? parseInt(savedScore) : 0);
                 setTotalTime(savedTotalTime ? parseFloat(savedTotalTime) : 0);
                 setCurrentPageIndex(savedCurrentPage ? parseInt(savedCurrentPage) : 1);
                 setTotalQuestionsAnswered(savedTotalAnswered ? parseInt(savedTotalAnswered) : 0);
 
-                // Load questions from the saved page
                 await loadQuestions(savedCurrentPage ? parseInt(savedCurrentPage) : 1, progress.currentQuestionIndex);
             } else {
-                console.log('🚀 No saved progress found, starting fresh');
-                // No saved progress, start fresh
                 await loadQuestions(1);
             }
         } catch (error) {
-            console.error('❌ Error loading saved progress:', error);
-            // Start fresh if there's an error
             await loadQuestions(1);
         }
     };
@@ -137,14 +103,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 date: new Date().toISOString()
             };
 
-            console.log('💾 SAVING PROGRESS TO STORAGE:');
-            console.log('Current question index:', currentQuestionIndex);
-            console.log('Current page index:', currentPageIndex);
-            console.log('Total answers:', allAnswers.length);
-            console.log('Score:', score);
-            console.log('Total time:', totalTime);
-            console.log('Total questions answered:', totalQuestionsAnswered);
-
             await Promise.all([
                 AsyncStorage.setItem(STORAGE_KEYS.ALL_ANSWERS, JSON.stringify(allAnswers)),
                 AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PROGRESS, JSON.stringify(progressData)),
@@ -153,30 +111,11 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PAGE, currentPageIndex.toString()),
                 AsyncStorage.setItem(STORAGE_KEYS.TOTAL_ANSWERED, totalQuestionsAnswered.toString())
             ]);
-
-            // Verify the save by reading back
-            const verifySave = async () => {
-                const [verifiedAnswers, verifiedProgress] = await Promise.all([
-                    AsyncStorage.getItem(STORAGE_KEYS.ALL_ANSWERS),
-                    AsyncStorage.getItem(STORAGE_KEYS.CURRENT_PROGRESS)
-                ]);
-                
-                console.log('✅ VERIFY SAVE - Answers count:', verifiedAnswers ? JSON.parse(verifiedAnswers).length : 0);
-                console.log('✅ VERIFY SAVE - Progress:', verifiedProgress ? JSON.parse(verifiedProgress) : 'None');
-            };
-
-            verifySave();
-
-            console.log('✅ Progress saved successfully');
-        } catch (error) {
-            console.error('❌ Error saving progress:', error);
-        }
+        } catch (error) {}
     };
 
     const clearSavedProgress = async () => {
         try {
-            console.log('🗑️ Clearing all saved progress from storage');
-            
             await Promise.all([
                 AsyncStorage.removeItem(STORAGE_KEYS.ALL_ANSWERS),
                 AsyncStorage.removeItem(STORAGE_KEYS.CURRENT_PROGRESS),
@@ -185,11 +124,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 AsyncStorage.removeItem(STORAGE_KEYS.CURRENT_PAGE),
                 AsyncStorage.removeItem(STORAGE_KEYS.TOTAL_ANSWERED)
             ]);
-
-            console.log('✅ Progress cleared successfully');
-        } catch (error) {
-            console.error('❌ Error clearing progress:', error);
-        }
+        } catch (error) {}
     };
 
     const loadQuestions = async (pageIndex, savedQuestionIndex = 0) => {
@@ -203,33 +138,21 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 last_id: pageIndex
             };
 
-            console.log("📥 Loading questions with page:", pageIndex, "and question index:", savedQuestionIndex);
             const response = await ApiRequest(Body);
-            console.log("📥 API response data count:", response.data?.data?.length || 0);
             
             if (response.data && response.data.data && response.data.data.length > 0) {
                 const newQuestions = response.data.data;
                 parseQuestions(newQuestions);
                 setCurrentPageIndex(pageIndex);
-                
-                // Restore the saved question index or start from 0
                 setCurrentQuestionIndex(savedQuestionIndex);
                 setSelectedOption(null);
                 setShowFeedback(false);
-                
-                // Initialize timing for the current question
                 setQuestionStartTimes({ [savedQuestionIndex]: Date.now() });
                 resettimer(true);
-
-                console.log(`✅ Loaded page ${pageIndex}, question ${savedQuestionIndex + 1} of ${newQuestions.length}`);
             } else {
-                // No more questions available - submit all answers
-                console.log("🎯 No more questions available, submitting all answers");
                 await submitAllAnswers();
             }
         } catch (error) {
-            console.error("❌ API Error loading questions:", error);
-            // If error and we have answers, submit them
             if (allAnswers.length > 0) {
                 await submitAllAnswers();
             } else {
@@ -245,7 +168,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             try {
                 questionData = JSON.parse(q.question);
             } catch (error) {
-                console.error('Error parsing question:', error);
                 questionData = { en: { question: q.question }, ur: { question: q.question } };
             }
 
@@ -274,8 +196,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
 
         setParsedQuestions(parsed);
         setIsLoading(false);
-        
-        console.log(`✅ Parsed ${parsed.length} questions for language: ${currentLanguage}`);
     };
 
     useEffect(() => {
@@ -286,7 +206,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
 
     const moveToNextQuestion = () => {
         if (currentQuestionIndex < parsedQuestions.length - 1) {
-            // Move to next question in current batch
             const endTime = Date.now();
             const startTime = questionStartTimes[currentQuestionIndex] || endTime;
             const timeTaken = (endTime - startTime) / 1000;
@@ -302,29 +221,20 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             setCurrentQuestionIndex(nextIndex);
             setShowFeedback(false);
             setIsTransitioning(false);
-            setSelectedOption(null); // Clear selection for next question
+            setSelectedOption(null);
             resettimer(true);
-
-            console.log(`➡️ Moving to next question: ${nextIndex + 1} of ${parsedQuestions.length}`);
         } else {
-            // Last question of current batch - load next batch
-            console.log('🔄 Last question in current batch, loading next page');
-            
-            // Calculate time for last question
             const endTime = Date.now();
             const startTime = questionStartTimes[currentQuestionIndex] || endTime;
             const timeTaken = (endTime - startTime) / 1000;
             setTotalTime(prevTotal => prevTotal + timeTaken);
             
-            // Update total questions answered
             setTotalQuestionsAnswered(prev => prev + parsedQuestions.length);
             
-            // Reset states before loading next page
             setShowFeedback(false);
             setIsTransitioning(false);
             setSelectedOption(null);
             
-            // Load next page starting from question 0
             loadQuestions(currentPageIndex + 1, 0);
         }
     };
@@ -335,13 +245,11 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
         const timeTaken = (endTime - startTime) / 1000;
         setTotalTime(prevTotal => prevTotal + timeTaken);
 
-        // Save skipped answer (null) only if not already saved
         const currentQuestion = parsedQuestions[currentQuestionIndex];
         const alreadySaved = allAnswers.some(ans => ans.question_id === currentQuestion.id);
         
         if (!alreadySaved) {
             saveCurrentAnswer(null);
-            console.log(`⏭️ Skipped question ${currentQuestionIndex + 1}, question_id: ${currentQuestion.id}`);
         }
 
         if (currentQuestionIndex < parsedQuestions.length - 1) {
@@ -355,7 +263,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             setSelectedOption(null);
             resettimer(true);
         } else {
-            // Last question - load next batch
             setTotalQuestionsAnswered(prev => prev + parsedQuestions.length);
             loadQuestions(currentPageIndex + 1, 0);
         }
@@ -364,22 +271,17 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
     const handleOptionSelect = (index) => {
         if (!isTransitioning && !showFeedback) {
             setSelectedOption(index);
-            console.log(`🔘 Selected option ${index} for question ${currentQuestionIndex + 1}`);
             
             if (mockuptest) {
-                // For mockup test: Save answer but don't show feedback
                 const currentQuestion = parsedQuestions[currentQuestionIndex];
                 const alreadySaved = allAnswers.some(ans => ans.question_id === currentQuestion.id);
                 
                 if (!alreadySaved) {
                     saveCurrentAnswer(index);
                 }
-                // Don't set showFeedback for mockup tests
             } else {
-                // For regular test: Immediately show feedback and save answer
                 setShowFeedback(true);
                 
-                // Save the answer immediately
                 const currentQuestion = parsedQuestions[currentQuestionIndex];
                 const alreadySaved = allAnswers.some(ans => ans.question_id === currentQuestion.id);
                 
@@ -402,28 +304,14 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             timestamp: Date.now()
         };
 
-        console.log(`💾 Saving answer for question ${currentQuestionIndex + 1}:`, {
-            question_id: currentQuestion.id,
-            selected_option: answerIndex,
-            is_correct: isCorrect,
-            skipped: answerIndex === null
-        });
-
-        // Add to allAnswers array, avoiding duplicates
         setAllAnswers(prev => {
             const filtered = prev.filter(ans => ans.question_id !== currentQuestion.id);
             const newAnswers = [...filtered, answerData];
-            console.log(`📊 Total answers now: ${newAnswers.length}`);
             return newAnswers;
         });
         
-        // Update score if correct
         if (isCorrect) {
-            setScore(prevScore => {
-                const newScore = prevScore + 1;
-                console.log(`🎯 Correct answer! Score updated to: ${newScore}`);
-                return newScore;
-            });
+            setScore(prevScore => prevScore + 1);
         }
     };
 
@@ -431,7 +319,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
         const isSelected = selectedOption === index;
         const isCorrect = index === parsedQuestions[currentQuestionIndex]?.correctAnswerIndex;
 
-        // Only show feedback styles if it's NOT a mockup test AND feedback is showing
         if (showFeedback && !mockuptest) {
             if (isSelected) {
                 return isCorrect ? styles.correctOption : styles.incorrectOption;
@@ -441,7 +328,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             }
         }
         
-        // For mockup tests or when no feedback, just show selection
         return isSelected ? styles.selectedOption : styles.option;
     };
 
@@ -456,7 +342,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
         try {
             setsubmitloading(true);
 
-            // Calculate final average time
             const finalAverageTime = totalTime / allAnswers.length || 0;
 
             const Body = {
@@ -468,16 +353,8 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 average_time: finalAverageTime
             };
 
-            console.log('🎯 SUBMITTING ALL ANSWERS:');
-            console.log('Total answers:', allAnswers.length);
-            console.log('Final score:', score);
-            console.log('Average time:', finalAverageTime);
-            console.log('Submission Body:', Body);
-
             const response = await ApiRequest(Body);
-            console.log('📨 API Response:', response);
 
-            // Clear saved progress after successful submission
             await clearSavedProgress();
 
             navigation.replace('Congratulations', {
@@ -487,7 +364,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             });
 
         } catch (error) {
-            console.error('❌ API Error:', error);
             Alert.alert('Error', 'Failed to submit answers. Please try again.');
         } finally {
             setsubmitloading(false);
@@ -496,7 +372,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
 
     const handleNextOrSubmit = () => {
         if (currentQuestionIndex === parsedQuestions.length - 1) {
-            // Last question of current batch
             handleNext();
         } else {
             handleNext();
@@ -539,8 +414,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
     const currentQuestionNumber = totalQuestionsAnswered + currentQuestionIndex + 1;
     const progressWidth = `${((currentQuestionNumber) / totalQuestions) * 100}%`;
     const currentQuestion = parsedQuestions[currentQuestionIndex];
-
-    // Determine if we should show feedback state in buttons
     const shouldShowFeedback = showFeedback && !mockuptest;
 
     return (
@@ -588,7 +461,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                         source={getImageUrl(currentQuestion)}
                         resizeMode={'contain'}
                         style={styles.icon}
-                        onError={() => console.log('Image failed to load')}
                     />
                 ) : null}
 
