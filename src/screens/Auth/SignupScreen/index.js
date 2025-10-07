@@ -22,7 +22,7 @@ const signupSchema = yup.object().shape({
     .required("Name is Required"),
   phone: yup
     .string()
-    .matches(/^[0-9+\-\s()]+$/, 'invalidPhone') // Allows numbers, +, -, spaces, parentheses
+    .matches(/^[0-9+\-\s()]+$/, 'invalidPhone')
     .min(10, 'phoneMinLength')
     .max(15, 'phoneMaxLength')
     .required('phoneRequired'),
@@ -52,7 +52,7 @@ const SignupScreen = ({ navigation }) => {
       setloading(true);
       const body = {
         name: values.name,
-        phone: values.phone, // Add phone to API call
+        phone: values.phone,
         type: 'register',
         email: values.email,
         reg_type: 'email',
@@ -111,7 +111,7 @@ const SignupScreen = ({ navigation }) => {
       <Formik
         initialValues={{
           name: '',
-          phone: '', // Add phone to initial values
+          phone: '',
           email: '',
           password: '',
           confirmPassword: ''
@@ -149,12 +149,12 @@ const SignupScreen = ({ navigation }) => {
               placeholderTextColor={COLORS.graytext}
               borderRadius={10}
               borderColor={'#EFEFEF'}
-              iconImage={Images.phone} // Make sure you have a phone icon
+              iconImage={Images.phone}
               value={values.phone}
               onChangeText={handleChange('phone')}
               onBlur={handleBlur('phone')}
               error={touched.phone && t(errors.phone)}
-              keyboardType="phone-pad" // Add keyboard type for better UX
+              keyboardType="phone-pad"
             />
 
             <CustomInput
