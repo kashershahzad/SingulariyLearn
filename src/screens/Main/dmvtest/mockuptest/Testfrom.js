@@ -32,7 +32,16 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
     const [totalQuestionsAnswered, setTotalQuestionsAnswered] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const STORAGE_KEYS = {
+    // Different storage keys for mockup and normal tests
+    const STORAGE_KEYS = mockuptest ? {
+        ALL_ANSWERS: 'mockup_all_answers',
+        CURRENT_PROGRESS: 'mockup_current_progress',
+        SCORE: 'mockup_score',
+        TOTAL_TIME: 'mockup_total_time',
+        CURRENT_PAGE: 'mockup_current_page',
+        TOTAL_ANSWERED: 'mockup_total_answered',
+        MOCKUP_RESULTS: 'mockup_final_results'
+    } : {
         ALL_ANSWERS: 'test_all_answers',
         CURRENT_PROGRESS: 'test_current_progress',
         SCORE: 'test_score',
@@ -100,7 +109,8 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 currentQuestionIndex,
                 currentPageIndex,
                 timestamp: Date.now(),
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                isMockup: mockuptest // Store mockup flag in progress data
             };
 
             await Promise.all([
@@ -134,7 +144,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             const Body = {
                 type: "get_data",
                 table_name: "questions",
-                is_mockup: mockuptest,
+                is_mockup: mockuptest, // This will determine if we get mockup or normal questions
                 last_id: pageIndex
             };
 
@@ -272,22 +282,17 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
         if (!isTransitioning && !showFeedback) {
             setSelectedOption(index);
             
-            if (mockuptest) {
-                const currentQuestion = parsedQuestions[currentQuestionIndex];
-                const alreadySaved = allAnswers.some(ans => ans.question_id === currentQuestion.id);
-                
-                if (!alreadySaved) {
-                    saveCurrentAnswer(index);
-                }
-            } else {
+            // For both mockup and normal tests, save immediately
+            const currentQuestion = parsedQuestions[currentQuestionIndex];
+            const alreadySaved = allAnswers.some(ans => ans.question_id === currentQuestion.id);
+            
+            if (!alreadySaved) {
+                saveCurrentAnswer(index);
+            }
+
+            // Only show feedback for normal tests, not for mockup tests
+            if (!mockuptest) {
                 setShowFeedback(true);
-                
-                const currentQuestion = parsedQuestions[currentQuestionIndex];
-                const alreadySaved = allAnswers.some(ans => ans.question_id === currentQuestion.id);
-                
-                if (!alreadySaved) {
-                    saveCurrentAnswer(index);
-                }
             }
         }
     };
@@ -301,7 +306,8 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             selected_option: answerIndex,
             is_correct: isCorrect,
             skiped: answerIndex === null ? 1 : 0,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            is_mockup: mockuptest // Store mockup flag with each answer
         };
 
         setAllAnswers(prev => {
@@ -319,6 +325,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
         const isSelected = selectedOption === index;
         const isCorrect = index === parsedQuestions[currentQuestionIndex]?.correctAnswerIndex;
 
+        // Show feedback only for normal tests, not for mockup tests
         if (showFeedback && !mockuptest) {
             if (isSelected) {
                 return isCorrect ? styles.correctOption : styles.incorrectOption;
@@ -344,24 +351,53 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
 
             const finalAverageTime = totalTime / allAnswers.length || 0;
 
-            const Body = {
-                type: "add_data",
-                user_id: token,
-                table_name: 'user_questionnaire',
-                questions: JSON.stringify(allAnswers),
-                score: score,
-                average_time: finalAverageTime
-            };
+            // Store mockup results separately
+            if (mockuptest) {
+                const mockupResults = {
+                    score: score,
+                    totalQuestions: allAnswers.length,
+                    averageTime: finalAverageTime,
+                    answers: allAnswers,
+                    timestamp: Date.now(),
+                    date: new Date().toISOString()
+                };
 
-            const response = await ApiRequest(Body);
+                // Save mockup results to separate storage
+                await AsyncStorage.setItem(STORAGE_KEYS.MOCKUP_RESULTS, JSON.stringify(mockupResults));
+
+                // Navigate to mockup results screen
+                navigation.replace('MockupResults', {
+                    score: score,
+                    totalQuestions: allAnswers.length,
+                    averageTime: finalAverageTime,
+                    answers: allAnswers,
+                    isMockup: true
+                });
+            } else {
+                // Normal test submission
+                const Body = {
+                    type: "add_data",
+                    user_id: token,
+                    table_name: 'user_questionnaire',
+                    questions: JSON.stringify(allAnswers),
+                    score: score,
+                    average_time: finalAverageTime,
+                    is_mockup: false
+                };
+
+                const response = await ApiRequest(Body);
+
+                await clearSavedProgress();
+
+                navigation.replace('Congratulations', {
+                    score: score,
+                    totalQuestions: allAnswers.length,
+                    averageTime: finalAverageTime,
+                    isMockup: false
+                });
+            }
 
             await clearSavedProgress();
-
-            navigation.replace('Congratulations', {
-                score: score,
-                totalQuestions: allAnswers.length,
-                averageTime: finalAverageTime
-            });
 
         } catch (error) {
             Alert.alert('Error', 'Failed to submit answers. Please try again.');
@@ -371,8 +407,8 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
     };
 
     const handleNextOrSubmit = () => {
-        if (currentQuestionIndex === parsedQuestions.length - 1) {
-            handleNext();
+        if (currentQuestionIndex === parsedQuestions.length - 1 && currentPageIndex >= totalQuestions / parsedQuestions.length) {
+            submitAllAnswers();
         } else {
             handleNext();
         }
@@ -512,7 +548,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                                 borderWidth={1}
                                 borderRadius={25}
                                 backgroundColor={'black'}
-                                onPress={handleNext}
+                                onPress={handleNextOrSubmit}
                             />
                         </>
                     ) : (
