@@ -440,6 +440,11 @@
   "Change password": "پاس ورڈ تبدیل کریں",
   "passwordChanged": "پاس ورڈ کامیابی سے تبدیل ہو گیا",
   "credentialsMissing": "کریڈنشلز غائب ہیں",
-  "somethingWentWrong": "کچھ غلط ہوا"
+  "somethingWentWrong": "کچھ غلط ہوا",
+  "phonePlaceholder": "اپنا فون نمبر درج کریں",
+  "invalidPhone": "براہ کرم درست فون نمبر درج کریں",
+  "phoneMinLength": "فون نمبر کم از کم 10 ہندسوں کا ہونا چاہیے",
+  "phoneMaxLength": "فون نمبر 15 ہندسوں سے زیادہ نہیں ہو سکتا",
+  "phoneRequired": "فون نمبر درکار ہے"
 
 }

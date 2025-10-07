@@ -441,5 +441,11 @@
   "Change password": "Change Password",
   "passwordChanged": "Password changed successfully",
   "credentialsMissing": "Credentials are missing",
-  "somethingWentWrong": "Something went wrong"
+  "somethingWentWrong": "Something went wrong",
+
+  "phonePlaceholder": "Enter your phone number",
+  "invalidPhone": "Please enter a valid phone number",
+  "phoneMinLength": "Phone number must be at least 10 digits",
+  "phoneMaxLength": "Phone number cannot exceed 15 digits",
+  "phoneRequired": "Phone number is required"
 }

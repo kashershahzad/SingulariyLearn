@@ -68,6 +68,9 @@ export const Images = {
   lan:require('./icons/lan.png'),
 
 
+  name:require('./icons/name.png'),
+  phone:require('./icons/phone.png'),
+
   pratisequestion:require('./icons/pratisequestion.png'),
   mockup:require('./icons/mockuptest.png'),
   road:require('./icons/road.png'),

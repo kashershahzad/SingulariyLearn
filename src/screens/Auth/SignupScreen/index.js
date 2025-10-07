@@ -18,8 +18,14 @@ import { setToken } from '../../../store/reducer/AuthConfig';
 
 const signupSchema = yup.object().shape({
   name: yup
-  .string()
-  .required("Name is Required"),
+    .string()
+    .required("Name is Required"),
+  phone: yup
+    .string()
+    .matches(/^[0-9+\-\s()]+$/, 'invalidPhone') // Allows numbers, +, -, spaces, parentheses
+    .min(10, 'phoneMinLength')
+    .max(15, 'phoneMaxLength')
+    .required('phoneRequired'),
   email: yup
     .string()
     .email('invalidEmail')
@@ -42,37 +48,38 @@ const SignupScreen = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const handleSubmit = async (values) => {
-  try {
-    setloading(true);
-    const body = {
-      name:values.name,
-      type: 'register',
-      email: values.email,
-      reg_type: 'email',
-      password: values.password,
-    };
+    try {
+      setloading(true);
+      const body = {
+        name: values.name,
+        phone: values.phone, // Add phone to API call
+        type: 'register',
+        email: values.email,
+        reg_type: 'email',
+        password: values.password,
+      };
 
-    const response = await ApiRequest(body);
-    console.log('API Response:', response);
+      const response = await ApiRequest(body);
+      console.log('API Response:', response);
 
-    if (response.data.result === 'false') {
-      ToastMessage(response.data.message);
-    } else {
-      ToastMessage(response.data.message);
-      const token = response.data?.user_id;
-      dispatch(setToken(token));
-      navigation.navigate('MainStack');
+      if (response.data.result === 'false') {
+        ToastMessage(response.data.message);
+      } else {
+        ToastMessage(response.data.message);
+        const token = response.data?.user_id;
+        dispatch(setToken(token));
+        navigation.navigate('MainStack');
+      }
+
+      console.log(response.data.message);
+      console.log('Form values:', values);
+    } catch (error) {
+      console.error('Registration failed:', error);
+      ToastMessage('Something went wrong. Please try again.');
+    } finally {
+      setloading(false);
     }
-
-    console.log(response.data.message);
-    console.log('Form values:', values);
-  } catch (error) {
-    console.error('Registration failed:', error);
-    ToastMessage('Something went wrong. Please try again.');
-  } finally {
-    setloading(false);
-  }
-};
+  };
 
   return (
     <ScreenWrapper
@@ -103,7 +110,8 @@ const SignupScreen = ({ navigation }) => {
 
       <Formik
         initialValues={{
-          name:'',
+          name: '',
+          phone: '', // Add phone to initial values
           email: '',
           password: '',
           confirmPassword: ''
@@ -122,13 +130,13 @@ const SignupScreen = ({ navigation }) => {
           touched
         }) => (
           <>
-          <CustomInput
+            <CustomInput
               marginTop={15}
               placeholder={t('enterYourName')}
               placeholderTextColor={COLORS.graytext}
               borderRadius={10}
               borderColor={'#EFEFEF'}
-              iconImage={Images.mail}
+              iconImage={Images.name}
               value={values.name}
               onChangeText={handleChange('name')}
               onBlur={handleBlur('name')}
@@ -136,6 +144,21 @@ const SignupScreen = ({ navigation }) => {
             />
 
             <CustomInput
+              marginTop={15}
+              placeholder={t('phonePlaceholder')}
+              placeholderTextColor={COLORS.graytext}
+              borderRadius={10}
+              borderColor={'#EFEFEF'}
+              iconImage={Images.phone} // Make sure you have a phone icon
+              value={values.phone}
+              onChangeText={handleChange('phone')}
+              onBlur={handleBlur('phone')}
+              error={touched.phone && t(errors.phone)}
+              keyboardType="phone-pad" // Add keyboard type for better UX
+            />
+
+            <CustomInput
+              marginTop={15}
               placeholder={t('emailPlaceholder')}
               placeholderTextColor={COLORS.graytext}
               borderRadius={10}
@@ -148,6 +171,7 @@ const SignupScreen = ({ navigation }) => {
             />
 
             <CustomInput
+              marginTop={15}
               placeholder={t('passwordPlaceholder')}
               placeholderTextColor={COLORS.graytext}
               borderRadius={10}
@@ -161,6 +185,7 @@ const SignupScreen = ({ navigation }) => {
             />
 
             <CustomInput
+              marginTop={15}
               placeholder={t('confirmPasswordPlaceholder')}
               placeholderTextColor={COLORS.graytext}
               borderRadius={10}
@@ -202,22 +227,6 @@ const SignupScreen = ({ navigation }) => {
           textAlign={'center'}
         />
       </View>
-
-      {/* {
-        loading ? <CustomText
-          label={'loading...'}
-          fontFamily={fonts.medium}
-          fontSize={16}
-          color={COLORS.graytext}
-          textAlign={'center'}
-        /> : <CustomText
-          label={error || success}
-          fontFamily={fonts.medium}
-          fontSize={16}
-          color={COLORS.graytext}
-          textAlign={'center'}
-        />
-      } */}
     </ScreenWrapper>
   );
 };

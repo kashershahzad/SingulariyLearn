@@ -24,7 +24,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
     const navigation = useNavigation();
     const token = useSelector(state => state.authConfig.token);
     const currentLanguage = useSelector(state => state.language.language);
-    const [score, setScore] = useState(0);
+    const [score, setScore] = useState(0); 
     const [questionStartTimes, setQuestionStartTimes] = useState({});
     const [totalTime, setTotalTime] = useState(0);
     const [averageTime, setAverageTime] = useState(0);
@@ -32,7 +32,6 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
     const [totalQuestionsAnswered, setTotalQuestionsAnswered] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    // Different storage keys for mockup and normal tests
     const STORAGE_KEYS = mockuptest ? {
         ALL_ANSWERS: 'mockup_all_answers',
         CURRENT_PROGRESS: 'mockup_current_progress',
@@ -110,7 +109,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 currentPageIndex,
                 timestamp: Date.now(),
                 date: new Date().toISOString(),
-                isMockup: mockuptest // Store mockup flag in progress data
+                isMockup: mockuptest 
             };
 
             await Promise.all([
@@ -144,8 +143,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             const Body = {
                 type: "get_data",
                 table_name: "questions",
-                is_mockup: mockuptest, // This will determine if we get mockup or normal questions
-                last_id: pageIndex
+                is_mockup: mockuptest, 
             };
 
             const response = await ApiRequest(Body);
