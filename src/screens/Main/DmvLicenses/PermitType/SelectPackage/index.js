@@ -13,9 +13,10 @@ import {ApiRequest} from '../../../../../services/ApiRequest';
 import Loading from '../../../../../components/Loading';
 import {ToastMessage} from '../../../../../utils/ToastMessage';
 
-const SelectPackage = ({navigation}) => {
+const SelectPackage = ({navigation, route}) => {
   const currentlanguage = useSelector(state => state.language.language);
   const {t} = useTranslation();
+  const {permit_id} = route.params
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [packages, setpackages] = useState([]);
   const [loading, setloading] = useState(true);
@@ -102,7 +103,7 @@ const SelectPackage = ({navigation}) => {
                   return;
                 }
                 navigation.navigate('Checkout', {
-                  selectedPackage: packages[selectedIndex],
+                  selectedPackage: packages[selectedIndex],permit_id:permit_id
                 });
               }}
               title={`${t('checkoutButton')} ${

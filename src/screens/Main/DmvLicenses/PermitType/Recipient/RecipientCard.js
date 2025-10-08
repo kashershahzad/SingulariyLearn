@@ -7,7 +7,7 @@ import CustomText from '../../../../../components/CustomText'
 import CustomHorizontalLine from '../../../../../components/CustomHorizontalLine'
 import { COLORS } from '../../../../../utils/COLORS'
 
-const RecipientCard = ({ info }) => {
+const RecipientCard = ({ info , title}) => {
 
     return (
         <View style={styles.container}>
@@ -18,7 +18,7 @@ const RecipientCard = ({ info }) => {
                 style={styles.icon}
             />
 
-            <CustomText label={'Provisional Instruction Permit'} fontFamily={fonts.medium} fontSize={16} marginTop={20} />
+            <CustomText label={title} fontFamily={fonts.medium} fontSize={16} marginTop={20} />
 
             {
                 info.map(((item, i) => (

@@ -50,6 +50,7 @@ const PermitType = () => {
         const response = await ApiRequest(body)
         const rawdata = response.data.data
         const parseddata = rawdata.map(((item)=>({
+            id:item.id,
             image:item.image,
             price:item.price,
             name:JSON.parse(item.name)[currentlanguage]
@@ -90,7 +91,7 @@ const PermitType = () => {
 
             <CustomButton
                 disabled={selectedIndex === null}
-                onPress={() => { navigation.navigate('SelectPackage') }}
+                onPress={() => navigation.navigate('SelectPackage', { permit_id: packages[selectedIndex]?.id })}
                 title={t('continue')} 
                 marginTop={53}
                 height={62} 
