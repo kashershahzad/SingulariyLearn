@@ -74,11 +74,11 @@ const LessonPage = ({ route, navigation }) => {
             )}
 
             {/* Error State */}
-            {error && (
+            {/* {error && (
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>Error loading questions</Text>
                 </View>
-            )}
+            )} */}
 
             {/* Loading State */}
             {isLoading && (
