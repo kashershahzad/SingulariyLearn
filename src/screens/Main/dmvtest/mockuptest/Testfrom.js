@@ -12,7 +12,7 @@ import { useSelector } from 'react-redux';
 import Video from 'react-native-video';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestions }) => {
+const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestions, lesson_id, lesson = true }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedOption, setSelectedOption] = useState(null);
     const [showFeedback, setShowFeedback] = useState(false);
@@ -31,6 +31,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
     const [currentPageIndex, setCurrentPageIndex] = useState(1);
     const [totalQuestionsAnswered, setTotalQuestionsAnswered] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isLessonMode, setIsLessonMode] = useState(false);
 
     const STORAGE_KEYS = mockuptest ? {
         ALL_ANSWERS: 'mockup_all_answers',
@@ -54,6 +55,8 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
     };
 
     useEffect(() => {
+        // Set lesson mode based on props
+        setIsLessonMode(lesson_id && lesson);
         loadSavedProgress();
     }, []);
 
@@ -109,7 +112,8 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 currentPageIndex,
                 timestamp: Date.now(),
                 date: new Date().toISOString(),
-                isMockup: mockuptest 
+                isMockup: mockuptest,
+                isLessonMode: isLessonMode
             };
 
             await Promise.all([
@@ -143,8 +147,17 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             const Body = {
                 type: "get_data",
                 table_name: "questions",
-                is_mockup: mockuptest, 
+                is_mockup: mockuptest,
             };
+
+            // Add lesson_id if it exists and lesson is true, otherwise use last_id
+            if (lesson_id && lesson) {
+                Body.lesson_id = lesson_id;
+                console.log("Loading questions with lesson_id:", lesson_id);
+            } else {
+                Body.last_id = pageIndex;
+                console.log("Loading questions with last_id:", pageIndex);
+            }
 
             const response = await ApiRequest(Body);
             
@@ -157,16 +170,28 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                 setShowFeedback(false);
                 setQuestionStartTimes({ [savedQuestionIndex]: Date.now() });
                 resettimer(true);
+                
+                // Update totalQuestions for lesson mode
+                if (lesson_id && lesson) {
+                    settotalQuestion(response.data.data.length); // Use the actual count of questions
+                }
             } else {
-                await submitAllAnswers();
+                // Only submit if we have answers and no more questions in pagination mode
+                if (allAnswers.length > 0 && !isLessonMode) {
+                    await submitAllAnswers();
+                } else if (isLessonMode && parsedQuestions.length === 0) {
+                    Alert.alert('No Questions', 'No questions found for this lesson.');
+                    setIsLoading(false);
+                }
             }
         } catch (error) {
             if (allAnswers.length > 0) {
                 await submitAllAnswers();
-            } else {
-                Alert.alert('Error', 'Failed to load questions. Please try again.');
-                setIsLoading(false);
-            }
+            } 
+            // else {
+            //     Alert.alert('Error', 'Failed to load questions. Please try again.');
+            //     setIsLoading(false);
+            // }
         }
     };
 
@@ -232,6 +257,7 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             setSelectedOption(null);
             resettimer(true);
         } else {
+            // Last question in current set
             const endTime = Date.now();
             const startTime = questionStartTimes[currentQuestionIndex] || endTime;
             const timeTaken = (endTime - startTime) / 1000;
@@ -243,7 +269,13 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             setIsTransitioning(false);
             setSelectedOption(null);
             
-            loadQuestions(currentPageIndex + 1, 0);
+            // For lesson mode, submit after last question
+            if (isLessonMode) {
+                submitAllAnswers();
+            } else {
+                // For pagination mode, load next page
+                loadQuestions(currentPageIndex + 1, 0);
+            }
         }
     };
 
@@ -272,7 +304,14 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             resettimer(true);
         } else {
             setTotalQuestionsAnswered(prev => prev + parsedQuestions.length);
-            loadQuestions(currentPageIndex + 1, 0);
+            
+            // For lesson mode, submit after last question
+            if (isLessonMode) {
+                submitAllAnswers();
+            } else {
+                // For pagination mode, load next page
+                loadQuestions(currentPageIndex + 1, 0);
+            }
         }
     };
 
@@ -305,7 +344,8 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
             is_correct: isCorrect,
             skiped: answerIndex === null ? 1 : 0,
             timestamp: Date.now(),
-            is_mockup: mockuptest // Store mockup flag with each answer
+            is_mockup: mockuptest,
+            is_lesson: isLessonMode
         };
 
         setAllAnswers(prev => {
@@ -380,7 +420,9 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                     questions: JSON.stringify(allAnswers),
                     score: score,
                     average_time: finalAverageTime,
-                    is_mockup: false
+                    is_mockup: false,
+                    is_lesson: isLessonMode,
+                    lesson_id: isLessonMode ? lesson_id : null
                 };
 
                 const response = await ApiRequest(Body);
@@ -391,7 +433,8 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
                     score: score,
                     totalQuestions: allAnswers.length,
                     averageTime: finalAverageTime,
-                    isMockup: false
+                    isMockup: false,
+                    isLesson: isLessonMode
                 });
             }
 
@@ -405,8 +448,18 @@ const Testfrom = ({ timercomplete, resettimer, mockuptest = false, totalQuestion
     };
 
     const handleNextOrSubmit = () => {
-        if (currentQuestionIndex === parsedQuestions.length - 1 && currentPageIndex >= totalQuestions / parsedQuestions.length) {
-            submitAllAnswers();
+        if (currentQuestionIndex === parsedQuestions.length - 1) {
+            if (isLessonMode) {
+                // For lesson mode, submit after last question
+                submitAllAnswers();
+            } else {
+                // For pagination mode, check if we've reached the total
+                if (currentPageIndex >= totalQuestions / parsedQuestions.length) {
+                    submitAllAnswers();
+                } else {
+                    handleNext();
+                }
+            }
         } else {
             handleNext();
         }

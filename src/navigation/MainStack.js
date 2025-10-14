@@ -40,13 +40,14 @@ import Details from '../screens/Main/DmvLicenses/Details';
 
 import StripeForm from '../screens/Main/DmvLicenses/PermitType/PaymentMethod/stripeform';
 import Lessons from '../screens/Main/dmvtest/Lessons';
+import LessonPage from '../screens/Main/dmvtest/LessonsPage';
 
 const Stack = createNativeStackNavigator();
 
 const MainStack = () => {
   return (
     <Stack.Navigator
-    initialRouteName='Lessons'
+    // initialRouteName='Lessons'
       screenOptions={{
         headerShown: false,
         animation: 'slide_from_right',
@@ -74,6 +75,7 @@ const MainStack = () => {
       {/*  MOckup Test */}
       <Stack.Screen name="Mockuptest" component={Mockuptest} />
       <Stack.Screen name="PratiseQuestion" component={PratiseQuestion} />
+       <Stack.Screen name="LessonPage" component={LessonPage} />
       <Stack.Screen name="Congratulations" component={Congratulations} />
       <Stack.Screen name="Result" component={Result} />
 
