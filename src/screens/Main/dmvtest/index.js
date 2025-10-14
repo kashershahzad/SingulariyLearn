@@ -12,6 +12,13 @@ const DmvTest = ({navigation}) => {
   const { t } = useTranslation();
   
   const practiceMenuItems = [
+
+    {
+      title: t('Lessons'),
+      icon: Images.usefulknowledge,
+      bgColor: "#0DC1BE",
+      fnc: () => navigation.navigate('Lessons')
+    },
     {
       title: t('practiceQuestion'),
       icon: Images.pratisequestion,
@@ -45,6 +52,7 @@ const DmvTest = ({navigation}) => {
       bgColor: "#0DC1BE",
       fnc: () => navigation.navigate('UsefulKnowledge')
     },
+
   ];
 
   return (

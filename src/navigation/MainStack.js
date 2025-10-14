@@ -39,13 +39,14 @@ import ProfileScreen from '../screens/Main/profileScreen';
 import Details from '../screens/Main/DmvLicenses/Details';
 
 import StripeForm from '../screens/Main/DmvLicenses/PermitType/PaymentMethod/stripeform';
+import Lessons from '../screens/Main/dmvtest/Lessons';
 
 const Stack = createNativeStackNavigator();
 
 const MainStack = () => {
   return (
     <Stack.Navigator
-    // initialRouteName='PaymentMethod'
+    initialRouteName='Lessons'
       screenOptions={{
         headerShown: false,
         animation: 'slide_from_right',
@@ -77,6 +78,7 @@ const MainStack = () => {
       <Stack.Screen name="Result" component={Result} />
 
       <Stack.Screen name="UsefulKnowledge" component={UsefulKnowledge} />
+      <Stack.Screen name="Lessons" component={Lessons} />
       <Stack.Screen name="HowToDo" component={HowToDo} />
       <Stack.Screen name="CarPadel" component={CarPadel} />
       <Stack.Screen name="AdjestingMirror" component={AdjestingMirror} />
