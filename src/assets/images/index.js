@@ -66,6 +66,7 @@ export const Images = {
   arrowdown:require('./icons/arrowdown.png'),
   audiobtn:require('./icons/audiobtn.png'),
   lan:require('./icons/lan.png'),
+  downarrow:require('./icons/downarrow.png'),
 
 
   name:require('./icons/name.png'),

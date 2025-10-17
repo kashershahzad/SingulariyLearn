@@ -32,7 +32,9 @@ const LessonPage = ({ route, navigation }) => {
                 
                 if (response.data && response.data.data) {
                     setQuestions(response.data.data);
-                    settotalQuestion(response.data.data.length);
+                    // Get total from API response if available, otherwise use data length
+                    const total = response.data.total || response.data.data.length;
+                    settotalQuestion(total);
                     seterror(false);
                 } else {
                     seterror(true);
@@ -74,11 +76,11 @@ const LessonPage = ({ route, navigation }) => {
             )}
 
             {/* Error State */}
-            {/* {error && (
+            {error && (
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>Error loading questions</Text>
                 </View>
-            )} */}
+            )}
 
             {/* Loading State */}
             {isLoading && (

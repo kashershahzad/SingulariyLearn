@@ -1,84 +1,103 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
-import React, { useState, useEffect } from 'react'
-import ScreenWrapper from '../../../../components/ScreenWrapper'
-import ImageFast from '../../../../components/ImageFast'
-import { Images } from '../../../../assets/images'
-import { COLORS } from '../../../../utils/COLORS'
-import Testfrom from '../mockuptest/Testfrom'
-import { useTranslation } from 'react-i18next'
-import MockupHeader from '../Molecules/MockupHeader'
-import { ApiRequest } from '../../../../services/ApiRequest'
+import {ScrollView, StyleSheet, Text, View,} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import ScreenWrapper from '../../../../components/ScreenWrapper';
+import ImageFast from '../../../../components/ImageFast';
+import {Images} from '../../../../assets/images';
+import {COLORS} from '../../../../utils/COLORS';
+import Testfrom from '../mockuptest/Testfrom';
+import {useTranslation} from 'react-i18next';
+import MockupHeader from '../Molecules/MockupHeader';
+import {ApiRequest} from '../../../../services/ApiRequest';
+import Header2 from '../../DmvLicenses/Molecules/Header2';
+import CustomText from '../../../../components/CustomText';
+import fonts from '../../../../assets/fonts';
+import Lessons from './Lessons';
+import { useSelector } from 'react-redux';
+import Loading from '../../../../components/Loading';
 
-const PratiseQuestion = () => {
-    const { t } = useTranslation();
-    const [questiontimer, setquestiontimer] = useState(false)
-    const [resettimer, setresettimer] = useState(false)
-    const [questions, setQuestions] = useState([]);
-    const [error, seterror] = useState(false)
-    const [isLoading, setIsLoading] = useState(true)
-    const [totalQuestion, settotalQuestion] = useState('')
+const PratiseQuestion = ({navigation}) => {
+  const {t} = useTranslation();
+
+  const [lessons, setLessons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const currentLanguage = useSelector(state => state.language.language);
 
     useEffect(() => {
-        const fetchquestion = async () => {
-            try {
-                const Body = {
-                    type: "get_data",
-                    table_name: "questions",
-                    is_mockup: false,
-                    last_id:1
-                }
-
-                const response = await ApiRequest(Body)
-                console.log("Pratise response", response.data.total); 
-                settotalQuestion(response.data.total);
-                
-                if (response.data.data) {
-                    setQuestions(response.data.data);
-                    seterror(false);
-                } else {
-                    seterror(true);
-                }
-            } catch (error) {
-                console.error("API Error:", error);
-                seterror(true);
-            } finally {
-                setIsLoading(false);
-            }
+      const fetchLessons = async () => {
+        try {
+          const body = {
+            type: 'get_data',
+            table_name: 'lesson',
+          };
+  
+          const response = await ApiRequest(body);
+          if (response && response.status === 200) {
+            console.log('lessons', response.data);
+            const rawData = response.data.data;
+  
+            const processedData = rawData.map(item => ({
+              id: item.id.toString(),
+              name: JSON.parse(item.name)[currentLanguage] || JSON.parse(item.name).en,
+              status: 'Start',
+            }));
+  
+            setLessons(processedData);
+          } else {
+            console.log('Error in lessons api');
+          }
+        } catch (error) {
+          console.error('Error fetching lessons:', error);
+        } finally {
+          setLoading(false);
         }
-        fetchquestion()
-    }, [])
+      };
+  
+      fetchLessons();
+    }, [currentLanguage]);
+  
+    const handleLessonPress = (id, name) => {
+      navigation.navigate('Questions', { id: id, name });
+    };
 
+    if (loading) {
     return (
-        <ScreenWrapper
-            scrollEnabled
-            statusBarColor={COLORS.primaryColor4}
-            paddingHorizontal={0}>
+      <Loading/>
+    );
+  }
 
-            {/* Success State */}
-            {!isLoading && !error && (
-                <>
-                    <MockupHeader
-                        setreset={setresettimer}
-                        resettimer={resettimer}
-                        timercomplete={setquestiontimer}
-                        timer={false}
-                        title={t('Practise Question')} 
-                    />
-                    
-                    <Testfrom 
-                        resettimer={setresettimer} 
-                        timercomplete={questiontimer} 
-                        questions={questions} 
-                       totalQuestions={totalQuestion}
-                    />
-                </>
-            )}
-        </ScreenWrapper>
-    )
-}
+  return (
+    <ScreenWrapper
+      scrollEnabled
+      statusBarColor={COLORS.primaryColor4}
+      backgroundColor='white'
+      headerUnScrollable={() => <Header2 line={true} title={t('Practise Question')} />}>
+      <CustomText
+        label={t('Lessons')}
+        fontFamily={fonts.medium}
+        fontSize={16}
+        marginTop={10}
+        marginLeft={5}
+        marginBottom={7}
+      />
+      <View style={styles.container}>
+        {lessons.map((lesson) => (
+          <Lessons
+            key={lesson.id}
+            id={lesson.id}
+            name={lesson.name}
+            status={lesson.status}
+            onPress={() => handleLessonPress(lesson.id, lesson.name)}
+          />
+        ))}
+      </View>
+    </ScreenWrapper>
+  );
+};
 
-export default PratiseQuestion
+export default PratiseQuestion;
 
 const styles = StyleSheet.create({
-    // Add your styles here if needed
-})
+  container:{
+    gap:10
+  }
+});

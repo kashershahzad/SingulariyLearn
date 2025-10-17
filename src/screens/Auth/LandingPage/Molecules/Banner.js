@@ -26,7 +26,7 @@ const Banner = () => {
             />
             
             <CustomButton 
-                onPress={() => navigation.navigate('DmvLicensesOnboading')} 
+                onPress={() => navigation.navigate('PermitType')} 
                 title={t('start')} 
                 backgroundColor={COLORS.primaryColor4} 
                 height={32} 

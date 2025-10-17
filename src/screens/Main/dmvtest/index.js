@@ -13,12 +13,12 @@ const DmvTest = ({navigation}) => {
   
   const practiceMenuItems = [
 
-    {
-      title: t('Lessons'),
-      icon: Images.usefulknowledge,
-      bgColor: "#0DC1BE",
-      fnc: () => navigation.navigate('Lessons')
-    },
+    // {
+    //   title: t('Lessons'),
+    //   icon: Images.usefulknowledge,
+    //   bgColor: "#0DC1BE",
+    //   fnc: () => navigation.navigate('Lessons')
+    // },
     {
       title: t('practiceQuestion'),
       icon: Images.pratisequestion,
