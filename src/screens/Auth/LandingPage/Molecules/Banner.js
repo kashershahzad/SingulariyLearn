@@ -23,12 +23,13 @@ const Banner = () => {
                 fontSize={22} 
                 marginRight={100}
                 width={200}
+                color={'white'}
             />
             
             <CustomButton 
                 onPress={() => navigation.navigate('PermitType')} 
                 title={t('start')} 
-                backgroundColor={COLORS.primaryColor4} 
+                backgroundColor={COLORS.btn} 
                 height={32} 
                 width={105} 
                 alignSelf='start' 
@@ -51,7 +52,7 @@ export default Banner;
 const styles = StyleSheet.create({
     container: {
         marginTop: 10,
-        backgroundColor: COLORS.primaryColor3,
+        backgroundColor: COLORS.primaryColor4,
         borderRadius: 10,
         paddingTop: 15,
         paddingLeft: 20,
