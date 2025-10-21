@@ -2,7 +2,7 @@ export const COLORS = {
   primaryColor: '#FFDFC4',
   primaryColor2: '#F38E55',
   primaryColor3: '#FBBF8D',
-  primaryColor4: '#ED7D20',
+  primaryColor4: '#0298EF',
   primaryColor5: '#F6DDCE',
   gray: '#666666',
   bggray: '#ECEFF3',
