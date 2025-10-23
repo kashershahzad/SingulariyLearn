@@ -136,7 +136,7 @@ const ProfileScreen = ({ navigation }) => {
       <View style={styles.status}>
         <CustomText
           fontSize={10}
-          color={COLORS.primaryColor4}
+          color={COLORS.white}
           fontFamily={fonts.semiBold}
           textAlign={'center'}
           label={'premium'} />
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   status: {
     paddingVertical: 3,
     paddingHorizontal: 5,
-    backgroundColor: '#ECC7A9',
+    backgroundColor: COLORS.btn,
     borderRadius: 3,
     position: 'absolute',
     top: 133,
