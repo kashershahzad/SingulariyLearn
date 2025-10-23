@@ -653,6 +653,7 @@ const Testfrom = ({
                                 borderRadius={25}
                                 onPress={handleSkip}
                                 disabled={isTransitioning}
+                                backgroundColor={"white"}
                             />
                             <CustomButton
                                 disabled={(selectedOption === null && !mockuptest) || isTransitioning}
@@ -679,6 +680,7 @@ const Testfrom = ({
                                 borderColor={'#ECEFF3'}
                                 borderWidth={2}
                                 borderRadius={25}
+                                backgroundColor={"white"}
                                 onPress={handleSkip}
                                 disabled={isTransitioning}
                             />
@@ -691,7 +693,7 @@ const Testfrom = ({
                                 borderColor={'#ECEFF3'}
                                 borderWidth={1}
                                 borderRadius={25}
-                                backgroundColor={'#ED7D20'}
+                                backgroundColor={COLORS.btn}
                                 onPress={handleNextOrSubmit}
                             />
                         </>
@@ -734,7 +736,7 @@ const styles = StyleSheet.create({
     lineProgress: {
         height: '100%',
         borderRadius: 10,
-        backgroundColor: '#ED7D20',
+        backgroundColor: COLORS.btn,
     },
     icon: {
         height: 202,
@@ -754,7 +756,7 @@ const styles = StyleSheet.create({
         borderRadius: 8
     },
     selectedOption: {
-        borderColor: '#ED7D20',
+        borderColor: COLORS.btn,
         borderWidth: 2,
         backgroundColor: '#EFEFEF'
     },

@@ -17,7 +17,7 @@ const IndexBanner = () => {
                 fontFamily={fonts.jakartaExtraBold} 
                 fontSize={22} 
                 width={200} 
-                color={'#ED7D20'} 
+                color={'#0082CD'} 
             />
 
             <ImageFast 
@@ -37,7 +37,7 @@ const IndexBanner = () => {
 const styles = StyleSheet.create({
     container: {
         marginTop: 10,
-        backgroundColor: COLORS.primaryColor3,
+        backgroundColor: COLORS.primaryColor4,
         borderRadius: 10,
         paddingTop: 15,
         paddingLeft: 20,

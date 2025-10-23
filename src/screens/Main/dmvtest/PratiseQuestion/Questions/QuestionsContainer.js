@@ -5,6 +5,7 @@ import fonts from '../../../../../assets/fonts';
 import ImageFast from '../../../../../components/ImageFast';
 import {Images} from '../../../../../assets/images';
 import CustomHorizontalLine from '../../../../../components/CustomHorizontalLine';
+import { COLORS } from '../../../../../utils/COLORS';
 
 const QuestionsContainer = ({id, questionNumber, question, answer}) => {
   const [model, setmodel] = useState(false);
@@ -19,7 +20,7 @@ const QuestionsContainer = ({id, questionNumber, question, answer}) => {
           label={`Question ${questionNumber}`}
           fontFamily={fonts.regular}
           fontSize={14}
-          color={'#ED7D20'}
+          color={COLORS.btn}
         />
 
         <ImageFast
@@ -47,7 +48,7 @@ const QuestionsContainer = ({id, questionNumber, question, answer}) => {
             fontFamily={fonts.regular}
             fontSize={14}
             marginTop={10}
-            color={'#ED7D20'}
+            color={COLORS.btn}
             style={{marginTop: 10}}
           />
           <CustomText

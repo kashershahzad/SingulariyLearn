@@ -112,7 +112,7 @@ const SelectPackage = ({navigation, route}) => {
               marginTop={33}
               height={62}
               borderRadius={10}
-              backgroundColor={COLORS.primaryColor4}
+              backgroundColor={COLORS.btn}
               fontSize={16}
               fontFamily={fonts.jakartaSemiBold}
             />

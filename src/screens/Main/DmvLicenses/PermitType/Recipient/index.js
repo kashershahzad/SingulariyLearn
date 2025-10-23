@@ -63,7 +63,7 @@ const info = [
   { title: 'Vehicles', info: data?.vehicle },
   { title: 'Duration', info: data?.duration },
   { title: 'Issue', info: data?.time },
-  { title: 'Expre', info: '08-23-2025' },
+  // { title: 'Expre', info: '08-23-2025' },
 ];
 
 
@@ -101,7 +101,7 @@ const info = [
             marginTop={53}
             height={62}
             borderRadius={10}
-            backgroundColor={COLORS.primaryColor4}
+            backgroundColor={COLORS.btn}
             fontSize={20}
             fontFamily={fonts.jakartaSemiBold}
           />

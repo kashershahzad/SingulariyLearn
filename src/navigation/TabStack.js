@@ -43,7 +43,7 @@ const TabStack = () => {
               source={tabIcons.home2}
               style={[
                 styles.icon,
-                { tintColor: focused ? COLORS.primaryColor4 : COLORS.tabIcon },
+                { tintColor: focused ? COLORS.btn : COLORS.tabIcon },
               ]}
             />
           ),
@@ -60,7 +60,7 @@ const TabStack = () => {
               source={tabIcons.dmvtest}
               style={[
                 styles.icon,
-                { tintColor: focused ? COLORS.primaryColor4 : COLORS.tabIcon },
+                { tintColor: focused ? COLORS.btn : COLORS.tabIcon },
               ]}
             />
           ),
@@ -80,7 +80,7 @@ const TabStack = () => {
               source={tabIcons.profile}
               style={[
                 styles.icon,
-                { tintColor: focused ? COLORS.primaryColor4 : COLORS.tabIcon },
+                { tintColor: focused ? COLORS.btn : COLORS.tabIcon },
               ]}
             />
           ),

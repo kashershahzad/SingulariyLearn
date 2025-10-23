@@ -72,7 +72,7 @@ export default MockupHeader
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: COLORS.primaryColor4,
+        backgroundColor: COLORS.btn,
         height: 90,
         flexDirection: 'row',
         paddingTop: 20,

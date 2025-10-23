@@ -92,6 +92,7 @@ const Questions = ({navigation, route}) => {
         <CustomButton
           title={'Start Pratise'}
          onPress={() => handleLessonPress(id, name)}
+         backgroundColor={COLORS.btn}
         />
         </View>
       )}>
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   paginationButton: {
-    backgroundColor: COLORS.primaryColor4,
+    backgroundColor: COLORS.btn,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,

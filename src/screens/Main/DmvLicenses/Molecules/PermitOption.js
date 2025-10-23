@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
         paddingVertical:20,
     },
     selectedContainer: {
-        borderColor: COLORS.primaryColor4,
+        borderColor: COLORS.btn,
         borderWidth: 2,
     },
     icon: {

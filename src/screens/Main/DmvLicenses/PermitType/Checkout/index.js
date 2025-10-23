@@ -15,29 +15,29 @@ import {
 } from '@stripe/stripe-react-native';
 import {useDispatch} from 'react-redux';
 import {setPackage} from '../../../../../store/reducer/Packages';
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 
 const Checkout = ({route, navigation}) => {
   const {selectedPackage} = route.params;
-  const {permit_id} =route.params
-  const {title, price, description, vehicle, duration ,id} = selectedPackage;
+  const {permit_id} = route.params;
+  const {title, price, description, vehicle, duration, id} = selectedPackage;
   const {t} = useTranslation();
   const numericPrice = parseInt(price.replace(/\D/g, ''), 10);
   const [refreshing, setRefreshing] = useState();
   const dispatch = useDispatch();
   const token = useSelector(state => state.authConfig.token);
-  const total = parseInt(price.replace(/\D/g, '')) + 20
+  const total = parseInt(price.replace(/\D/g, '')) + 20;
 
   const openPaymentSheet = async paymentId => {
     const {error} = await presentPaymentSheet();
     setRefreshing(false);
 
     if (error) {
-    //   Alert.alert(`Error code: ${error.code}`, error.message);
+      //   Alert.alert(`Error code: ${error.code}`, error.message);
     } else {
       console.log('paymentId---->', paymentId);
       completePayment(paymentId);
-    //   Alert.alert('Success', 'Your payment is confirmed!');
+      //   Alert.alert('Success', 'Your payment is confirmed!');
     }
   };
 
@@ -51,7 +51,7 @@ const Checkout = ({route, navigation}) => {
     try {
       const body = {
         type: 'payment_intent',
-        amount: total
+        amount: total,
       };
 
       const response = await ApiRequest(body);
@@ -81,38 +81,38 @@ const Checkout = ({route, navigation}) => {
       console.log('Payment error:', error);
     }
   };
-const completePayment = async paymentId => {
-  console.log('Payment completed:', paymentId);
-  try {
-    const body = {
-      type: 'add_data',
-      table_name: 'purchases',
-      pi_id: paymentId,
-      package_id: id,
-      permit_id: permit_id,
-      amount :total,
-      user_id:token
-    };
-    console.log(body)
-    const response = await ApiRequest(body);
-    console.log('Purchases response:', response);
+  const completePayment = async paymentId => {
+    console.log('Payment completed:', paymentId);
+    try {
+      const body = {
+        type: 'add_data',
+        table_name: 'purchases',
+        pi_id: paymentId,
+        package_id: id,
+        permit_id: permit_id,
+        amount: total,
+        user_id: token,
+      };
+      console.log(body);
+      const response = await ApiRequest(body);
+      console.log('Purchases response:', response);
 
-    if (response?.data?.message === 'Added Successfully') {
-      dispatch(setPackage(true));
-      navigation.replace('Recipient', {id: response.data.id});
-    } else {
-    //   Alert.alert('Error', 'Payment Failed');
+      if (response?.data?.message === 'Added Successfully') {
+        dispatch(setPackage(true));
+        navigation.replace('Recipient', {id: response.data.id});
+      } else {
+        //   Alert.alert('Error', 'Payment Failed');
+      }
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Error', 'Something went wrong');
     }
-  } catch (error) {
-    console.log(error);
-    Alert.alert('Error', 'Something went wrong');
-  }
-};
+  };
 
   return (
     <ScreenWrapper
       paddingBottom={20}
-      headerUnScrollable={() => <Header2 title={'Checkout'} />}
+      headerUnScrollable={() => <Header2 line={true} title={'Checkout'} />}
       footerUnScrollable={() => (
         <View style={{marginHorizontal: 16}}>
           <CustomButton
@@ -121,7 +121,7 @@ const completePayment = async paymentId => {
             marginTop={53}
             height={62}
             borderRadius={10}
-            backgroundColor={COLORS.primaryColor4}
+            backgroundColor={COLORS.btn}
             fontSize={20}
             fontFamily={fonts.jakartaSemiBold}
           />
@@ -226,7 +226,7 @@ const completePayment = async paymentId => {
         />
         <CustomText
           marginTop={5}
-          label={"$"+total}
+          label={'$' + total}
           fontFamily={fonts.regular}
           fontSize={14}
         />
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 10,
     marginBottom: 10,
-    backgroundColor: '#ED7D20',
+    backgroundColor: COLORS.btn,
   },
   head: {
     flexDirection: 'row',

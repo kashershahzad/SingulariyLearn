@@ -4,6 +4,7 @@ import CustomText from '../../../../../components/CustomText'
 import fonts from '../../../../../assets/fonts'
 import CustomHorizontalLine from '../../../../../components/CustomHorizontalLine'
 import { useTranslation } from 'react-i18next'
+import { COLORS } from '../../../../../utils/COLORS'
 
 const PackageContainer = ({ plan, price, description, vehicle, duration, onpress, selectedindex }) => {
     const { t } = useTranslation();
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
         marginBottom:10,
     },
     activecontainer: {
-        backgroundColor: '#ED7D20'
+        backgroundColor: COLORS.btn
     },
     head: {
         flexDirection: 'row',

@@ -4,6 +4,7 @@ import CustomText from '../../../../components/CustomText';
 import fonts from '../../../../assets/fonts';
 import ImageFast from '../../../../components/ImageFast';
 import {Images} from '../../../../assets/images';
+import { COLORS } from '../../../../utils/COLORS';
 
 const Lessons = ({ id, name, status, onPress }) => {
   return (
@@ -13,14 +14,14 @@ const Lessons = ({ id, name, status, onPress }) => {
           label={`Lessons ${id}`}
           fontFamily={fonts.regular}
           fontSize={14}
-          color={'#ED7D20'}
+          color={COLORS.btn}
         />
 
         <CustomText
           label={"50% completed"}
           fontFamily={fonts.medium}
           fontSize={8}
-          color={'#ED7D20'}
+          color={COLORS.btn}
         />
       </View>
 
@@ -73,6 +74,6 @@ const styles = StyleSheet.create({
   lineProgress: {
     height: '100%',
     borderRadius: 10,
-    backgroundColor: '#ED7D20',
+    backgroundColor:COLORS.btn
   },
 });
