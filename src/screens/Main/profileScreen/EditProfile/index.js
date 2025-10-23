@@ -145,7 +145,7 @@ const EditProfile = () => {
               marginBottom={20}
               height={62}
               borderRadius={10}
-              backgroundColor={loading ? COLORS.gray : COLORS.primaryColor4}
+              backgroundColor={loading ? COLORS.gray : COLORS.btn}
               fontSize={16}
               fontFamily={fonts.jakartaSemiBold}
               onPress={handleSubmit}

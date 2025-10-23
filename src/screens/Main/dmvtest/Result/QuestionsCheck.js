@@ -34,7 +34,7 @@ const QuestionsCheck = () => {
                             label={`${item.number}/5`}
                             fontFamily={fonts.medium}
                             fontSize={12}
-                            color={COLORS.primaryColor4}
+                            color={COLORS.btn}
                         />
                         <ImageFast
                             source={item.result}

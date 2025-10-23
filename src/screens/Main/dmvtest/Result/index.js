@@ -18,8 +18,8 @@ const Result = () => {
   return (
     <ScreenWrapper
       scrollEnabled
-      statusBarColor={COLORS.primaryColor4}
-      backgroundColor={COLORS.primaryColor4}
+      statusBarColor={COLORS.btn}
+      backgroundColor={COLORS.btn}
       paddingHorizontal={0}
     >
       <MockupHeader title={t('checkResultTitle')} />

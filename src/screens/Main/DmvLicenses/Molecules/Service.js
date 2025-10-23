@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     box: {
         height: 103,
         width: "32%",
-        backgroundColor: '#E9D1BC',
+        backgroundColor: '#9CDBFF',
         borderRadius: 10,
         opacity: 0.8,
         justifyContent: 'center',

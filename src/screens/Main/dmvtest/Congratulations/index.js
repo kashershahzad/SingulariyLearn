@@ -72,8 +72,8 @@ const Congratulations = ({ navigation, route }) => {
   return (
     <ScreenWrapper
       scrollEnabled
-      statusBarColor={COLORS.primaryColor4}
-      backgroundColor={COLORS.primaryColor4}
+      statusBarColor={COLORS.btn}
+      backgroundColor={COLORS.btn}
       paddingHorizontal={0}
     >
       <MockupHeader />
@@ -131,7 +131,7 @@ const Congratulations = ({ navigation, route }) => {
           width={318}
           height={52}
           title={t('startNewTestButton')}
-          backgroundColor={COLORS.primaryColor4}
+          backgroundColor={COLORS.btn}
           fontSize={16}
           color={'white'}
           borderRadius={25}

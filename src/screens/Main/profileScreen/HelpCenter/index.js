@@ -95,7 +95,7 @@ const HelpCenter = () => {
                                 marginBottom={20}
                                 height={62}
                                 borderRadius={10}
-                                backgroundColor={COLORS.primaryColor4}
+                                backgroundColor={COLORS.btn}
                                 fontSize={16}
                                 fontFamily={fonts.jakartaSemiBold}
                                 onPress={handleSubmit}

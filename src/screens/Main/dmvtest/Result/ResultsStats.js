@@ -32,7 +32,7 @@ const ResultsStats = () => {
                         fontFamily={fonts.semiBold}
                         fontSize={14}
                         marginTop={5}
-                        color={COLORS.primaryColor4}
+                        color={COLORS.btn}
                     />
                 </View>
             ))}
