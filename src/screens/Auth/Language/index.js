@@ -55,7 +55,7 @@ const Language = ({ navigation, route}) => {
 
     const getButtonStyle = (languageCode) => {
         return currentLanguage === languageCode
-            ? { backgroundColor: COLORS.primaryColor4, color: COLORS.white }
+            ? { backgroundColor: COLORS.btn, color: COLORS.white }
             : { backgroundColor: COLORS.bggray, color: COLORS.black };
     };
 

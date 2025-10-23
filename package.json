@@ -10,7 +10,6 @@
     "test": "jest"
   },
   "dependencies": {
-    
     "@notifee/react-native": "^9.1.8",
     "@react-native-async-storage/async-storage": "^2.1.1",
     "@react-native-community/geolocation": "^3.4.0",
@@ -42,6 +41,7 @@
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-modal": "^13.0.1",
+    "react-native-phone-number-input": "^2.1.0",
     "react-native-render-html": "^6.3.4",
     "react-native-safe-area-context": "^5.2.0",
     "react-native-screens": "^4.6.0",

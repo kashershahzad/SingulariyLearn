@@ -15,9 +15,9 @@ const Header = () => {
         <>
             <View style={styles.container}>
                 <View style={styles.mincontainer}>
-                    <ImageFast source={Images.logo1} style={styles.logo} resizeMode={'contain'} />
-                    <CustomText label={'DMV!'} fontFamily={fonts.semiBold} fontSize={16} marginTop={5} />
-                </View>
+                <ImageFast source={Images.logomin} style={styles.logo} resizeMode={'contain'} />
+                <ImageFast source={Images.logohead} style={styles.logo3} resizeMode={'contain'} />
+            </View>
                 <View style={styles.mincontainer}>
                     <ImageFast
                         source={Images.lan}
@@ -92,5 +92,10 @@ const styles = StyleSheet.create({
         height: 31,
         justifyContent: 'center',
         alignItems: 'center',
-    }
+    },
+
+    logo3: {
+        height: 12,
+        width: 61,
+    },
 })

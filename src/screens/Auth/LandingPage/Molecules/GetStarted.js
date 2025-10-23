@@ -17,7 +17,7 @@ const GetStarted = () => {
         <View>
             <CustomText label={t('guidanceTestPrep')} fontFamily={fonts.jakartaSemiBold} fontSize={22} width={250} marginTop={15} />
             <View style={styles.container}>
-                <CustomButton  onPress={()=>{navigation.navigate('Language')}} title={t('login')} backgroundColor={COLORS.primaryColor4} height={34} width={90} alignSelf='start' fontSize={12} fontFamily={fonts.jakartaSemiBold} borderRadius={4} marginTop={20} />
+                <CustomButton  onPress={()=>{navigation.navigate('Language')}} title={t('login')} backgroundColor={COLORS.btn} height={34} width={90} alignSelf='start' fontSize={12} fontFamily={fonts.jakartaSemiBold} borderRadius={4} marginTop={20} />
                 <ImageFast source={Images.bannerimage} resizeMode={'contain'} style={styles.icon}  />
             </View>
         </View>

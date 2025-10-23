@@ -13,19 +13,18 @@ const Header = () => {
         <>
         <View style={styles.container}>
             <View style={styles.mincontainer}>
-                <ImageFast source={Images.logo1} style={styles.logo} resizeMode={'contain'} />
-                <CustomText label={'DMV!'} fontFamily={fonts.semiBold} fontSize={16} marginTop={5} />
+                <ImageFast source={Images.logomin} style={styles.logo} resizeMode={'contain'} />
+                <ImageFast source={Images.logohead} style={styles.logo3} resizeMode={'contain'} />
             </View>
             <View style={styles.mincontainer}>
                 <View style={styles.iconstyle}>
-                    <ImageFast source={Images.notification} style={styles.icon} resizeMode={'contain'} />
+                    <ImageFast source={Images.notification3} style={styles.icon5} resizeMode={'contain'} />
                 </View>
-                 <View style={styles.iconstyle}>
+                 <View style={styles.iconstyle}> 
                     <ImageFast source={Images.exit} style={styles.icon2} resizeMode={'contain'} />
                 </View>
-                <ImageFast source={Images.active} style={styles.icon3} resizeMode={'contain'} />
+                {/* <ImageFast source={Images.active} style={styles.icon3} resizeMode={'contain'} /> */}
             </View>
-            
         </View>
         <CustomHorizontalLine />
         </>
@@ -47,8 +46,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     logo: {
-        height: 38,
-        width: 32,
+        height: 30,
+        width: 27,
+    },
+
+    logo3: {
+        height: 12,
+        width: 61,
     },
     icon: {
         height: 14,
@@ -66,11 +70,15 @@ const styles = StyleSheet.create({
         left:18,
     },
     iconstyle: {
-        backgroundColor: COLORS.primaryColor,
+        backgroundColor: COLORS.lightblue,
         borderRadius: 50,
         width: 31, 
         height: 31,
         justifyContent: 'center', 
         alignItems: 'center', 
+    },
+    icon5:{
+        width: 31, 
+        height: 31,
     }
 })

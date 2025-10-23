@@ -447,5 +447,18 @@
   "invalidPhone": "Please enter a valid phone number",
   "phoneMinLength": "Phone number must be at least 10 digits",
   "phoneMaxLength": "Phone number cannot exceed 15 digits",
-  "phoneRequired": "Phone number is required"
+  "phoneRequired": "Phone number is required",
+
+
+  "firstName": "First Name",
+  "firstNamePlaceholder": "First name",
+  "firstNameRequired": "First name is required",
+  "lastName": "Last Name",
+  "lastNamePlaceholder": "Last name",
+  "lastNameRequired": "Last name is required",
+  "phone": "Phone Number",
+  "password": "Password",
+  "confirmPassword": "Confirm Password",
+  "loading": "Creating Account..."
+
 }

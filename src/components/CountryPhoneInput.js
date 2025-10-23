@@ -27,9 +27,9 @@ const CountryPhoneInput = ({
       {withLabel && (
         <CustomText
           label={withLabel}
-          fontFamily={fonts.medium}
+          fontFamily={fonts.jakartaMedium}
           marginBottom={8}
-          color={COLORS.inputLabel}
+          fontSize={16}
         />
       )}
       <PhoneInput
@@ -39,7 +39,7 @@ const CountryPhoneInput = ({
           fontFamily: fonts.regular,
         }}
         defaultValue={value}
-        defaultCode="KN"
+        defaultCode="PK"
         layout="first"
         textInputProps={{
           placeholderTextColor: COLORS.inputLabel,
@@ -55,7 +55,7 @@ const CountryPhoneInput = ({
         countryPickerButtonStyle={{
           backgroundColor: isFocused ? "#e3ebef" : "#FAFAFA",
         }}
-        codeTextStyle={[styles.phoneInput, { marginLeft: -8 }]}
+        codeTextStyle={[styles.phoneInput, { marginLeft: -20 }]}
         containerStyle={[
           styles.phoneInputContainer,
           {

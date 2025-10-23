@@ -445,6 +445,18 @@
   "invalidPhone": "براہ کرم درست فون نمبر درج کریں",
   "phoneMinLength": "فون نمبر کم از کم 10 ہندسوں کا ہونا چاہیے",
   "phoneMaxLength": "فون نمبر 15 ہندسوں سے زیادہ نہیں ہو سکتا",
-  "phoneRequired": "فون نمبر درکار ہے"
+  "phoneRequired": "فون نمبر درکار ہے",
+
+
+  "firstName": "پہلا نام",
+  "firstNamePlaceholder": "پہلا نام ",
+  "firstNameRequired": "پہلا نام درکار ہے",
+  "lastName": "آخری نام",
+  "lastNamePlaceholder": "آخری نام ",
+  "lastNameRequired": "آخری نام درکار ہے",
+  "phone": "فون نمبر",
+  "password": "پاس ورڈ",
+  "confirmPassword": "پاس ورڈ کی تصدیق کریں",
+  "loading": "اکاؤنٹ بن رہا ہے..."
 
 }

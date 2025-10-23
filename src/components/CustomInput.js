@@ -63,6 +63,7 @@ const CustomInput = ({
         <CustomText
           label={withLabel}
           marginBottom={4}
+          fontSize={16}
           color={labelColor || COLORS.black}
         />
       )}
@@ -76,7 +77,7 @@ const CustomInput = ({
               error || isError
                 ? COLORS.primaryColor4
                 : isFocused
-                ? COLORS.primaryColor
+                ? COLORS.primaryColor4
                 : borderColor,
             borderWidth: isFocused || error || isError ? 1 : 1,
             height: height ? height : multiline ? 180 : 56,

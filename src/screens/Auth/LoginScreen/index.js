@@ -140,7 +140,7 @@ const LoginScreen = ({ navigation }) => {
                             title={t('login_button')}
                             marginTop={13}
                             height={52}
-                            backgroundColor={COLORS.primaryColor4}
+                            backgroundColor={COLORS.btn}
 
                         />
                     </>
@@ -161,7 +161,7 @@ const LoginScreen = ({ navigation }) => {
                     label={t('sign_up')}
                     fontFamily={fonts.medium}
                     fontSize={16}
-                    color={COLORS.primaryColor4}
+                    color={COLORS.btn}
                     textAlign={'center'}
                 />
             </View>

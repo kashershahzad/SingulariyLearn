@@ -1,35 +1,32 @@
-import { StyleSheet, View } from 'react-native';
-import React, { useState } from 'react';
-import { Formik } from 'formik';
+import {StyleSheet, View} from 'react-native';
+import React, {useState} from 'react';
+import {Formik} from 'formik';
 import * as yup from 'yup';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import { Images } from '../../../assets/images';
+import {Images} from '../../../assets/images';
 import ImageFast from '../../../components/ImageFast';
 import CustomText from '../../../components/CustomText';
 import fonts from '../../../assets/fonts';
-import { COLORS } from '../../../utils/COLORS';
+import {COLORS} from '../../../utils/COLORS';
 import CustomInput from '../../../components/CustomInput';
 import CustomButton from '../../../components/CustomButton';
-import { useTranslation } from 'react-i18next';
-import { ApiRequest } from '../../../services/ApiRequest';
-import { useDispatch } from 'react-redux';
-import { ToastMessage } from '../../../utils/ToastMessage'
-import { setToken } from '../../../store/reducer/AuthConfig';
+import {useTranslation} from 'react-i18next';
+import {ApiRequest} from '../../../services/ApiRequest';
+import {useDispatch} from 'react-redux';
+import {ToastMessage} from '../../../utils/ToastMessage';
+import {setToken} from '../../../store/reducer/AuthConfig';
+import CountryPhoneInput from '../../../components/CountryPhoneInput';
 
 const signupSchema = yup.object().shape({
-  name: yup
-    .string()
-    .required("Name is Required"),
+  firstName: yup.string().required('firstNameRequired'),
+  lastName: yup.string().required('lastNameRequired'),
   phone: yup
     .string()
     .matches(/^[0-9+\-\s()]+$/, 'invalidPhone')
     .min(10, 'phoneMinLength')
     .max(15, 'phoneMaxLength')
     .required('phoneRequired'),
-  email: yup
-    .string()
-    .email('invalidEmail')
-    .required('emailRequired'),
+  email: yup.string().email('invalidEmail').required('emailRequired'),
   password: yup
     .string()
     .min(6, 'passwordMinLength')
@@ -40,18 +37,16 @@ const signupSchema = yup.object().shape({
     .required('confirmPasswordRequired'),
 });
 
-const SignupScreen = ({ navigation }) => {
-  const [error, seterror] = useState('')
-  const [success, setsuccess] = useState('')
-  const [loading, setloading] = useState('')
-  const { t } = useTranslation();
+const SignupScreen = ({navigation}) => {
+  const [loading, setLoading] = useState(false);
+  const {t} = useTranslation();
   const dispatch = useDispatch();
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async values => {
     try {
-      setloading(true);
+      setLoading(true);
       const body = {
-        name: values.name,
+        name: `${values.firstName} ${values.lastName}`,
         phone: values.phone,
         type: 'register',
         email: values.email,
@@ -70,23 +65,16 @@ const SignupScreen = ({ navigation }) => {
         dispatch(setToken(token));
         navigation.navigate('MainStack');
       }
-
-      console.log(response.data.message);
-      console.log('Form values:', values);
     } catch (error) {
       console.error('Registration failed:', error);
       ToastMessage('Something went wrong. Please try again.');
     } finally {
-      setloading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <ScreenWrapper
-      backgroundColor='white'
-      scrollEnabled
-      paddingHorizontal={20}
-    >
+    <ScreenWrapper backgroundColor="white" scrollEnabled paddingHorizontal={20} paddingBottom={30}>
       <ImageFast
         source={Images.leftarrow}
         resizeMode={'contain'}
@@ -110,100 +98,111 @@ const SignupScreen = ({ navigation }) => {
 
       <Formik
         initialValues={{
-          name: '',
+          firstName: '',
+          lastName: '',
           phone: '',
           email: '',
           password: '',
-          confirmPassword: ''
+          confirmPassword: '',
         }}
         validationSchema={signupSchema}
         onSubmit={handleSubmit}
         validateOnChange={false}
-        validateOnBlur={false}
-      >
+        validateOnBlur={false}>
         {({
           handleChange,
           handleBlur,
           handleSubmit,
           values,
           errors,
-          touched
+          touched,
+          setFieldValue,
         }) => (
           <>
-            <CustomInput
-              marginTop={15}
-              placeholder={t('enterYourName')}
-              placeholderTextColor={COLORS.graytext}
-              borderRadius={10}
-              borderColor={'#EFEFEF'}
-              iconImage={Images.name}
-              value={values.name}
-              onChangeText={handleChange('name')}
-              onBlur={handleBlur('name')}
-              error={touched.name && t(errors.name)}
-            />
+            <View style={{flexDirection: 'row', gap: 10, marginTop: 15}}>
+              <CustomInput
+                placeholder={t('firstNamePlaceholder')}
+                placeholderTextColor={COLORS.graytext}
+                borderRadius={10}
+                borderColor={'#EFEFEF'}
+                withLabel={t('firstName')}
+                value={values.firstName}
+                width={'48%'}
+                onChangeText={handleChange('firstName')}
+                onBlur={handleBlur('firstName')}
+                error={touched.firstName && t(errors.firstName)}
+              />
+              <CustomInput
+                placeholder={t('lastNamePlaceholder')}
+                placeholderTextColor={COLORS.graytext}
+                borderRadius={10}
+                borderColor={'#EFEFEF'}
+                withLabel={t('lastName')}
+                width={'48%'}
+                value={values.lastName}
+                onChangeText={handleChange('lastName')}
+                onBlur={handleBlur('lastName')}
+                error={touched.lastName && t(errors.lastName)}
+              />
+            </View>
 
             <CustomInput
-              marginTop={15}
-              placeholder={t('phonePlaceholder')}
-              placeholderTextColor={COLORS.graytext}
-              borderRadius={10}
-              borderColor={'#EFEFEF'}
-              iconImage={Images.phone}
-              value={values.phone}
-              onChangeText={handleChange('phone')}
-              onBlur={handleBlur('phone')}
-              error={touched.phone && t(errors.phone)}
-              keyboardType="phone-pad"
-            />
-
-            <CustomInput
-              marginTop={15}
+              withLabel={t('email')}
               placeholder={t('emailPlaceholder')}
               placeholderTextColor={COLORS.graytext}
               borderRadius={10}
               borderColor={'#EFEFEF'}
-              iconImage={Images.mail}
               value={values.email}
               onChangeText={handleChange('email')}
               onBlur={handleBlur('email')}
               error={touched.email && t(errors.email)}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+
+            <CountryPhoneInput
+              withLabel={t('phone')}
+              value={values.phone}
+              setValue={(formattedValue) => setFieldValue('phone', formattedValue)}
+              onEndEditing={handleBlur('phone')}
+              error={touched.phone && t(errors.phone)}
             />
 
             <CustomInput
-              marginTop={15}
+              withLabel={t('password')}
               placeholder={t('passwordPlaceholder')}
               placeholderTextColor={COLORS.graytext}
               borderRadius={10}
               borderColor={'#EFEFEF'}
-              iconImage={Images.password}
               secureTextEntry
               value={values.password}
               onChangeText={handleChange('password')}
               onBlur={handleBlur('password')}
               error={touched.password && t(errors.password)}
+              autoCapitalize="none"
             />
 
             <CustomInput
-              marginTop={15}
+              withLabel={t('confirmPassword')}
               placeholder={t('confirmPasswordPlaceholder')}
               placeholderTextColor={COLORS.graytext}
               borderRadius={10}
               borderColor={'#EFEFEF'}
-              iconImage={Images.password}
               secureTextEntry
               value={values.confirmPassword}
               onChangeText={handleChange('confirmPassword')}
               onBlur={handleBlur('confirmPassword')}
               error={touched.confirmPassword && t(errors.confirmPassword)}
+              autoCapitalize="none"
             />
 
             <CustomButton
               onPress={handleSubmit}
-              title={t('signUpButton')}
+              title={loading ? t('loading') : t('signUpButton')}
               marginTop={13}
               height={52}
               backgroundColor={COLORS.primaryColor4}
+              disabled={loading}
             />
           </>
         )}
@@ -223,7 +222,7 @@ const SignupScreen = ({ navigation }) => {
           label={t('signIn')}
           fontFamily={fonts.medium}
           fontSize={16}
-          color={COLORS.primaryColor4}
+          color={COLORS.btn}
           textAlign={'center'}
         />
       </View>
@@ -240,11 +239,12 @@ const styles = StyleSheet.create({
     marginTop: 70,
   },
   row: {
-    marginTop: 20,
+    marginTop: 10,
     flexDirection: 'row',
     gap: 3,
     justifyContent: 'center',
     flex: 1,
-    alignItems: 'flex-end'
-  }
+    alignItems: 'flex-end',
+    paddingBottom:5
+  },
 });
