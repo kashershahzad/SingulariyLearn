@@ -35,12 +35,13 @@ const DmvTest = ({navigation}) => {
       title: t('roadSigns'),
       icon: Images.road,
       bgColor: "#28A164",
+      fnc: () => navigation.navigate('Roadsign')
     },
-    {
-      title: t('study'),
-      icon: Images.study,
-      bgColor: "#F35555",
-    },
+    // {
+    //   title: t('study'),
+    //   icon: Images.study,
+    //   bgColor: "#F35555",
+    // },
     {
       title: t('testHistory'),
       icon: Images.test,

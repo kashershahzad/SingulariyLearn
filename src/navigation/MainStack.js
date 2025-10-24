@@ -43,6 +43,8 @@ import Lessons from '../screens/Main/dmvtest/Lessons';
 import LessonPage from '../screens/Main/dmvtest/LessonsPage';
 import Questions from '../screens/Main/dmvtest/PratiseQuestion/Questions';
 import StartQuestions from '../screens/Main/dmvtest/PratiseQuestion/StartQuestions';
+import TestHistory from '../screens/Main/dmvtest/TestHistory';
+import RoadSign from '../screens/Main/dmvtest/RoadSign';
 
 const Stack = createNativeStackNavigator();
 
@@ -82,6 +84,8 @@ const MainStack = () => {
        <Stack.Screen name="LessonPage" component={LessonPage} />
       <Stack.Screen name="Congratulations" component={Congratulations} />
       <Stack.Screen name="Result" component={Result} />
+       <Stack.Screen name="TestHistory" component={TestHistory} />
+       <Stack.Screen name="Roadsign" component={RoadSign} />
 
       <Stack.Screen name="UsefulKnowledge" component={UsefulKnowledge} />
       <Stack.Screen name="Lessons" component={Lessons} />

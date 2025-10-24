@@ -1,24 +1,20 @@
-import { StyleSheet, View, FlatList } from 'react-native';
+import {StyleSheet, View, FlatList, TouchableOpacity} from 'react-native';
 import React from 'react';
 import CustomText from '../../../../components/CustomText';
 import fonts from '../../../../assets/fonts';
 
-const Courses = () => {
-  const courseList = [
-    'Traffic Signs & Signals',
-    'Road Rules',
-    'Speed Limits',
-    'Parking Rules',
-    'Safety & Defensive Driving',
-    'Driving Under the Influence',
-    'Seat Belts & Child Safety',
-    'Sharing the Road',
+const Courses = ({navigation}) => {
+  const servicedata = [
+    {
+      title: 'DMV Licenses',
+      function: () => navigation.navigate('PermitType'),
+    },
   ];
 
   return (
     <View>
       <CustomText
-        label={'Courses'}
+        label={'Services'}
         fontFamily={fonts.jakartaSemiBold}
         fontSize={20}
         marginTop={15}
@@ -26,19 +22,20 @@ const Courses = () => {
       />
 
       <View style={styles.grid}>
-        {courseList.map((item, index) => (
-          <View key={index} style={styles.container}>
+        {servicedata.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.container}
+            onPress={item.function}>
             <CustomText
-              label={item}
+              label={item.title}
               fontFamily={fonts.regular}
               fontSize={16}
               textAlign="center"
             />
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
-
-      
     </View>
   );
 };
@@ -53,7 +50,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   container: {
-    width: '49%',
+    width: '100%',
     backgroundColor: '#F9F9F9',
     height: 81,
     justifyContent: 'center',

@@ -24,7 +24,7 @@ const Mockuptest = () => {
                 const Body = {
                     type: "get_data",
                     table_name: "questions",
-                    is_mockup: true,
+                     is_mockup: true,
                     last_id:1
                 }
 

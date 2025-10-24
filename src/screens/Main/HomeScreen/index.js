@@ -12,6 +12,7 @@ import Loading from '../../../components/Loading'
 import { getProfile } from '../../../utils/constants'
 import { useDispatch } from 'react-redux'
 import { useSelector } from 'react-redux';
+import Courses from '../../Auth/LandingPage/Molecules/Courses'
 
 
 
@@ -67,7 +68,8 @@ const HomeScreen = ({ navigation }) => {
       headerUnScrollable={() => (<Header />)}
     >
       <Banner />
-      <Services />
+      {/* <Services /> */}
+      <Courses navigation={navigation}/>
     </ScreenWrapper>
   )
 }

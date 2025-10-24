@@ -37,6 +37,7 @@ const Questions = ({navigation, route}) => {
         is_mockup: false,
         lesson_id: id,
         last_id: pageNumber,
+        limit:50
       };
 
       const response = await ApiRequest(Body);

@@ -12,53 +12,108 @@ import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {ApiRequest} from '../../../../services/ApiRequest';
 import {useSelector} from 'react-redux';
+import Loading from '../../../../components/Loading';
 
 const PermitType = () => {
   const {t} = useTranslation();
   const navigation = useNavigation();
   const [selectedIndex, setSelectedIndex] = useState(null);
-  const [packages, setpackages] = useState();
+  const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const currentlanguage = useSelector(state => state.language.language);
 
-  const info = [
-    {
-      title: t('adultPermit'),
-      price: '$400',
-      border: true,
-    },
-    {
-      title: t('provisionalPermit'),
-      price: '$250',
-    },
-    {
-      title: t('motorcyclePermit'),
-      price: '$100',
-    },
-    {
-      title: t('commercialCLP'),
-      price: '$600',
-    },
-  ];
-
   useEffect(() => {
-    const permitdata = async () => {
-      const body = {
-        type: 'get_data',
-        table_name: 'permit',
-      };
-      const response = await ApiRequest(body);
-      const rawdata = response.data.data;
-      const parseddata = rawdata.map(item => ({
-        id: item.id,
-        image: item.image,
-        price: item.price,
-        name: JSON.parse(item.name)[currentlanguage],
-      }));
-      console.log('Fetched Packages:', parseddata);
-      setpackages(parseddata);
+    const permitData = async () => {
+      setLoading(true);
+      setFetchError(false);
+      
+      try {
+        const body = {
+          type: 'get_data',
+          table_name: 'permit',
+        };
+        const response = await ApiRequest(body);
+        const rawData = response.data.data;
+        const parsedData = rawData.map(item => ({
+          id: item.id,
+          image: item.image,
+          price: item.price,
+          name: JSON.parse(item.name)[currentlanguage],
+        }));
+        console.log('Fetched Packages:', parsedData);
+        setPackages(parsedData);
+      } catch (error) {
+        console.error('Error fetching permit data:', error);
+        setFetchError(true);
+      } finally {
+        setLoading(false);
+      }
     };
-    permitdata();
-  }, []);
+    
+    permitData();
+  }, [currentlanguage]);
+
+  // Show loading screen while fetching data
+  if (loading) {
+    return <Loading />;
+  }
+
+  // Show error state if fetch failed
+  if (fetchError) {
+    return (
+      <ScreenWrapper
+        headerUnScrollable={() => (
+          <Header2 title={t('yourPermitType')} line={true} />
+        )}>
+        <View style={styles.errorContainer}>
+          <CustomText
+            label={t('failedToLoadPermits') || 'Failed to load permit options'}
+            fontFamily={fonts.medium}
+            fontSize={16}
+            color={COLORS.error}
+            textAlign="center"
+          />
+          <CustomButton
+            onPress={() => {
+              setLoading(true);
+              setFetchError(false);
+              // Retry fetching data
+              const permitData = async () => {
+                try {
+                  const body = {
+                    type: 'get_data',
+                    table_name: 'permit',
+                  };
+                  const response = await ApiRequest(body);
+                  const rawData = response.data.data;
+                  const parsedData = rawData.map(item => ({
+                    id: item.id,
+                    image: item.image,
+                    price: item.price,
+                    name: JSON.parse(item.name)[currentlanguage],
+                  }));
+                  setPackages(parsedData);
+                  setFetchError(false);
+                } catch (error) {
+                  console.error('Error fetching permit data:', error);
+                  setFetchError(true);
+                } finally {
+                  setLoading(false);
+                }
+              };
+              permitData();
+            }}
+            title={t('retry') || 'Retry'}
+            marginTop={20}
+            height={52}
+            borderRadius={10}
+            backgroundColor={COLORS.btn}
+          />
+        </View>
+      </ScreenWrapper>
+    );
+  }
 
   return (
     <ScreenWrapper
@@ -76,20 +131,31 @@ const PermitType = () => {
       />
 
       <View style={styles.container}>
-        {packages &&
+        {packages.length > 0 ? (
           packages.map((item, i) => (
             <PermitOption
-              key={i}
+              key={item.id || i}
               price={item.price}
               title={item.name}
               isSelected={selectedIndex === i}
               onPress={() => setSelectedIndex(i)}
             />
-          ))}
+          ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <CustomText
+              label={t('noPermitsAvailable') || 'No permit options available'}
+              fontFamily={fonts.medium}
+              fontSize={16}
+              color={COLORS.gray}
+              textAlign="center"
+            />
+          </View>
+        )}
       </View>
 
       <CustomButton
-        disabled={selectedIndex === null}
+        disabled={selectedIndex === null || packages.length === 0}
         onPress={() =>
           navigation.navigate('SelectPackage', {
             permit_id: packages[selectedIndex]?.id,
@@ -99,7 +165,11 @@ const PermitType = () => {
         marginTop={53}
         height={62}
         borderRadius={10}
-        backgroundColor={COLORS.btn}
+        backgroundColor={
+          selectedIndex === null || packages.length === 0
+            ? COLORS.gray
+            : COLORS.btn
+        }
       />
     </ScreenWrapper>
   );
@@ -110,6 +180,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 5,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
   },
 });
 

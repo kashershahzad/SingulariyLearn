@@ -15,12 +15,15 @@ import Lessons from './Lessons';
 import { useSelector } from 'react-redux';
 import Loading from '../../../../components/Loading';
 
+
 const PratiseQuestion = ({navigation}) => {
   const {t} = useTranslation();
 
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   const currentLanguage = useSelector(state => state.language.language);
+  const token = useSelector(state => state.authConfig.token);
+  const [percentage, setpercentage] = useState()
 
     useEffect(() => {
       const fetchLessons = async () => {
@@ -28,13 +31,16 @@ const PratiseQuestion = ({navigation}) => {
           const body = {
             type: 'get_data',
             table_name: 'lesson',
+            limit:100,
+            user_id:token,
           };
   
           const response = await ApiRequest(body);
           if (response && response.status === 200) {
             console.log('lessons', response.data);
             const rawData = response.data.data;
-  
+            const percentage = response.data.percentage;
+            setpercentage(percentage)
             const processedData = rawData.map(item => ({
               id: item.id.toString(),
               name: JSON.parse(item.name)[currentLanguage] || JSON.parse(item.name).en,
@@ -87,6 +93,7 @@ const PratiseQuestion = ({navigation}) => {
             name={lesson.name}
             status={lesson.status}
             onPress={() => handleLessonPress(lesson.id, lesson.name)}
+            percentage={percentage}
           />
         ))}
       </View>

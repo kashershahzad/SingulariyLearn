@@ -52,7 +52,7 @@ const AuthStack = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false }}
-    // initialRouteName="Language"
+    // initialRouteName="LoginScreen"
     >
       {/* {!isOnBoarding && (
         <>

@@ -60,7 +60,7 @@ const CountryPhoneInput = ({
           styles.phoneInputContainer,
           {
             borderColor: error
-              ? COLORS.red
+              ? COLORS.primaryColor4
               : isFocused
               ? COLORS.primaryColor
               : COLORS.inputBg,
@@ -76,7 +76,7 @@ const CountryPhoneInput = ({
       {error && (
         <CustomText
           label={error}
-          color={COLORS.red}
+          color={COLORS.primaryColor4}
           fontFamily={fonts.semiBold}
           fontSize={10}
           marginBottom={15}

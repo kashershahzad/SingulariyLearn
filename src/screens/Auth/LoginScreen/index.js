@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { Formik } from 'formik';
 import * as yup from 'yup';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -15,10 +15,12 @@ import { ApiRequest } from '../../../services/ApiRequest';
 import { ToastMessage } from '../../../utils/ToastMessage'
 import { useDispatch } from 'react-redux';
 import { setToken } from '../../../store/reducer/AuthConfig';
+import Loading from '../../../components/Loading'
 
 const LoginScreen = ({ navigation }) => {
     const { t } = useTranslation();
     const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false);
 
     const loginSchema = yup.object().shape({
         email: yup
@@ -32,6 +34,8 @@ const LoginScreen = ({ navigation }) => {
     });
 
     const handleSubmit = async (values) => {
+        setLoading(true); // Start loading
+        
         try {
             const body = {
                 type: 'login',
@@ -45,7 +49,7 @@ const LoginScreen = ({ navigation }) => {
             console.log('result:', response.data.result);
 
             if (response.data.result === false) {
-                ToastMessage( "Invalid email or password. Please try again.");
+                ToastMessage("Invalid email or password. Please try again.");
             } else {
                 ToastMessage(response.data.message);
                 dispatch(setToken(response.data.user_id))
@@ -54,9 +58,15 @@ const LoginScreen = ({ navigation }) => {
         } catch (error) {
             console.error('Login failed:', error);
             ToastMessage('Something went wrong. Please try again.');
+        } finally {
+            setLoading(false); // Stop loading in all cases
         }
     };
 
+    // Return loading component if loading is true
+    if (loading) {
+        return <Loading />;
+    }
 
     return (
         <ScreenWrapper
@@ -98,7 +108,8 @@ const LoginScreen = ({ navigation }) => {
                     errors,
                     touched,
                     isValid,
-                    dirty
+                    dirty,
+                    isSubmitting
                 }) => (
                     <>
                         <CustomInput
@@ -137,11 +148,11 @@ const LoginScreen = ({ navigation }) => {
 
                         <CustomButton
                             onPress={handleSubmit}
-                            title={t('login_button')}
+                            title={loading ? t('logging_in') || 'Logging in...' : t('login_button')}
                             marginTop={13}
                             height={52}
                             backgroundColor={COLORS.btn}
-
+                            disabled={loading || !isValid || !dirty}
                         />
                     </>
                 )}
@@ -157,7 +168,7 @@ const LoginScreen = ({ navigation }) => {
                 />
 
                 <CustomText
-                    onPress={() => navigation.navigate('SignupScreen')}
+                    onPress={() => !loading && navigation.navigate('SignupScreen')}
                     label={t('sign_up')}
                     fontFamily={fonts.medium}
                     fontSize={16}

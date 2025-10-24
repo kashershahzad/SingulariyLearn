@@ -6,7 +6,7 @@ import ImageFast from '../../../../components/ImageFast';
 import {Images} from '../../../../assets/images';
 import { COLORS } from '../../../../utils/COLORS';
 
-const Lessons = ({ id, name, status, onPress }) => {
+const Lessons = ({ id, name, status, onPress , percentage}) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.mincontainer}>
@@ -18,7 +18,7 @@ const Lessons = ({ id, name, status, onPress }) => {
         />
 
         <CustomText
-          label={"50% completed"}
+          label={`${percentage}% Completed`}
           fontFamily={fonts.medium}
           fontSize={8}
           color={COLORS.btn}
@@ -39,7 +39,7 @@ const Lessons = ({ id, name, status, onPress }) => {
         />
       </View>
       <View style={styles.lineBackground}>
-        <View style={[styles.lineProgress, {width: '50%'}]}></View>
+        <View style={[styles.lineProgress, {width: percentage}]}></View>
       </View>
     </TouchableOpacity>
   );
