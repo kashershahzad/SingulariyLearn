@@ -38,6 +38,7 @@ const ScreenWrapper = ({
   paddingBottom,
   nestedScrollEnabled,
   paddingHorizontal = 16,
+  scrollViewRef,
 }) => {
   const content = () => {
 
@@ -70,6 +71,7 @@ const ScreenWrapper = ({
 
         {scrollEnabled ? (
           <KeyboardAwareScrollView
+            ref={scrollViewRef}
             nestedScrollEnabled={nestedScrollEnabled}
             refreshControl={refreshControl}
             style={[
@@ -81,6 +83,9 @@ const ScreenWrapper = ({
             ]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            enableOnAndroid={true}
+            enableAutomaticScroll={true}
+            extraScrollHeight={100}
           >
             {children}
           </KeyboardAwareScrollView>
