@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "DMV.app"
-               BlueprintName = "DMV"
-               ReferencedContainer = "container:DMV.xcodeproj">
+               BuildableName = "Singularity Learn.app"
+               BlueprintName = "Singularity Learn"
+               ReferencedContainer = "container:Singularity Learn.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "DMVTests.xctest"
-               BlueprintName = "DMVTests"
-               ReferencedContainer = "container:DMV.xcodeproj">
+               BuildableName = "Singularity LearnTests.xctest"
+               BlueprintName = "Singularity LearnTests"
+               ReferencedContainer = "container:Singularity Learn.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "DMV.app"
-            BlueprintName = "DMV"
-            ReferencedContainer = "container:DMV.xcodeproj">
+            BuildableName = "Singularity Learn.app"
+            BlueprintName = "Singularity Learn"
+            ReferencedContainer = "container:Singularity Learn.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "DMV.app"
-            BlueprintName = "DMV"
-            ReferencedContainer = "container:DMV.xcodeproj">
+            BuildableName = "Singularity Learn.app"
+            BlueprintName = "Singularity Learn"
+            ReferencedContainer = "container:Singularity Learn.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

@@ -1,4 +1,4 @@
-package com.dmv.app
+package com.singularitylearn.app
 
 import android.os.Bundle
 import android.view.WindowManager
@@ -25,7 +25,7 @@ class MainActivity : ReactActivity() {
 
   }
 
-  override fun getMainComponentName(): String = "DMV"
+  override fun getMainComponentName(): String = "singularitylearn"
 
   override fun createReactActivityDelegate(): ReactActivityDelegate =
     DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)

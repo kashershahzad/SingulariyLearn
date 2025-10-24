@@ -1,4 +1,4 @@
-package com.dmv.app
+package com.singularitylearn.app
 
 import android.app.Application
 import com.facebook.react.PackageList

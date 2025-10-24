@@ -80,9 +80,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.dmv.app"
+    namespace "com.singularitylearn.app"
     defaultConfig {
-        applicationId "com.dmv.app"
+        applicationId "com.singularitylearn.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
