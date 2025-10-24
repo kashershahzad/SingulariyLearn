@@ -90,7 +90,7 @@ const Questions = ({navigation, route}) => {
       footerUnScrollable={() => (
         <View style={{paddingHorizontal:20, marginTop:20}}>
         <CustomButton
-          title={'Start Pratise'}
+          title={'Practice Quiz'}
          onPress={() => handleLessonPress(id, name)}
          backgroundColor={COLORS.btn}
         />
