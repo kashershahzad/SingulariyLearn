@@ -512,7 +512,42 @@ const Testfrom = ({
         }
     };
 
-    const handleNextOrSubmit = () => {
+    const saveQuestionHistory = async () => {
+        try {
+            const currentQuestion = parsedQuestions[currentQuestionIndex];
+            const currentAnswer = allAnswers.find(ans => ans.question_id === currentQuestion.id);
+            
+            const Body = {
+                type: "add_data",
+                table_name: "user_history",
+                user_id: token,
+                question_id: currentQuestion.id,
+                lesson_id: lesson_id || null,
+                answere: currentAnswer?.selected_option !== null && currentAnswer?.selected_option !== undefined 
+                    ? currentQuestion.options[currentAnswer.selected_option]?.answer || "" 
+                    : "",
+                is_correct: currentAnswer?.is_correct ? 1 : 0
+            };
+
+            console.log('=== SAVING QUESTION HISTORY ===');
+            console.log('Request Body:', JSON.stringify(Body, null, 2));
+            
+            const response = await ApiRequest(Body);
+            
+            console.log('History API Response:', JSON.stringify(response, null, 2));
+            console.log('Question history saved successfully ✓');
+            console.log('===============================');
+        } catch (error) {
+            console.error("❌ Error saving question history:", error);
+            console.error("Error details:", JSON.stringify(error, null, 2));
+            // Don't block the user flow if history save fails
+        }
+    };
+
+    const handleNextOrSubmit = async () => {
+        // Save question history before moving to next question
+        await saveQuestionHistory();
+        
         // Calculate if this is the last question in the entire set
         const totalAnsweredSoFar = totalQuestionsAnswered + currentQuestionIndex + 1;
         const isLastQuestionOverall = totalAnsweredSoFar >= totalQuestionsCount;
