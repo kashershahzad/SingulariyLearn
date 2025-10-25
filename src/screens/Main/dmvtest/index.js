@@ -46,6 +46,7 @@ const DmvTest = ({navigation}) => {
       title: t('testHistory'),
       icon: Images.test,
       bgColor: "#F38E55",
+      fnc: () => navigation.navigate('Result')
     },
     {
       title: t('usefulKnowledge'),

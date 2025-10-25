@@ -11,7 +11,7 @@ import {COLORS} from '../../../utils/COLORS';
 import fonts from '../../../assets/fonts';
 import CustomText from '../../../components/CustomText';
 
-const LandingPage = () => {
+const LandingPage = ({navigation}) => {
   return (
     <ScreenWrapper
       scrollEnabled
@@ -36,7 +36,7 @@ const LandingPage = () => {
         <GetStarted />
         {/* <Services/>
            <Loginbanner/> */}
-        <Courses />
+        <Courses navigation={navigation}/>
       </View>
     </ScreenWrapper>
   );
