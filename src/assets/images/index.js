@@ -26,6 +26,8 @@ export const Images = {
   reverseparkingbanner: require('./reverseparkingbanner.png'),
   reversedriving: require('./reversedriving.png'),
 
+   homelogo: require('./homelogo.png'),
+
   // Images
   bannerimage: require('./bannerimage.png'),
   ImmigrationBanner: require('./ImmigrationBanner.png'),

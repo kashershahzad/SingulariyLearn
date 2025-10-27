@@ -66,15 +66,12 @@ const Testfrom = ({
     };
 
     useEffect(() => {
-        // Set lesson mode based on props
         setIsLessonMode(lesson_id && lesson);
         if (initialQuestions && initialQuestions.length > 0) {
-            // If initial questions are provided, parse them directly
             parseQuestions(initialQuestions);
             setTotalQuestionsCount(totalQuestions || initialQuestions.length);
             setIsLoading(false);
         } else {
-            // Otherwise load questions via pagination
             loadSavedProgress();
         }
     }, [initialQuestions]);
@@ -85,7 +82,6 @@ const Testfrom = ({
         }
     }, [allAnswers, currentPageIndex, currentQuestionIndex, score, totalTime, totalQuestionsAnswered]);
 
-    // Debug useEffect
     useEffect(() => {
         console.log('Pagination Debug:', {
             currentPageIndex,

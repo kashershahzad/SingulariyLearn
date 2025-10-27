@@ -27,17 +27,18 @@ const Service = () => {
                     const response = await ApiRequest(body)
                     if (response.status === 200) {
                         console.log('catagories', response.data)
-                        const Rawdata = response.data.data
+                        const Rawdata = response.data
     
                         const pdata = Rawdata.map(item => ({
                             id: item.id.toString(),
                             title: JSON.parse(item.title)[currentLanguage],
                             image: item.image,
-                            // cat_img: item.cat_img,
-                            // headline: JSON.parse(item.headline)[currentLanguage],
-                            // content: JSON.parse(item.editor_content)[currentLanguage],
+                            cat_img: item.cat_img,
+                            headline: JSON.parse(item.headline)[currentLanguage],
+                            content: JSON.parse(item.editor_content)[currentLanguage],
                         }))
                         setService(pdata)
+                        console.log("dlfmvkl",pdata)
                     } else {
                         console.log('Error in catagories api')
                     }

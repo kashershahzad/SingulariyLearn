@@ -172,7 +172,7 @@
   "startNewTestButton": "Start New Test",
   "checkResultButton": "Check Result",
   "checkResultTitle": "Check Result",
-  "totalAttempts": "Total Attempts : 4 ",
+  "totalAttempts": "Total Attempts ",
   "attemptLabels": [
     "1st attempt",
     "2nd attempt",
