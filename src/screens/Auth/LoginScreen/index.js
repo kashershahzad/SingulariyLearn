@@ -152,7 +152,6 @@ const LoginScreen = ({ navigation }) => {
                             marginTop={13}
                             height={52}
                             backgroundColor={COLORS.btn}
-                            disabled={loading || !isValid || !dirty}
                         />
                     </>
                 )}

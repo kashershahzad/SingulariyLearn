@@ -28,7 +28,7 @@ const RoadSign = () => {
                 const Body = {
                     type: "get_data",
                     table_name: "questions",
-                    // is_roadsign: true,
+                    is_roadsign: true,
                     last_id:1
                 }
 
@@ -71,6 +71,7 @@ const RoadSign = () => {
                     resettimer={resettimer}
                     timercomplete={setquestiontimer}
                     timer={false}
+                    roadsign={true}
                     title={t('mockupTest')} />
             ) : null}
 

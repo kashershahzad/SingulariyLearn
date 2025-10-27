@@ -23,7 +23,7 @@ const PratiseQuestion = ({navigation}) => {
   const [loading, setLoading] = useState(true);
   const currentLanguage = useSelector(state => state.language.language);
   const token = useSelector(state => state.authConfig.token);
-  const [percentage, setpercentage] = useState()
+  // const [percentage, setpercentage] = useState()
 
     useEffect(() => {
       const fetchLessons = async () => {
@@ -39,11 +39,13 @@ const PratiseQuestion = ({navigation}) => {
           if (response && response.status === 200) {
             console.log('lessons', response.data);
             const rawData = response.data.data;
-            const percentage = response.data.percentage;
-            setpercentage(percentage)
+            // const percentage = response.data.percentage;
+            // setpercentage(percentage)
             const processedData = rawData.map(item => ({
               id: item.id.toString(),
-              name: JSON.parse(item.name)[currentLanguage] || JSON.parse(item.name).en,
+              percentage: item.percentage.toString(),
+              name: JSON.parse(item.name)[currentLanguage],
+              description: JSON.parse(item.description)[currentLanguage],
               status: 'Start',
             }));
   
@@ -93,7 +95,7 @@ const PratiseQuestion = ({navigation}) => {
             name={lesson.name}
             status={lesson.status}
             onPress={() => handleLessonPress(lesson.id, lesson.name)}
-            percentage={percentage}
+            percentage={lesson.percentage}
           />
         ))}
       </View>

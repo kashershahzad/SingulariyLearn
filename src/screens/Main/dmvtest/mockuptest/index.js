@@ -66,6 +66,7 @@ const Mockuptest = () => {
                     setreset={setresettimer}
                     resettimer={resettimer}
                     timercomplete={setquestiontimer}
+                    mockup={true}
                     timer={false}
                     title={t('mockupTest')} />
             ) : null}

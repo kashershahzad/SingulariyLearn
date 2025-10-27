@@ -32,7 +32,6 @@ const LessonPage = ({ route, navigation }) => {
                 
                 if (response.data && response.data.data) {
                     setQuestions(response.data.data);
-                    // Get total from API response if available, otherwise use data length
                     const total = response.data.total || response.data.data.length;
                     settotalQuestion(total);
                     seterror(false);

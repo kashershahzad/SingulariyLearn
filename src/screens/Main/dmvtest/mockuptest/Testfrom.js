@@ -15,7 +15,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const Testfrom = ({ 
     timercomplete, 
     resettimer, 
-    mockuptest = false, 
+    mockup=false,
+    roadsign=false,
+    mockuptest,
     totalQuestions, 
     lesson_id, 
     lesson = true,
@@ -484,8 +486,8 @@ const Testfrom = ({
                     questions: JSON.stringify(allAnswers),
                     score: score,
                     average_time: finalAverageTime,
-                    is_mockup: false,
-                    is_lesson: isLessonMode,
+                    is_mockup: mockup,
+                    is_roadsign:roadsign,
                     lesson_id: isLessonMode ? lesson_id : null
                 };
 
@@ -528,7 +530,7 @@ const Testfrom = ({
                     : "",
                 is_correct: currentAnswer?.is_correct ? 1 : 0
             };
-
+            console.log("api", Body)
             console.log('=== SAVING QUESTION HISTORY ===');
             console.log('Request Body:', JSON.stringify(Body, null, 2));
             
@@ -717,7 +719,6 @@ const Testfrom = ({
                                 borderRadius={25}
                                 backgroundColor={"white"}
                                 onPress={handleSkip}
-                                disabled={isTransitioning}
                             />
                             <CustomButton
                                 width={149}
