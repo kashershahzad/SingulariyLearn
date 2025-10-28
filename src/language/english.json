@@ -4,7 +4,7 @@
   "password_placeholder": "Password",
   "forgot_password": "Forget Password?",
   "LoginRequid": "Login Required",
-   "Forget Password?": "Forget Password?",
+  "Forget Password?": "Forget Password?",
   "Enter your email to reset password": "Enter your email to reset password",
   "invalidEmail": "Please enter a valid email address",
   "emailRequired": "Email is required",
@@ -418,12 +418,10 @@
   "dmvAnswer": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   "testQuestion": "How do I pass DMV Test?",
   "testAnswer": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
-"passwordMinLength": "Password must be at least 6 characters",
-"passwordRequired": "Password is required",
-"passwordsMustMatch": "Passwords must match",
-"confirmPasswordRequired": "Confirm Password is required",
-
-
+  "passwordMinLength": "Password must be at least 6 characters",
+  "passwordRequired": "Password is required",
+  "passwordsMustMatch": "Passwords must match",
+  "confirmPasswordRequired": "Confirm Password is required",
   "Verify Email": "Verify Email",
   "Enter the verification code we just sent on your email address.": "Enter the verification code we just sent on your email address.",
   "Verify": "Verify",
@@ -434,22 +432,17 @@
   "resendOTP": "Resend OTP",
   "resendIn": "Resend in",
   "seconds": "seconds",
-
-
-    "New Password": "New Password",
+  "New Password": "New Password",
   "Enter your new Password": "Enter your new password",
   "Change password": "Change Password",
   "passwordChanged": "Password changed successfully",
   "credentialsMissing": "Credentials are missing",
   "somethingWentWrong": "Something went wrong",
-
   "phonePlaceholder": "Enter your phone number",
   "invalidPhone": "Please enter a valid phone number",
   "phoneMinLength": "Phone number must be at least 10 digits",
   "phoneMaxLength": "Phone number cannot exceed 15 digits",
   "phoneRequired": "Phone number is required",
-
-
   "firstName": "First Name",
   "firstNamePlaceholder": "First name",
   "firstNameRequired": "First name is required",
@@ -460,11 +453,21 @@
   "password": "Password",
   "confirmPassword": "Confirm Password",
   "loading": "Creating Account...",
-
-
-    "phoneInput": {
+  "phoneInput": {
     "placeholder": "Enter phone number",
     "error": "Please enter a valid phone number"
+  },
+  "recipient": {
+    "recipientTitle": "Recipient",
+    "id": "ID",
+    "name": "Name",
+    "package": "Package",
+    "vehicles": "Vehicles",
+    "duration": "Duration",
+    "issue": "Issue Date",
+    "expiry": "Expiry Date",
+    "close": "Close",
+    "successMessage": "Payment Successful",
+    "errorMessage": "Something went wrong"
   }
-
 }

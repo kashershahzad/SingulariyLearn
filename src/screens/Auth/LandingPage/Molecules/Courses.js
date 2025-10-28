@@ -2,8 +2,10 @@ import {StyleSheet, View, FlatList, TouchableOpacity} from 'react-native';
 import React from 'react';
 import CustomText from '../../../../components/CustomText';
 import fonts from '../../../../assets/fonts';
+import { useTranslation } from 'react-i18next';
 
 const Courses = ({navigation}) => {
+  const {t} = useTranslation()
   const servicedata = [
     {
       title: 'DMV Licenses',
@@ -14,7 +16,7 @@ const Courses = ({navigation}) => {
   return (
     <View>
       <CustomText
-        label={'Services'}
+        label={t('services')}
         fontFamily={fonts.jakartaSemiBold}
         fontSize={20}
         marginTop={15}

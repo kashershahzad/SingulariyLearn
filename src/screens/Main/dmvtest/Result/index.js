@@ -28,7 +28,7 @@ const Result = () => {
 
   useEffect(() => {
     const fetchresult = async () => {
-      setLoading(true); // Start loading
+      setLoading(true);
       const body = {
         type: 'get_data',
         table_name: 'user_questionnaire',
@@ -49,6 +49,10 @@ const Result = () => {
         const skipped = item?.question_data?.skipped;
         const percentage = item?.percentage;
         const totalDone = total - skipped;
+        // const question = item.questions?.question[currentLanguage]
+        // const answere = item.questions?.answere[currentLanguage]
+        // const is_correct = item.questions?.is_correct
+        // const is_skipped =  item.questions?.is_correct
       });
       
       setResultsData(rawResponse.data);
@@ -61,7 +65,7 @@ const Result = () => {
         setCurrentAttemptData(null);
       }
       
-      setLoading(false); // Stop loading after data is set
+      setLoading(false);
     };
 
     fetchresult();

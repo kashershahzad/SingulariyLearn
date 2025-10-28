@@ -9,7 +9,7 @@
   "select_language": "اپنی پسندیدہ زبان منتخب کریں",
   "English": "انگریزی",
   "urdu": "اردو",
-    "Forget Password?": "پاس ورڈ بھول گئے؟",
+  "Forget Password?": "پاس ورڈ بھول گئے؟",
   "Enter your email to reset password": "اپنا ای میل درج کریں تاکہ پاس ورڈ ری سیٹ ہو سکے",
   "invalidEmail": "براہ کرم درست ای میل ایڈریس درج کریں",
   "emailRequired": "ای میل درج کرنا ضروری ہے",
@@ -419,12 +419,10 @@
   "dmvAnswer": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   "testQuestion": "میں ڈی ایم وی ٹیسٹ کیسے پاس کروں؟",
   "testAnswer": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
-"passwordMinLength": "پاس ورڈ کم از کم 6 حروف کا ہونا چاہیے",
-"passwordRequired": "پاس ورڈ ضروری ہے",
-"passwordsMustMatch": "پاس ورڈز ایک جیسے ہونے چاہئیں",
-"confirmPasswordRequired": "تصدیق پاس ورڈ ضروری ہے",
-
-
+  "passwordMinLength": "پاس ورڈ کم از کم 6 حروف کا ہونا چاہیے",
+  "passwordRequired": "پاس ورڈ ضروری ہے",
+  "passwordsMustMatch": "پاس ورڈز ایک جیسے ہونے چاہئیں",
+  "confirmPasswordRequired": "تصدیق پاس ورڈ ضروری ہے",
   "Verify Email": "ای میل کی تصدیق کریں",
   "Enter the verification code we just sent on your email address.": "تصدیقی کوڈ درج کریں جو ہم نے ابھی آپ کے ای میل پتے پر بھیجا ہے۔",
   "Verify": "تصدیق کریں",
@@ -446,8 +444,6 @@
   "phoneMinLength": "فون نمبر کم از کم 10 ہندسوں کا ہونا چاہیے",
   "phoneMaxLength": "فون نمبر 15 ہندسوں سے زیادہ نہیں ہو سکتا",
   "phoneRequired": "فون نمبر درکار ہے",
-
-
   "firstName": "پہلا نام",
   "firstNamePlaceholder": "پہلا نام ",
   "firstNameRequired": "پہلا نام درکار ہے",
@@ -458,10 +454,21 @@
   "password": "پاس ورڈ",
   "confirmPassword": "پاس ورڈ کی تصدیق کریں",
   "loading": "اکاؤنٹ بن رہا ہے...",
-
-    "phoneInput": {
+  "phoneInput": {
     "placeholder": "فون نمبر درج کریں",
     "error": "براہ کرم درست فون نمبر درج کریں"
+  },
+  "recipient": {
+    "recipientTitle": "وصول کنندہ",
+    "id": "شناخت",
+    "name": "نام",
+    "package": "پیکج",
+    "vehicles": "گاڑیاں",
+    "duration": "مدت",
+    "issue": "اجراء کی تاریخ",
+    "expiry": "خاتمے کی تاریخ",
+    "close": "بند کریں",
+    "successMessage": "ادائیگی کامیاب ہو گئی",
+    "errorMessage": "کچھ غلط ہو گیا"
   }
-
 }

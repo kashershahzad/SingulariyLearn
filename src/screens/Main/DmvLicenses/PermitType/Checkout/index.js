@@ -117,7 +117,7 @@ const Checkout = ({route, navigation}) => {
         <View style={{marginHorizontal: 16}}>
           <CustomButton
             onPress={onPayPress}
-            title={'Pay'}
+            title={t('payButton')}
             marginTop={53}
             height={62}
             borderRadius={10}
