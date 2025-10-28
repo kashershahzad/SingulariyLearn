@@ -172,7 +172,7 @@
   "startNewTestButton": "نیا ٹیسٹ شروع کریں",
   "checkResultButton": "نتیجہ چیک کریں",
   "checkResultTitle": "نتیجہ چیک کریں",
-  "totalAttempts": "کل کوششیں : 4",
+  "totalAttempts": "کل کوششیں ",
   "attemptLabels": [
     "پہلی کوشش",
     "دوسری کوشش",
@@ -478,6 +478,6 @@
   "noCorrectAnswer": "کوئی صحیح جواب نہیں ملا",
   "question": "سوال",
   "answer": "جواب",
-  "completed": "مکمل",
-  "lessons": "اسباق"
+   "completed": "مکمل",
+    "lessons": "اسباق"
 }
