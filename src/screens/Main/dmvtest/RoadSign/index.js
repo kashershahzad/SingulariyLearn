@@ -29,7 +29,7 @@ const RoadSign = () => {
                     type: "get_data",
                     table_name: "questions",
                     is_roadsign: true,
-                    last_id:1
+                    last_id:0
                 }
 
                 const response = await ApiRequest(Body)

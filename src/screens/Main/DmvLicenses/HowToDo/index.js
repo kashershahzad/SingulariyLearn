@@ -45,8 +45,10 @@ const HowToDo = ({ navigation , route}) => {
                         content: JSON.parse(item.editor_content)[currentLanguage],
                     }))
                     sethowtodo(pdata)
+                    console.log("jdcn",pdata)
                 } else {
                     console.log('Error in useful_information api')
+                   
                 }
             } catch (error) {
                 console.log('Error fetching data:', error)
@@ -99,7 +101,7 @@ const HowToDo = ({ navigation , route}) => {
                                 fontSize={12}
                                 color={'black'}
                                 fontFamily={fonts.medium}
-                                label={item.headline}
+                                label={item.title}
                                 numberOfLines={2}
                             />
                             <ImageFast

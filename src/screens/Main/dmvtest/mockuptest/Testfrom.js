@@ -84,19 +84,6 @@ const Testfrom = ({
         }
     }, [allAnswers, currentPageIndex, currentQuestionIndex, score, totalTime, totalQuestionsAnswered]);
 
-    useEffect(() => {
-        console.log('Pagination Debug:', {
-            currentPageIndex,
-            currentQuestionIndex,
-            parsedQuestionsLength: parsedQuestions.length,
-            totalQuestionsAnswered,
-            totalQuestionsCount,
-            allAnswersLength: allAnswers.length,
-            isLessonMode,
-            currentQuestionNumber: totalQuestionsAnswered + currentQuestionIndex + 1
-        });
-    }, [currentPageIndex, currentQuestionIndex, parsedQuestions.length, totalQuestionsAnswered]);
-
     const loadSavedProgress = async () => {
         try {
             setIsLoading(true);
@@ -127,6 +114,7 @@ const Testfrom = ({
                 setCurrentPageIndex(savedCurrentPage ? parseInt(savedCurrentPage) : 1);
                 setTotalQuestionsAnswered(savedTotalAnswered ? parseInt(savedTotalAnswered) : 0);
 
+                console.log('🔄 LOADED SAVED ANSWERS:', answers.length);
                 await loadQuestions(savedCurrentPage ? parseInt(savedCurrentPage) : 1, progress.currentQuestionIndex || 0);
             } else {
                 await loadQuestions(1);
@@ -156,6 +144,8 @@ const Testfrom = ({
                 AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PAGE, currentPageIndex.toString()),
                 AsyncStorage.setItem(STORAGE_KEYS.TOTAL_ANSWERED, totalQuestionsAnswered.toString())
             ]);
+
+            console.log('💾 SAVED ANSWERS TO STORAGE:', allAnswers.length);
         } catch (error) {
             console.error("Error saving progress:", error);
         }
@@ -180,6 +170,14 @@ const Testfrom = ({
         try {
             setIsLoading(true);
             
+            // CRITICAL: Load current answers from storage before loading new page
+            const currentSavedAnswers = await AsyncStorage.getItem(STORAGE_KEYS.ALL_ANSWERS);
+            if (currentSavedAnswers) {
+                const parsedAnswers = JSON.parse(currentSavedAnswers);
+                setAllAnswers(parsedAnswers);
+                console.log('📥 LOADED CURRENT ANSWERS BEFORE PAGE LOAD:', parsedAnswers.length);
+            }
+
             const Body = {
                 type: "get_data",
                 table_name: "questions",
@@ -188,16 +186,11 @@ const Testfrom = ({
                 limit: 10
             };
 
-            // For both lesson and non-lesson mode, use pagination
             if (lesson_id && lesson) {
                 Body.lesson_id = lesson_id;
-                Body.page = pageIndex;
-                console.log("Loading lesson questions with page:", pageIndex, "lesson_id:", lesson_id);
-            } else {
-                Body.page = pageIndex;
-                console.log("Loading questions with page:", pageIndex);
             }
 
+            console.log('📥 LOADING PAGE:', pageIndex);
             const response = await ApiRequest(Body);
             
             if (response.data && response.data.data && response.data.data.length > 0) {
@@ -210,16 +203,14 @@ const Testfrom = ({
                 setQuestionStartTimes({ [savedQuestionIndex]: Date.now() });
                 resettimer(true);
                 
-                // Update total questions count from API response if available
                 if (response.data.total) {
                     setTotalQuestionsCount(response.data.total);
                 }
                 
-                console.log(`Loaded ${newQuestions.length} questions for page ${pageIndex}, total: ${response.data.total || totalQuestionsCount}`);
+                console.log(`✅ LOADED PAGE ${pageIndex}: ${newQuestions.length} questions | TOTAL ANSWERS: ${allAnswers.length}`);
             } else {
-                // Only submit if we have answers and no more questions
                 if (allAnswers.length > 0) {
-                    console.log("No more questions found, submitting answers");
+                    console.log('🚀 NO MORE QUESTIONS - SUBMITTING ALL:', allAnswers.length);
                     await submitAllAnswers();
                 } else {
                     Alert.alert('No Questions', 'No questions found.');
@@ -229,6 +220,7 @@ const Testfrom = ({
         } catch (error) {
             console.error("Error loading questions:", error);
             if (allAnswers.length > 0) {
+                console.log('🚀 ERROR BUT SUBMITTING:', allAnswers.length);
                 await submitAllAnswers();
             } else {
                 Alert.alert('Error', 'Failed to load questions. Please try again.');
@@ -281,7 +273,6 @@ const Testfrom = ({
 
     const moveToNextQuestion = () => {
         if (currentQuestionIndex < parsedQuestions.length - 1) {
-            // Move to next question in current page
             const endTime = Date.now();
             const startTime = questionStartTimes[currentQuestionIndex] || endTime;
             const timeTaken = (endTime - startTime) / 1000;
@@ -300,33 +291,28 @@ const Testfrom = ({
             setSelectedOption(null);
             resettimer(true);
         } else {
-            // Last question in current page
             const endTime = Date.now();
             const startTime = questionStartTimes[currentQuestionIndex] || endTime;
             const timeTaken = (endTime - startTime) / 1000;
             setTotalTime(prevTotal => prevTotal + timeTaken);
             
-            // Calculate if we have more questions to load
             const totalAnsweredSoFar = totalQuestionsAnswered + parsedQuestions.length;
             const hasMoreQuestions = totalAnsweredSoFar < totalQuestionsCount;
             
-            console.log(`Current page completed. Total answered: ${totalAnsweredSoFar}, Total questions: ${totalQuestionsCount}, Has more: ${hasMoreQuestions}`);
+            console.log(`📄 PAGE ${currentPageIndex} COMPLETE | ANSWERS: ${allAnswers.length} | TOTAL: ${totalQuestionsCount}`);
             
             if (hasMoreQuestions) {
-                // Load next page - for both lesson and non-lesson mode
                 setTotalQuestionsAnswered(totalAnsweredSoFar);
                 setShowFeedback(false);
                 setIsTransitioning(false);
                 setSelectedOption(null);
-                
-                // Load next page
                 loadQuestions(currentPageIndex + 1, 0);
             } else {
-                // No more questions, submit answers
                 setTotalQuestionsAnswered(totalAnsweredSoFar);
                 setShowFeedback(false);
                 setIsTransitioning(false);
                 setSelectedOption(null);
+                console.log('🎯 FINAL SUBMISSION TRIGGERED - ANSWERS:', allAnswers.length);
                 submitAllAnswers();
             }
         }
@@ -346,7 +332,6 @@ const Testfrom = ({
         }
 
         if (currentQuestionIndex < parsedQuestions.length - 1) {
-            // Skip to next question in current page
             setQuestionStartTimes(prev => ({
                 ...prev,
                 [currentQuestionIndex + 1]: Date.now()
@@ -357,23 +342,19 @@ const Testfrom = ({
             setSelectedOption(null);
             resettimer(true);
         } else {
-            // Last question in current page
             const totalAnsweredSoFar = totalQuestionsAnswered + parsedQuestions.length;
             const hasMoreQuestions = totalAnsweredSoFar < totalQuestionsCount;
             
-            console.log(`Skip - Current page completed. Total answered: ${totalAnsweredSoFar}, Total questions: ${totalQuestionsCount}, Has more: ${hasMoreQuestions}`);
-            
             if (hasMoreQuestions) {
-                // Load next page
                 setTotalQuestionsAnswered(totalAnsweredSoFar);
                 setShowFeedback(false);
                 setSelectedOption(null);
                 loadQuestions(currentPageIndex + 1, 0);
             } else {
-                // No more questions, submit
                 setTotalQuestionsAnswered(totalAnsweredSoFar);
                 setShowFeedback(false);
                 setSelectedOption(null);
+                console.log('🎯 FINAL SUBMISSION AFTER SKIP - ANSWERS:', allAnswers.length);
                 submitAllAnswers();
             }
         }
@@ -383,7 +364,6 @@ const Testfrom = ({
         if (!isTransitioning && !showFeedback) {
             setSelectedOption(index);
             
-            // For both mockup and normal tests, save immediately
             const currentQuestion = parsedQuestions[currentQuestionIndex];
             const alreadySaved = allAnswers.some(ans => ans.question_id === currentQuestion.id);
             
@@ -391,7 +371,6 @@ const Testfrom = ({
                 saveCurrentAnswer(index);
             }
 
-            // Only show feedback for normal tests, not for mockup tests
             if (!mockuptest) {
                 setShowFeedback(true);
             }
@@ -401,20 +380,33 @@ const Testfrom = ({
     const saveCurrentAnswer = (answerIndex) => {
         const currentQuestion = parsedQuestions[currentQuestionIndex];
         const isCorrect = answerIndex === currentQuestion.correctAnswerIndex;
+        const wasSkipped = answerIndex === null;
         
+        const selectedAnswerText = answerIndex !== null 
+            ? currentQuestion.options[answerIndex]?.answer 
+            : null;
+
         const answerData = {
             question_id: currentQuestion.id,
             selected_option: answerIndex,
+            selected_answer_text: selectedAnswerText,
             is_correct: isCorrect,
-            skiped: answerIndex === null ? 1 : 0,
+            skiped: wasSkipped ? 1 : 0,
             timestamp: Date.now(),
             is_mockup: mockuptest,
-            is_lesson: isLessonMode
+            is_lesson: isLessonMode,
+            question_text: currentQuestion.question,
+            options: currentQuestion.options.map(opt => opt.answer)
         };
 
         setAllAnswers(prev => {
             const filtered = prev.filter(ans => ans.question_id !== currentQuestion.id);
             const newAnswers = [...filtered, answerData];
+            console.log(`💾 SAVED ANSWER | TOTAL: ${newAnswers.length} | QID: ${currentQuestion.id}`);
+            
+            // CRITICAL: Immediately save to AsyncStorage
+            AsyncStorage.setItem(STORAGE_KEYS.ALL_ANSWERS, JSON.stringify(newAnswers));
+            
             return newAnswers;
         });
         
@@ -427,7 +419,6 @@ const Testfrom = ({
         const isSelected = selectedOption === index;
         const isCorrect = index === parsedQuestions[currentQuestionIndex]?.correctAnswerIndex;
 
-        // Show feedback only for normal tests, not for mockup tests
         if (showFeedback && !mockuptest) {
             if (isSelected) {
                 return isCorrect ? styles.correctOption : styles.incorrectOption;
@@ -453,41 +444,54 @@ const Testfrom = ({
 
             const finalAverageTime = totalTime / (allAnswers.length || 1);
 
-            // Store mockup results separately
+            // CRITICAL: Force load ALL answers from AsyncStorage one more time before submission
+            const finalAnswers = await AsyncStorage.getItem(STORAGE_KEYS.ALL_ANSWERS);
+            const allAnswersToSubmit = finalAnswers ? JSON.parse(finalAnswers) : allAnswers;
+
+            console.log('🚀🚀🚀 FINAL SUBMISSION 🚀🚀🚀');
+            console.log('TOTAL ANSWERS TO SUBMIT:', allAnswersToSubmit.length);
+            console.log('SCORE:', score);
+            console.log('TOTAL QUESTIONS COUNT:', totalQuestionsCount);
+            
+            // Log all answers for verification
+            allAnswersToSubmit.forEach((answer, index) => {
+                console.log(`Answer ${index + 1}: QID ${answer.question_id} - ${answer.skipped ? 'SKIPPED' : 'ANSWERED'}`);
+            });
+
             if (mockuptest) {
                 const mockupResults = {
                     score: score,
-                    totalQuestions: allAnswers.length,
+                    totalQuestions: allAnswersToSubmit.length,
                     averageTime: finalAverageTime,
-                    answers: allAnswers,
+                    answers: allAnswersToSubmit,
                     timestamp: Date.now(),
                     date: new Date().toISOString()
                 };
 
-                // Save mockup results to separate storage
                 await AsyncStorage.setItem(STORAGE_KEYS.MOCKUP_RESULTS, JSON.stringify(mockupResults));
 
-                // Navigate to mockup results screen
                 navigation.replace('MockupResults', {
                     score: score,
-                    totalQuestions: allAnswers.length,
+                    totalQuestions: allAnswersToSubmit.length,
                     averageTime: finalAverageTime,
-                    answers: allAnswers,
+                    answers: allAnswersToSubmit,
                     isMockup: true
                 });
             } else {
-                // Normal test submission
                 const Body = {
                     type: "add_data",
                     user_id: token,
                     table_name: 'user_questionnaire',
-                    questions: JSON.stringify(allAnswers),
+                    questions: JSON.stringify(allAnswersToSubmit),
                     score: score,
                     average_time: finalAverageTime,
                     is_mockup: mockup,
-                    is_roadsign:roadsign,
+                    is_roadsign: roadsign,
                     lesson_id: isLessonMode ? lesson_id : null
                 };
+
+                console.log('📤 SUBMITTING BODY WITH ANSWERS:', allAnswersToSubmit.length);
+                console.log('Body.questions length:', Body.questions.length);
 
                 const response = await ApiRequest(Body);
 
@@ -495,7 +499,7 @@ const Testfrom = ({
 
                 navigation.replace('Congratulations', {
                     score: score,
-                    totalQuestions: allAnswers.length,
+                    totalQuestions: allAnswersToSubmit.length,
                     averageTime: finalAverageTime,
                     isMockup: false,
                     isLesson: isLessonMode
@@ -528,40 +532,28 @@ const Testfrom = ({
                     : "",
                 is_correct: currentAnswer?.is_correct ? 1 : 0
             };
-            console.log("api", Body)
-            console.log('=== SAVING QUESTION HISTORY ===');
-            console.log('Request Body:', JSON.stringify(Body, null, 2));
             
-            const response = await ApiRequest(Body);
+            await ApiRequest(Body);
             
-            console.log('History API Response:', JSON.stringify(response, null, 2));
-            console.log('Question history saved successfully ✓');
-            console.log('===============================');
         } catch (error) {
-            console.error("❌ Error saving question history:", error);
-            console.error("Error details:", JSON.stringify(error, null, 2));
-            // Don't block the user flow if history save fails
+            console.error("Error saving question history:", error);
         }
     };
 
     const handleNextOrSubmit = async () => {
-        // Save question history before moving to next question
         await saveQuestionHistory();
         
-        // Calculate if this is the last question in the entire set
         const totalAnsweredSoFar = totalQuestionsAnswered + currentQuestionIndex + 1;
         const isLastQuestionOverall = totalAnsweredSoFar >= totalQuestionsCount;
         
-        console.log(`Next/Submit - Current index: ${currentQuestionIndex}, Page questions: ${parsedQuestions.length}, Total answered: ${totalAnsweredSoFar}, Total questions: ${totalQuestionsCount}, Is last overall: ${isLastQuestionOverall}`);
+        console.log(`➡️ NEXT | Answers: ${allAnswers.length} | Total: ${totalQuestionsCount}`);
         
         if (isLastQuestionOverall) {
-            // This is the very last question overall, submit answers
+            console.log('🎯 LAST QUESTION - SUBMITTING ALL');
             submitAllAnswers();
         } else if (currentQuestionIndex === parsedQuestions.length - 1) {
-            // Last question in current page, but more pages available
-            moveToNextQuestion(); // This will handle loading next page
+            moveToNextQuestion();
         } else {
-            // Regular next question in current page
             handleNext();
         }
     };

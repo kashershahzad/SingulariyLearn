@@ -43,17 +43,21 @@ const Result = () => {
       const totalAttemptsCount = rawResponse.data.length;
       setTotalAttempts(totalAttemptsCount);
 
-      rawResponse.data.forEach((item, index) => {
-        const total = item?.question_data?.total;
-        const correct = item?.question_data?.correct;
-        const skipped = item?.question_data?.skipped;
-        const percentage = item?.percentage;
-        const totalDone = total - skipped;
-        // const question = item.questions?.question[currentLanguage]
-        // const answere = item.questions?.answere[currentLanguage]
-        // const is_correct = item.questions?.is_correct
-        // const is_skipped =  item.questions?.is_correct
-      });
+      // Inside your Result component's useEffect
+rawResponse.data.forEach((item, index) => {
+    const total = item?.question_data?.total;
+    const correct = item?.question_data?.correct;
+    const skipped = item?.question_data?.skipped;
+    const percentage = item?.percentage;
+    const totalDone = total - skipped;
+    
+    // Process questions data if available
+    if (item.questions && Array.isArray(item.questions)) {
+        // You might need to transform the questions data here
+        // based on your API response structure
+        console.log(`Attempt ${index + 1} questions:`, item.questions);
+    }
+});
       
       setResultsData(rawResponse.data);
       

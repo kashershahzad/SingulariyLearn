@@ -19,11 +19,10 @@ const Details = ({ route }) => {
         <ScreenWrapper
             scrollEnabled
             paddingHorizontal={0}
-            headerUnScrollable={() => (<Header2 title={item.headline} />)}>
+            headerUnScrollable={() => (<Header2 title={item.title} />)}>
             <Banner2 image={item.cover_image} />
 
-            <Heading title={item.title} marginTop={10} />
-
+            <Heading title={item.headline} marginTop={10} />
 
             <View style={{ paddingHorizontal: 20, }}>
                 <RenderHtml
