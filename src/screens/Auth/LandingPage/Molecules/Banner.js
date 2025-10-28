@@ -8,13 +8,14 @@ import ImageFast from '../../../../components/ImageFast';
 import { Images } from '../../../../assets/images';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 const { width } = Dimensions.get('window');
 
 const Banner = () => {
     const navigation = useNavigation();
     const { t } = useTranslation();
-    
+     const packages = useSelector((state) => state.package.package);
     return (
         <View style={styles.container}>
             <CustomText 
@@ -27,7 +28,7 @@ const Banner = () => {
             />
             
             <CustomButton 
-                onPress={() => navigation.navigate('PermitType')} 
+                onPress={() => packages === true ? navigation.navigate('PratiseQuestion') : navigation.navigate('PermitType')} 
                 title={t('start')} 
                 backgroundColor={COLORS.btn} 
                 height={32} 

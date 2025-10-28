@@ -3,13 +3,15 @@ import React from 'react';
 import CustomText from '../../../../components/CustomText';
 import fonts from '../../../../assets/fonts';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 
 const Courses = ({navigation}) => {
   const {t} = useTranslation()
+   const packages = useSelector((state) => state.package.package);
   const servicedata = [
     {
       title: 'DMV Licenses',
-      function: () => navigation.navigate('PermitType'),
+      function: () => packages === true ? navigation.navigate('PratiseQuestion') : navigation.navigate('PermitType'),
     },
   ];
 
