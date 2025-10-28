@@ -6,6 +6,7 @@ import CustomText from "./CustomText";
 
 import { COLORS } from "../utils/COLORS";
 import fonts from "../assets/fonts";
+import { useTranslation } from "react-i18next";
 
 const CountryPhoneInput = ({
   value = "+1869",
@@ -16,12 +17,16 @@ const CountryPhoneInput = ({
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const ref = useRef();
+  const { t } = useTranslation();
+  
   const handleFocus = () => {
     setIsFocused(true);
   };
+  
   const handleBlur = () => {
     setIsFocused(false);
   };
+
   return (
     <View style={{ marginBottom: error ? 0 : 20 }}>
       {withLabel && (
@@ -42,6 +47,7 @@ const CountryPhoneInput = ({
         defaultCode="PK"
         layout="first"
         textInputProps={{
+          placeholder: t('phoneInput.placeholder'), // Translated placeholder
           placeholderTextColor: COLORS.inputLabel,
           maxLength: 12,
           style: [
@@ -86,7 +92,9 @@ const CountryPhoneInput = ({
     </View>
   );
 };
+
 export default CountryPhoneInput;
+
 const styles = StyleSheet.create({
   phoneInput: {
     fontSize: 14,

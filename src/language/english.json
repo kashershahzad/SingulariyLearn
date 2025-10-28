@@ -459,6 +459,12 @@
   "phone": "Phone Number",
   "password": "Password",
   "confirmPassword": "Confirm Password",
-  "loading": "Creating Account..."
+  "loading": "Creating Account...",
+
+
+    "phoneInput": {
+    "placeholder": "Enter phone number",
+    "error": "Please enter a valid phone number"
+  }
 
 }

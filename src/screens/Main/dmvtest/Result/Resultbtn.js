@@ -15,30 +15,26 @@ const Resultbtn = ({ attempts, currentAttempt, onAttemptChange }) => {
         setSelectedAttempt(currentAttempt || 1);
     }, [currentAttempt]);
 
-    // Fixed: Generate array in REVERSE order (latest first)
+    // Generate array in ASCENDING order with consistent "Attempt X" labels
     const tattempts = useMemo(() => {
-        const labels = t('attemptLabels', { returnObjects: true }) || [];
-        
-        // console.log('🔄 CHILD: Generating attempts array in REVERSE order');
+        // console.log('🔄 CHILD: Generating attempts array in ASCENDING order');
         // console.log('🔄 CHILD: Total attempts:', attempts);
-        // console.log('🔄 CHILD: Translation labels length:', labels.length);
         
-        // Create array with length = attempts in REVERSE order
+        // Create array with length = attempts in ASCENDING order
         const generatedAttempts = Array.from({ length: attempts }, (_, index) => {
-            const attemptNumber = attempts - index; // Reverse order: latest = 1, oldest = attempts
+            const attemptNumber = index + 1; // Ascending order: 1, 2, 3, ...
             const attemptData = {
-                id: attemptNumber, // This maintains the original attempt number
-                // Use label from translation if available, otherwise fallback with reverse numbering
-                label: labels[attemptNumber - 1] || `Attempt ${attemptNumber}`
+                id: attemptNumber,
+                label: `Attempt ${attemptNumber}` // Always use "Attempt X" format
             };
             
             // console.log(`   - Generated attempt ${index + 1}:`, attemptData);
             return attemptData;
         });
 
-        // console.log('🔄 CHILD: Final generated attempts (REVERSE):', generatedAttempts);
+        // console.log('🔄 CHILD: Final generated attempts (ASCENDING):', generatedAttempts);
         return generatedAttempts;
-    }, [t, attempts]);
+    }, [attempts]);
 
     const handleAttemptSelect = (attemptId) => {
         // console.log('🎯 CHILD: User selected attempt:', attemptId);
