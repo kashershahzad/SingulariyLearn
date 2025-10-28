@@ -29,7 +29,7 @@
   "signUpButton": "Sign Up",
   "alreadyHaveAccount": "Already have an account?",
   "signIn": "Sign In",
-  "dmvTestPrep": "DMV TestPrep Starts Here!",
+  "dmvTestPrep": "Singularity Learn Test Starts Here!",
   "start": "Start",
   "guidanceTestPrep": "Guidance Test Prep. Services In Your Language.",
   "letsGetStarted": "Let’s Get Started",
@@ -479,5 +479,6 @@
   "noCorrectAnswer": "No correct answer found",
   "question": "Question",
   "answer": "Answer",
-  "lessons": "Lessons"
+  "lessons": "Lessons",
+  "attempt": "Attempt"
 }

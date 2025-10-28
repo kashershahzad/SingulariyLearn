@@ -478,6 +478,7 @@
   "noCorrectAnswer": "کوئی صحیح جواب نہیں ملا",
   "question": "سوال",
   "answer": "جواب",
-   "completed": "مکمل",
-    "lessons": "اسباق"
+  "completed": "مکمل",
+  "lessons": "اسباق",
+  "attempt": "کوشش"
 }

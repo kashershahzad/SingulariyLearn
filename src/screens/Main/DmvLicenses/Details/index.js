@@ -20,7 +20,7 @@ const Details = ({ route }) => {
             scrollEnabled
             paddingHorizontal={0}
             headerUnScrollable={() => (<Header2 title={item.title} />)}>
-            <Banner2 image={item.cover_image} />
+            <Banner2 image={item.thumb} />
 
             <Heading title={item.headline} marginTop={10} />
 

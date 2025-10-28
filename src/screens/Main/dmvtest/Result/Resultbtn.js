@@ -21,7 +21,7 @@ const Resultbtn = ({ attempts, currentAttempt, onAttemptChange }) => {
   // 👇 Reverse numbering: Attempt 149 → Attempt 1
   const attemptList = Array.from({ length: attempts }).map((_, index) => ({
     id: index + 1,
-    label: `Attempt ${attempts - index}`,
+    label: t("attempt")+` ${attempts - index}`,
   }));
 
   const handleSelect = (id) => {

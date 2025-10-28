@@ -21,7 +21,7 @@ export default Banner2
 const styles = StyleSheet.create({
   container: {
     width: width,
-    height: "100%",
+    height: 200,
     backgroundColor: '#D9D9D9',
     marginTop: 5,
   },
