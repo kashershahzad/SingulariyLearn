@@ -78,9 +78,11 @@ const Questions = ({navigation, route}) => {
   if (loading) {
     return <Loading />;
   }
- const handleLessonPress = (id, name) => {
+  
+  const handleLessonPress = (id, name) => {
     navigation.navigate('LessonPage', { lesson_id: id, name });
   };
+  
   return (
     <ScreenWrapper
       paddingBottom={20}
@@ -90,15 +92,15 @@ const Questions = ({navigation, route}) => {
       headerUnScrollable={() => <Header2 line={true} title={name} />}
       footerUnScrollable={() => (
         <View style={{paddingHorizontal:20, marginTop:20}}>
-        <CustomButton
-          title={'Practice Quiz'}
-         onPress={() => handleLessonPress(id, name)}
-         backgroundColor={COLORS.btn}
-        />
+          <CustomButton
+            title={t('practiceQuiz')}
+            onPress={() => handleLessonPress(id, name)}
+            backgroundColor={COLORS.btn}
+          />
         </View>
       )}>
       <CustomText
-        label={t('Questions')}
+        label={t('questionText')}
         fontFamily={fonts.medium}
         fontSize={16}
         marginTop={10}
@@ -116,10 +118,10 @@ const Questions = ({navigation, route}) => {
           questionNumber: (currentPage - 1) * 10 + index + 1,
           question:
             JSON.parse(question.question)[currentLanguage]?.question ||
-            'Question not available',
+            t('questionNotAvailable'),
           answer: correctAnswer
             ? correctAnswer.answer
-            : 'No correct answer found',
+            : t('noCorrectAnswer'),
         };
 
         return (
@@ -140,7 +142,7 @@ const Questions = ({navigation, route}) => {
             style={styles.paginationButton}
             onPress={handleBack}>
             <CustomText
-              label={t('Back')}
+              label={t('back')}
               fontFamily={fonts.medium}
               fontSize={14}
               color="white"
@@ -153,7 +155,7 @@ const Questions = ({navigation, route}) => {
             style={styles.paginationButton}
             onPress={handleNext}>
             <CustomText
-              label={t('Next')}
+              label={t('next')}
               fontFamily={fonts.medium}
               fontSize={14}
               color="white"

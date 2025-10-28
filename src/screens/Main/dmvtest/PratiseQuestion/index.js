@@ -78,9 +78,9 @@ const PratiseQuestion = ({navigation}) => {
       scrollEnabled
       statusBarColor={COLORS.primaryColor4}
       backgroundColor='white'
-      headerUnScrollable={() => <Header2 line={true} title={t('Practise Question')} />}>
+      headerUnScrollable={() => <Header2 line={true} title={t('practiceQuestion')} />}>
       <CustomText
-        label={t('Lessons')}
+        label={t('lessons')}
         fontFamily={fonts.medium}
         fontSize={16}
         marginTop={10}
@@ -93,6 +93,7 @@ const PratiseQuestion = ({navigation}) => {
             key={lesson.id}
             id={lesson.id}
             name={lesson.name}
+            description={lesson.description}
             status={lesson.status}
             onPress={() => handleLessonPress(lesson.id, lesson.name)}
             percentage={lesson.percentage}

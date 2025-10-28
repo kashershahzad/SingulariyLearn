@@ -11,6 +11,7 @@ import { ApiRequest } from '../../../../services/ApiRequest';
 import { useSelector } from 'react-redux';
 import Video from 'react-native-video';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 
 const Testfrom = ({ 
     timercomplete, 
@@ -43,6 +44,7 @@ const Testfrom = ({
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLessonMode, setIsLessonMode] = useState(false);
     const [totalQuestionsCount, setTotalQuestionsCount] = useState(totalQuestions || 0);
+    const {t} = useTranslation()
 
     const STORAGE_KEYS = mockuptest ? {
         ALL_ANSWERS: 'mockup_all_answers',
@@ -610,7 +612,7 @@ const Testfrom = ({
             >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <CustomText
-                        label={`Question ${currentQuestionNumber}/${totalQuestionsCount}`}
+                        label={t('question') + `${currentQuestionNumber}/${totalQuestionsCount}`}
                         fontFamily={fonts.jakartaBold}
                         fontSize={16}
                         color={'#4F4F4F'}
@@ -679,7 +681,7 @@ const Testfrom = ({
                                 width={149}
                                 height={52}
                                 fontSize={16}
-                                title={"Skip"}
+                                title={t("skip")}
                                 color={'black'}
                                 borderColor={'#ECEFF3'}
                                 borderWidth={2}
@@ -693,7 +695,7 @@ const Testfrom = ({
                                 width={149}
                                 height={52}
                                 fontSize={16}
-                                title={"Next"}
+                                title={t("nextButton")}
                                 color={'white'}
                                 borderColor={'#ECEFF3'}
                                 borderWidth={1}
@@ -708,7 +710,7 @@ const Testfrom = ({
                                 width={149}
                                 height={52}
                                 fontSize={16}
-                                title={"Skip"}
+                                title={t("skip")}
                                 color={'black'}
                                 borderColor={'#ECEFF3'}
                                 borderWidth={2}
@@ -720,7 +722,7 @@ const Testfrom = ({
                                 width={149}
                                 height={52}
                                 fontSize={16}
-                                title={"Next"}
+                                title={t("nextButton")}
                                 color={'white'}
                                 borderColor={'#ECEFF3'}
                                 borderWidth={1}

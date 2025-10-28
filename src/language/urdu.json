@@ -470,5 +470,14 @@
     "close": "بند کریں",
     "successMessage": "ادائیگی کامیاب ہو گئی",
     "errorMessage": "کچھ غلط ہو گیا"
-  }
+  },
+  "back": "پیچھے",
+  "next": "اگلا",
+  "practiceQuiz": "پریکٹس کوئز",
+  "questionNotAvailable": "سوال دستیاب نہیں",
+  "noCorrectAnswer": "کوئی صحیح جواب نہیں ملا",
+  "question": "سوال",
+  "answer": "جواب",
+  "completed": "مکمل",
+  "lessons": "اسباق"
 }

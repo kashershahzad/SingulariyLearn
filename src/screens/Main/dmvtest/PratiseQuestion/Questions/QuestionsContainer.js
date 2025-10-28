@@ -6,9 +6,11 @@ import ImageFast from '../../../../../components/ImageFast';
 import {Images} from '../../../../../assets/images';
 import CustomHorizontalLine from '../../../../../components/CustomHorizontalLine';
 import { COLORS } from '../../../../../utils/COLORS';
+import { useTranslation } from 'react-i18next';
 
 const QuestionsContainer = ({id, questionNumber, question, answer}) => {
   const [model, setmodel] = useState(false);
+  const {t} = useTranslation();
   
   return (
     <View style={styles.container}>
@@ -17,7 +19,7 @@ const QuestionsContainer = ({id, questionNumber, question, answer}) => {
         onPress={() => setmodel(!model)}
       >
         <CustomText
-          label={`Question ${questionNumber}`}
+          label={t('question') + ` ${questionNumber}`}
           fontFamily={fonts.regular}
           fontSize={14}
           color={COLORS.btn}
@@ -44,7 +46,7 @@ const QuestionsContainer = ({id, questionNumber, question, answer}) => {
         <View>
           <CustomHorizontalLine height={1}/>
           <CustomText
-            label={'Answer'}
+            label={t('answer')}
             fontFamily={fonts.regular}
             fontSize={14}
             marginTop={10}

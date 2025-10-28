@@ -468,6 +468,16 @@
     "expiry": "Expiry Date",
     "close": "Close",
     "successMessage": "Payment Successful",
-    "errorMessage": "Something went wrong"
-  }
+    "errorMessage": "Something went wrong",
+    "completed": "Completed"
+  },
+  "completed": "Completed",
+  "back": "Back",
+  "next": "Next",
+  "practiceQuiz": "Practice Quiz",
+  "questionNotAvailable": "Question not available",
+  "noCorrectAnswer": "No correct answer found",
+  "question": "Question",
+  "answer": "Answer",
+  "lessons": "Lessons"
 }

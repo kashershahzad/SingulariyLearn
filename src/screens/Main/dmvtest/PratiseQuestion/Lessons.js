@@ -5,20 +5,22 @@ import fonts from '../../../../assets/fonts';
 import ImageFast from '../../../../components/ImageFast';
 import {Images} from '../../../../assets/images';
 import { COLORS } from '../../../../utils/COLORS';
+import { useTranslation } from 'react-i18next';
 
-const Lessons = ({ id, name, status, onPress , percentage}) => {
+const Lessons = ({ id, name, status, onPress , percentage, description}) => {
+  const {t} = useTranslation()
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.mincontainer}>
         <CustomText
-          label={`Lessons ${id}`}
+          label={name}
           fontFamily={fonts.regular}
           fontSize={14}
           color={COLORS.btn}
         />
 
         <CustomText
-          label={`${percentage}% Completed`}
+          label={`${percentage}% ${t('completed')}`}
           fontFamily={fonts.medium}
           fontSize={8}
           color={COLORS.btn}
@@ -27,7 +29,7 @@ const Lessons = ({ id, name, status, onPress , percentage}) => {
 
       <View style={styles.mincontainer}>
         <CustomText
-          label={name}
+          label={description}
           fontFamily={fonts.regular}
           fontSize={14}
         />
@@ -39,7 +41,7 @@ const Lessons = ({ id, name, status, onPress , percentage}) => {
         />
       </View>
       <View style={styles.lineBackground}>
-        <View style={[styles.lineProgress, {width: percentage}]}></View>
+        <View style={[styles.lineProgress, {width: `${percentage}%`}]}></View>
       </View>
     </TouchableOpacity>
   );
