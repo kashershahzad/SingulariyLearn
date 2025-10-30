@@ -17,17 +17,17 @@ const ProfileOptions = ({navigation}) => {
             title: t("dmvTest"),
             image: Images.permit,
         },
-        {
-            title: t("immigration"),
-            image: Images.immigrationicon
-        },
-        {
-            title: t("drivingTest"),
-            image: Images.permit
-        }
+        // {
+        //     title: t("immigration"),
+        //     image: Images.immigrationicon
+        // },
+        // {
+        //     title: t("drivingTest"),
+        //     image: Images.permit
+        // }
     ]
     return (
-        <>
+        <View >
             {
                 options.map(((item, i) => (
                     <View key={i} style={styles.container}>
@@ -45,7 +45,7 @@ const ProfileOptions = ({navigation}) => {
                     </View>
                 )))
             }
-        </>
+        </View>
     )
 }
 

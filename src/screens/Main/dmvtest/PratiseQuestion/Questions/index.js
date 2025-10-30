@@ -23,7 +23,6 @@ const Questions = ({navigation, route}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [total, settotal] = useState();
 
-  // ✅ Fetch all questions once only
   const fetchQuestions = async () => {
     try {
       const Body = {
@@ -36,7 +35,7 @@ const Questions = ({navigation, route}) => {
 
       const response = await ApiRequest(Body);
       const apiData = response.data.data || [];
-      console.log(response.data.total);
+      console.log(response.data);
       const totalQuestion = response.data.total;
       settotal(totalQuestion);
       const preparedQuestions = apiData.map((question, index) => {
@@ -45,6 +44,8 @@ const Questions = ({navigation, route}) => {
             answer.is_correct === '1' && answer.lang === currentLanguage,
         );
         return {
+          image: question.image,
+          audio: question.audio,
           id: question.id.toString(),
           questionNumber: index + 1,
           question:
@@ -66,7 +67,6 @@ const Questions = ({navigation, route}) => {
     fetchQuestions();
   }, []);
 
-  // ✅ Navigation handlers (no reloads)
   const handleNext = () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(prev => prev + 1);
@@ -114,18 +114,18 @@ const Questions = ({navigation, route}) => {
 
       <MockupHeader title={name} />
 
-      {/* ✅ Only show one question at a time */}
       {currentQuestion && (
         <QuestionsContainer
           id={currentQuestion.id}
           questionNumber={currentQuestion.questionNumber}
           question={currentQuestion.question}
           answer={currentQuestion.answer}
+          audio={currentQuestion.audio}
+          image={currentQuestion.image}
           totalQuestion={total}
         />
       )}
 
-      {/* ✅ Next / Previous navigation */}
       <View style={styles.btnContainer}>
         <View style={styles.btn}>
           <CustomButton
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     marginTop: 'auto',
-    paddingHorizontal:20
+    paddingHorizontal: 20,
   },
   btn: {
     flexDirection: 'row',

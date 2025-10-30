@@ -179,6 +179,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     flexDirection: "row",
     gap: 5,
+    justifyContent:'center'
   },
   mincontainer2: {
     marginTop: 20,

@@ -1,21 +1,37 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import React, {useState, useRef} from 'react';
+import {StyleSheet, View, ScrollView, TouchableOpacity} from 'react-native';
 import CustomText from '../../../../../components/CustomText';
 import ImageFast from '../../../../../components/ImageFast';
-import { Images } from '../../../../../assets/images';
-import { COLORS } from '../../../../../utils/COLORS';
-import { useTranslation } from 'react-i18next';
+import {Images} from '../../../../../assets/images';
+import {COLORS} from '../../../../../utils/COLORS';
+import {useTranslation} from 'react-i18next';
 import Video from 'react-native-video';
-import CustomButton from '../../../../../components/CustomButton';
 import fonts from '../../../../../assets/fonts';
 
-const QuestionsContainer = ({ questionNumber, question, answer, totalQuestion }) => {
-  const { t } = useTranslation();
-   const progress = (questionNumber / totalQuestion) * 100;
+const QuestionsContainer = ({
+  questionNumber,
+  question,
+  answer,
+  totalQuestion,
+  image,
+  audio,
+}) => {
+  const {t} = useTranslation();
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef(null);
+
+  const progress = (questionNumber / totalQuestion) * 100;
+
+  const handleAudioPress = () => {
+    setIsPlaying(prev => !prev);
+  };
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
+        {/* Header */}
         <View style={styles.header}>
           <CustomText
             label={`${t('question')} ${questionNumber}/ ${totalQuestion}`}
@@ -23,16 +39,23 @@ const QuestionsContainer = ({ questionNumber, question, answer, totalQuestion })
             fontSize={16}
             color={'#4F4F4F'}
           />
-          <ImageFast
-            source={Images.audiobtn}
-            resizeMode={'contain'}
-            style={styles.audio}
-          />
+
+          <TouchableOpacity onPress={handleAudioPress}>
+            <ImageFast
+              source={isPlaying ? Images.audiobtn : Images.audiobtn}
+              resizeMode="contain"
+              style={styles.audio}
+            />
+          </TouchableOpacity>
         </View>
+
+        {/* Progress Bar */}
         <View style={styles.lineBackground}>
-          <View style={[styles.lineProgress, { width: progress }]} />
+          <View style={[styles.lineProgress, {width: `${progress}%`}]} />
         </View>
-        <View style={{ minHeight: 100 }}>
+
+        {/* Question */}
+        <View style={{minHeight: 120}}>
           <CustomText
             label={question}
             fontFamily={fonts.regular}
@@ -41,16 +64,38 @@ const QuestionsContainer = ({ questionNumber, question, answer, totalQuestion })
           />
         </View>
 
+        {/* Image */}
+        {image && (
+          <ImageFast
+            source={{uri: image}}
+            resizeMode="contain"
+            style={styles.icon}
+          />
+        )}
+
         {/* Answer */}
         <View style={styles.option}>
           <CustomText
-            textAlign={'center'}
+            textAlign="center"
             label={answer}
             fontFamily={fonts.regular}
             fontSize={14}
-            color={'#707070'}
+            color="#707070"
           />
         </View>
+
+        {/* Hidden audio player */}
+        {audio && (
+          <Video
+            ref={videoRef}
+            source={{uri: audio}}
+            paused={!isPlaying}
+            onEnd={() => setIsPlaying(false)}
+            audioOnly
+            playInBackground={false}
+            style={styles.audioElement}
+          />
+        )}
       </ScrollView>
     </View>
   );
@@ -99,15 +144,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 15,
     borderRadius: 8,
-    minHeight:150
-  },
-  btnContainer: {
-    marginTop: 'auto',
-  },
-  btn: {
-    flexDirection: 'row',
-    gap: 10,
-    justifyContent: 'space-between',
+    minHeight: 120,
   },
   audio: {
     height: 23,
@@ -116,5 +153,11 @@ const styles = StyleSheet.create({
   audioElement: {
     width: 0,
     height: 0,
+  },
+  icon: {
+    height: 202,
+    width: 181,
+    alignSelf: 'center',
+    marginBottom: 5,
   },
 });
