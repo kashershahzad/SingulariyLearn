@@ -183,7 +183,6 @@ const Testfrom = ({
                 table_name: "questions",
                 is_mockup: mockuptest,
                 page: pageIndex,
-                limit: 10
             };
 
             if (lesson_id && lesson) {

@@ -1,167 +1,158 @@
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-} from 'react-native';
 import React, {useState, useEffect} from 'react';
+import {View, TouchableOpacity, StyleSheet} from 'react-native';
 import {useTranslation} from 'react-i18next';
 import {useSelector} from 'react-redux';
-import Loading from '../../../../../components/Loading';
 import ScreenWrapper from '../../../../../components/ScreenWrapper';
 import CustomText from '../../../../../components/CustomText';
+import CustomButton from '../../../../../components/CustomButton';
+import Header2 from '../../../DmvLicenses/Molecules/Header2';
+import Loading from '../../../../../components/Loading';
 import fonts from '../../../../../assets/fonts';
 import {COLORS} from '../../../../../utils/COLORS';
-import Header2 from '../../../DmvLicenses/Molecules/Header2';
-import QuestionsContainer from './QuestionsContainer';
 import {ApiRequest} from '../../../../../services/ApiRequest';
-import CustomButton from '../../../../../components/CustomButton';
+import QuestionsContainer from './QuestionsContainer';
+import MockupHeader from '../../Molecules/MockupHeader';
 
 const Questions = ({navigation, route}) => {
   const {t} = useTranslation();
-  const [loading, setLoading] = useState(true);
   const currentLanguage = useSelector(state => state.language.language);
-  const [questions, setQuestions] = useState([]);
-  const [error, seterror] = useState(false);
-  const [totalQuestion, settotalQuestion] = useState(0);
-  const [currentPage, setCurrentPage] = useState(0);
   const {id, name} = route.params;
 
-  const fetchquestion = async pageNumber => {
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [total, settotal] = useState();
+
+  // ✅ Fetch all questions once only
+  const fetchQuestions = async () => {
     try {
-      setLoading(true);
       const Body = {
         type: 'get_data',
         table_name: 'questions',
         is_mockup: false,
         lesson_id: id,
-        last_id: pageNumber,
-        limit:50
+        limit: 50,
       };
 
       const response = await ApiRequest(Body);
-      console.log('Practice response', response.data.data);
-      settotalQuestion(response.data.total);
+      const apiData = response.data.data || [];
+      console.log(response.data.total);
+      const totalQuestion = response.data.total;
+      settotal(totalQuestion);
+      const preparedQuestions = apiData.map((question, index) => {
+        const correctAnswer = question.answers.find(
+          answer =>
+            answer.is_correct === '1' && answer.lang === currentLanguage,
+        );
+        return {
+          id: question.id.toString(),
+          questionNumber: index + 1,
+          question:
+            JSON.parse(question.question)[currentLanguage]?.question ||
+            t('questionNotAvailable'),
+          answer: correctAnswer ? correctAnswer.answer : t('noCorrectAnswer'),
+        };
+      });
 
-      if (response.data.data) {
-        setQuestions(response.data.data);
-        seterror(false);
-      } else {
-        seterror(true);
-      }
-    } catch (error) {
-      console.error('API Error:', error);
-      seterror(true);
+      setQuestions(preparedQuestions);
+    } catch (err) {
+      console.log('API Error:', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchquestion(currentPage);
-  }, [currentPage]);
+    fetchQuestions();
+  }, []);
 
+  // ✅ Navigation handlers (no reloads)
   const handleNext = () => {
-    setCurrentPage(prev => prev + 1);
-  };
-
-  const handleBack = () => {
-    if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(prev => prev + 1);
     }
   };
 
-  const hasNextPage = questions.length === 10;
-  const hasPrevPage = currentPage > 0;
-
-  if (loading) {
-    return <Loading />;
-  }
-  
-  const handleLessonPress = (id, name) => {
-    navigation.navigate('LessonPage', { lesson_id: id, name });
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+    }
   };
-  
+
+  const handleLessonPress = () => {
+    navigation.navigate('LessonPage', {lesson_id: id, name});
+  };
+
+  if (loading) return <Loading />;
+
+  const currentQuestion = questions[currentIndex];
+
   return (
     <ScreenWrapper
       paddingBottom={20}
       scrollEnabled
+      paddingHorizontal={0}
       statusBarColor={COLORS.primaryColor4}
       backgroundColor="white"
-      headerUnScrollable={() => <Header2 line={true} title={name} />}
+      // headerUnScrollable={() => <MockupHeader title={name}/>}
       footerUnScrollable={() => (
-        <View style={{paddingHorizontal:20, marginTop:20}}>
+        <View style={{paddingHorizontal: 20, marginTop: 20}}>
           <CustomButton
             title={t('practiceQuiz')}
-            onPress={() => handleLessonPress(id, name)}
+            onPress={handleLessonPress}
             backgroundColor={COLORS.btn}
           />
         </View>
       )}>
-      <CustomText
+      {/* <CustomText
         label={t('questionText')}
         fontFamily={fonts.medium}
         fontSize={16}
         marginTop={10}
         marginLeft={5}
-      />
+      /> */}
 
-      {questions.map((question, index) => {
-        const correctAnswer = question.answers.find(
-          answer =>
-            answer.is_correct === '1' && answer.lang === currentLanguage,
-        );
+      <MockupHeader title={name} />
 
-        const questionData = {
-          id: question.id.toString(),
-          questionNumber: (currentPage - 1) * 10 + index + 1,
-          question:
-            JSON.parse(question.question)[currentLanguage]?.question ||
-            t('questionNotAvailable'),
-          answer: correctAnswer
-            ? correctAnswer.answer
-            : t('noCorrectAnswer'),
-        };
+      {/* ✅ Only show one question at a time */}
+      {currentQuestion && (
+        <QuestionsContainer
+          id={currentQuestion.id}
+          questionNumber={currentQuestion.questionNumber}
+          question={currentQuestion.question}
+          answer={currentQuestion.answer}
+          totalQuestion={total}
+        />
+      )}
 
-        return (
-          <QuestionsContainer
-            key={question.id}
-            id={questionData.id}
-            questionNumber={questionData.id}
-            question={questionData.question}
-            answer={questionData.answer}
+      {/* ✅ Next / Previous navigation */}
+      <View style={styles.btnContainer}>
+        <View style={styles.btn}>
+          <CustomButton
+            width={149}
+            height={52}
+            fontSize={16}
+            title={t('previous')}
+            color={'black'}
+            borderColor={'#ECEFF3'}
+            borderWidth={2}
+            borderRadius={25}
+            onPress={handlePrevious}
+            backgroundColor={'white'}
           />
-        );
-      })}
-
-      {/* Pagination Buttons */}
-      <View style={styles.paginationContainer}>
-        {hasPrevPage && (
-          <TouchableOpacity
-            style={styles.paginationButton}
-            onPress={handleBack}>
-            <CustomText
-              label={t('back')}
-              fontFamily={fonts.medium}
-              fontSize={14}
-              color="white"
-            />
-          </TouchableOpacity>
-        )}
-
-        {hasNextPage && (
-          <TouchableOpacity
-            style={styles.paginationButton}
-            onPress={handleNext}>
-            <CustomText
-              label={t('next')}
-              fontFamily={fonts.medium}
-              fontSize={14}
-              color="white"
-            />
-          </TouchableOpacity>
-        )}
+          <CustomButton
+            width={149}
+            height={52}
+            fontSize={16}
+            title={t('nextButton')}
+            color={'white'}
+            borderColor={'#ECEFF3'}
+            borderWidth={1}
+            borderRadius={25}
+            backgroundColor={'black'}
+            onPress={handleNext}
+          />
+        </View>
       </View>
     </ScreenWrapper>
   );
@@ -183,5 +174,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
+  },
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+    gap: 20,
+  },
+  btnContainer: {
+    marginTop: 'auto',
+    paddingHorizontal:20
+  },
+  btn: {
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
   },
 });
