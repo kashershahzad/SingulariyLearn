@@ -25,7 +25,7 @@ class MainActivity : ReactActivity() {
 
   }
 
-  override fun getMainComponentName(): String = "singularitylearn"
+  override fun getMainComponentName(): String = "Singularitylearn"
 
   override fun createReactActivityDelegate(): ReactActivityDelegate =
     DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)

@@ -2,20 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>ANDROID_CLIENT_ID</key>
-	<string>50199479487-jvi5ibku2rnkjmk67ogper1r22g72ven.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyC0h951jcIMl43dO8NK0utPIExNtAOwDMc</string>
+	<string>AIzaSyDL19PNZCgS17x8RxEpfMiNzF7jBfiMo2U</string>
 	<key>GCM_SENDER_ID</key>
-	<string>50199479487</string>
+	<string>555125495165</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.madrassatii.app</string>
+	<string>com.singularitylearn.app</string>
 	<key>PROJECT_ID</key>
-	<string>madrassti-2f091</string>
+	<string>singularity-learn</string>
 	<key>STORAGE_BUCKET</key>
-	<string>madrassti-2f091.firebasestorage.app</string>
+	<string>singularity-learn.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -27,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:50199479487:ios:8bc361ab86d96f3d6c320a</string>
+	<string>1:555125495165:ios:6acd0148f50da077646814</string>
 </dict>
 </plist>

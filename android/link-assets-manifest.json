@@ -2,10 +2,6 @@
   "migIndex": 1,
   "data": [
     {
-      "path": "src/assets/fonts/index.js",
-      "sha1": "c1a5433d52c7a07f95326e94eed23e23b2b02722"
-    },
-    {
       "path": "src/assets/fonts/PlusJakartaSans-Bold.ttf",
       "sha1": "c341f3c4296794a16072abf4f733c9a0e52b1ce6"
     },
@@ -96,6 +92,10 @@
     {
       "path": "src/assets/fonts/Poppins-Thin.ttf",
       "sha1": "09ba4dcd5509c8085bf88c665dcc51cbdfced27b"
+    },
+    {
+      "path": "src/assets/fonts/index.js",
+      "sha1": "cdef8b9f6dfec9677e83d8b8cb90704bcdc27ef0"
     }
   ]
 }

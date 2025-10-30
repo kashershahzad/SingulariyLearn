@@ -18,13 +18,11 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_symx
 end
 
-target 'Madrassati' do
+target 'SingularityLearn' do
   config = use_native_modules!
 
   # Firebase pods
   # pod 'Firebase', :modular_headers => true
-  rn_maps_path = '../node_modules/react-native-maps'
-  pod 'react-native-google-maps', :path => rn_maps_path
   pod 'FirebaseCore', :modular_headers => true
   pod 'GoogleUtilities', :modular_headers => true
   pod 'FirebaseCoreInternal', :modular_headers => true
