@@ -9,7 +9,7 @@ import Testfrom from './Testfrom';
 import {useTranslation} from 'react-i18next';
 import {ApiRequest} from '../../../../services/ApiRequest';
 
-const Mockuptest = () => {
+const Mockuptest = ({route}) => {
   const {t} = useTranslation();
   const [questiontimer, setquestiontimer] = useState(false);
   const [resettimer, setresettimer] = useState(false);
@@ -17,6 +17,7 @@ const Mockuptest = () => {
   const [error, seterror] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [totalQuestion, settotalQuestion] = useState('');
+  // const {roadsign} = route.params
 
   useEffect(() => {
     const fetchquestion = async () => {

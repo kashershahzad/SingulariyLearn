@@ -27,7 +27,7 @@ const ProfileOptions = ({navigation}) => {
         // }
     ]
     return (
-        <View >
+        <>
             {
                 options.map(((item, i) => (
                     <View key={i} style={styles.container}>
@@ -45,7 +45,7 @@ const ProfileOptions = ({navigation}) => {
                     </View>
                 )))
             }
-        </View>
+        </>
     )
 }
 

@@ -23,7 +23,7 @@ const DmvTest = ({navigation}) => {
       title: t('practiceQuestion'),
       icon: Images.pratisequestion,
       bgColor: "#4378DB",
-      fnc: () => navigation.navigate('PratiseQuestion')
+      fnc: () => navigation.navigate('PratiseQuestion',{roadsign:false})
     },
     {
       title: t('mockupTest'),
@@ -35,13 +35,18 @@ const DmvTest = ({navigation}) => {
       title: t('roadSigns'),
       icon: Images.road,
       bgColor: "#28A164",
-      fnc: () => navigation.navigate('Roadsign')
+      fnc: () => navigation.navigate('PratiseQuestion',{roadsign:true})
+    },
+    {
+      title: t('Road Signs Mockup test'),
+      icon: Images.road,
+      bgColor: "#28A164",
+      fnc: () => navigation.navigate("Roadsign")
     },
     // {
     //   title: t('study'),
     //   icon: Images.study,
     //   bgColor: "#F35555",
-    // },
     {
       title: t('testHistory'),
       icon: Images.test,

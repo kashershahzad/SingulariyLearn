@@ -16,7 +16,7 @@ import MockupHeader from '../../Molecules/MockupHeader';
 const Questions = ({navigation, route}) => {
   const {t} = useTranslation();
   const currentLanguage = useSelector(state => state.language.language);
-  const {id, name} = route.params;
+  const {id, name, roadsign} = route.params;
 
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);

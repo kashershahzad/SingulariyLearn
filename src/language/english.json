@@ -115,7 +115,7 @@
   "testTitle": "Test",
   "practiceQuestion": "Study Question",
   "mockupTest": "Mockup Test",
-  "roadSigns": "Road Signs",
+  "roadSigns": " Study Road Signs",
   "study": "Study",
   "testHistory": "Test History",
   "usefulKnowledge": "Useful Knowledge",
@@ -481,6 +481,6 @@
   "answer": "Answer",
   "lessons": "Lessons",
   "attempt": "Attempt",
-  "roadsign": "Road Sign",
+  "roadsign": "Study Road Signs",
    "previous": "Previous"
 }
