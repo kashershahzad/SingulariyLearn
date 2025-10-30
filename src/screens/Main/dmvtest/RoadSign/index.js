@@ -72,7 +72,7 @@ const RoadSign = () => {
                     timercomplete={setquestiontimer}
                     timer={false}
                     roadsign={true}
-                    title={t('mockupTest')} />
+                    title={t('roadsign')} />
             ) : null}
 
             {!error ? (
