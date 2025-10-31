@@ -24,21 +24,13 @@ const RootNavigation = () => {
    
   return (
     <Stack.Navigator
-    // initialRouteName='MainStack'
       screenOptions={{
         headerShown: false,
         animation: 'slide_from_right',
       }}>
-      {isToken ? (
-        <>
-          <Stack.Screen name="MainStack" component={MainStack} />
-        </>
-      ) : (
-        <>
-          <Stack.Screen name="AuthStack" component={AuthStack} />
-          <Stack.Screen name="MainStack" component={MainStack} />
-        </>
-      )}
+        <Stack.Screen name="AuthStack" component={AuthStack} />
+        <Stack.Screen name="MainStack" component={MainStack} />
+     
     </Stack.Navigator>
   );
 };

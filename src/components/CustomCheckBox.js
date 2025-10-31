@@ -11,7 +11,7 @@ const CustomCheckbox = ({ value, onValueChange }) => {
       onPress={() => onValueChange(!value)}
       activeOpacity={0.7}
     >
-      <View style={[styles.checkbox, value && styles.checked]}>
+      <View style={[styles.checkbox, value ? styles.checked:{}]}>
         {value && <View style={styles.innerCircle} />}
       </View>
     </TouchableOpacity>
