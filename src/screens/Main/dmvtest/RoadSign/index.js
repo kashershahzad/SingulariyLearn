@@ -13,7 +13,7 @@ import ScreenWrapper from '../../../../components/ScreenWrapper'
 import MockupHeader from '../Molecules/MockupHeader'
 import { COLORS } from '../../../../utils/COLORS'
 
-const RoadSign = () => {
+const RoadSign = ({navigation}) => {
     const { t } = useTranslation();
     const [questiontimer, setquestiontimer] = useState(false)
     const [resettimer, setresettimer] = useState(false)
@@ -76,7 +76,7 @@ const RoadSign = () => {
             ) : null}
 
             {!error ? (
-                <Testfrom roadsign={true} resettimer={setresettimer}  totalQuestions={totalQuestion} timercomplete={questiontimer} questions={questions} mockuptest={true} />
+                <Testfrom navigation={true} roadsign={true} resettimer={setresettimer}  totalQuestions={totalQuestion} timercomplete={questiontimer} questions={questions} mockuptest={true} />
             ) : null}
         </ScreenWrapper>
     )

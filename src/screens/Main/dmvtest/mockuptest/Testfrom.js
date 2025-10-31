@@ -18,7 +18,6 @@ import {useNavigation} from '@react-navigation/native';
 import {ApiRequest} from '../../../../services/ApiRequest';
 import {useSelector} from 'react-redux';
 import Video from 'react-native-video';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTranslation} from 'react-i18next';
 
 const Testfrom = ({
@@ -47,33 +46,9 @@ const Testfrom = ({
   const [questionStartTimes, setQuestionStartTimes] = useState({});
   const [totalTime, setTotalTime] = useState(0);
   const [averageTime, setAverageTime] = useState(0);
-  const [lastId, setLastId] = useState(1); // Track last_id
-  const [totalQuestionsAnswered, setTotalQuestionsAnswered] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLessonMode, setIsLessonMode] = useState(false);
-  const [totalQuestionsCount, setTotalQuestionsCount] = useState(
-    totalQuestions || 0,
-  );
   const {t} = useTranslation();
-
-  const STORAGE_KEYS = mockuptest
-    ? {
-        ALL_ANSWERS: 'mockup_all_answers',
-        CURRENT_PROGRESS: 'mockup_current_progress',
-        SCORE: 'mockup_score',
-        TOTAL_TIME: 'mockup_total_time',
-        LAST_ID: 'mockup_last_id',
-        TOTAL_ANSWERED: 'mockup_total_answered',
-        MOCKUP_RESULTS: 'mockup_final_results',
-      }
-    : {
-        ALL_ANSWERS: 'test_all_answers',
-        CURRENT_PROGRESS: 'test_current_progress',
-        SCORE: 'test_score',
-        TOTAL_TIME: 'test_total_time',
-        LAST_ID: 'test_last_id',
-        TOTAL_ANSWERED: 'test_total_answered',
-      };
 
   const togglePlayback = () => {
     setIsPlaying(!isPlaying);
@@ -83,227 +58,15 @@ const Testfrom = ({
     setIsLessonMode(lesson_id && lesson);
     if (initialQuestions && initialQuestions.length > 0) {
       parseQuestions(initialQuestions);
-      setTotalQuestionsCount(totalQuestions || initialQuestions.length);
       setIsLoading(false);
-    } else {
-      loadSavedProgress();
     }
   }, [initialQuestions]);
 
   useEffect(() => {
-    if (allAnswers.length > 0 || lastId > 1) {
-      saveProgressToStorage();
+    if (currentQuestionIndex > 0 && totalTime > 0) {
+      setAverageTime(totalTime / (currentQuestionIndex + 1));
     }
-  }, [
-    allAnswers,
-    lastId,
-    currentQuestionIndex,
-    score,
-    totalTime,
-    totalQuestionsAnswered,
-  ]);
-
-  const loadSavedProgress = async () => {
-    try {
-      setIsLoading(true);
-
-      const [
-        savedAnswers,
-        savedProgress,
-        savedScore,
-        savedTotalTime,
-        savedLastId,
-        savedTotalAnswered,
-      ] = await Promise.all([
-        AsyncStorage.getItem(STORAGE_KEYS.ALL_ANSWERS),
-        AsyncStorage.getItem(STORAGE_KEYS.CURRENT_PROGRESS),
-        AsyncStorage.getItem(STORAGE_KEYS.SCORE),
-        AsyncStorage.getItem(STORAGE_KEYS.TOTAL_TIME),
-        AsyncStorage.getItem(STORAGE_KEYS.LAST_ID),
-        AsyncStorage.getItem(STORAGE_KEYS.TOTAL_ANSWERED),
-      ]);
-
-      if (savedAnswers && savedProgress) {
-        const answers = JSON.parse(savedAnswers);
-        const progress = JSON.parse(savedProgress);
-
-        setAllAnswers(answers);
-        setScore(savedScore ? parseInt(savedScore) : 0);
-        setTotalTime(savedTotalTime ? parseFloat(savedTotalTime) : 0);
-        setLastId(savedLastId ? parseInt(savedLastId) : 1); // Load saved last_id
-        setTotalQuestionsAnswered(
-          savedTotalAnswered ? parseInt(savedTotalAnswered) : 0,
-        );
-
-        console.log(
-          '🔄 LOADED SAVED PROGRESS - last_id:',
-          savedLastId || 1,
-          '| Answers:',
-          answers.length,
-        );
-        // Use saved last_id without incrementing
-        await loadQuestions(
-          savedLastId ? parseInt(savedLastId) : 1,
-          progress.currentQuestionIndex || 0,
-          false,
-        );
-      } else {
-        await loadQuestions(1);
-      }
-    } catch (error) {
-      console.error('Error loading saved progress:', error);
-      await loadQuestions(1);
-    }
-  };
-
-  const saveProgressToStorage = async () => {
-    try {
-      const progressData = {
-        currentQuestionIndex,
-        lastId,
-        timestamp: Date.now(),
-        date: new Date().toISOString(),
-        isMockup: mockuptest,
-        isLessonMode: isLessonMode,
-      };
-
-      await Promise.all([
-        AsyncStorage.setItem(
-          STORAGE_KEYS.ALL_ANSWERS,
-          JSON.stringify(allAnswers),
-        ),
-        AsyncStorage.setItem(
-          STORAGE_KEYS.CURRENT_PROGRESS,
-          JSON.stringify(progressData),
-        ),
-        AsyncStorage.setItem(STORAGE_KEYS.SCORE, score.toString()),
-        AsyncStorage.setItem(STORAGE_KEYS.TOTAL_TIME, totalTime.toString()),
-        AsyncStorage.setItem(STORAGE_KEYS.LAST_ID, lastId.toString()), // Save current last_id
-        AsyncStorage.setItem(
-          STORAGE_KEYS.TOTAL_ANSWERED,
-          totalQuestionsAnswered.toString(),
-        ),
-      ]);
-
-      console.log(
-        '💾 SAVED PROGRESS - last_id:',
-        lastId,
-        '| Answers:',
-        allAnswers.length,
-      );
-    } catch (error) {
-      console.error('Error saving progress:', error);
-    }
-  };
-
-  const clearSavedProgress = async () => {
-    try {
-      await Promise.all([
-        AsyncStorage.removeItem(STORAGE_KEYS.ALL_ANSWERS),
-        AsyncStorage.removeItem(STORAGE_KEYS.CURRENT_PROGRESS),
-        AsyncStorage.removeItem(STORAGE_KEYS.SCORE),
-        AsyncStorage.removeItem(STORAGE_KEYS.TOTAL_TIME),
-        AsyncStorage.removeItem(STORAGE_KEYS.LAST_ID),
-        AsyncStorage.removeItem(STORAGE_KEYS.TOTAL_ANSWERED),
-      ]);
-    } catch (error) {
-      console.error('Error clearing progress:', error);
-    }
-  };
-
-  const loadQuestions = async (
-    currentLastId,
-    savedQuestionIndex = 0,
-    incrementId = true,
-  ) => {
-    try {
-      setIsLoading(true);
-
-      // Load current answers from storage before loading new page
-      const currentSavedAnswers = await AsyncStorage.getItem(
-        STORAGE_KEYS.ALL_ANSWERS,
-      );
-      if (currentSavedAnswers) {
-        const parsedAnswers = JSON.parse(currentSavedAnswers);
-        setAllAnswers(parsedAnswers);
-        console.log(
-          '📥 LOADED CURRENT ANSWERS BEFORE PAGE LOAD:',
-          parsedAnswers.length,
-        );
-      }
-
-      const Body = {
-        type: 'get_data',
-        table_name: 'questions',
-        ...(roadsign && {is_roadsign: 1}),
-        ...(mockuptest && {is_mockup: 1}),
-        ...(!roadsign && {last_id: currentLastId}),
-      };
-
-      if (lesson_id && lesson) {
-        Body.lesson_id = lesson_id;
-      }
-
-      console.log('📥 LOADING QUESTIONS with last_id:', currentLastId);
-      const response = await ApiRequest(Body);
-
-      if (
-        response.data &&
-        response.data.data &&
-        response.data.data.length > 0
-      ) {
-        const newQuestions = response.data.data;
-        parseQuestions(newQuestions);
-
-        // Only increment last_id when loading NEW questions, not when resuming
-        if (incrementId) {
-          setLastId(currentLastId + 1);
-          console.log(
-            '✅ NEW PAGE LOADED - last_id incremented to:',
-            currentLastId + 1,
-          );
-        } else {
-          setLastId(currentLastId);
-          console.log('✅ RESUMED PAGE - last_id kept at:', currentLastId);
-        }
-
-        setCurrentQuestionIndex(savedQuestionIndex);
-        setSelectedOption(null);
-        setShowFeedback(false);
-        setQuestionStartTimes({[savedQuestionIndex]: Date.now()});
-        resettimer(true);
-
-        if (response.data.total) {
-          setTotalQuestionsCount(response.data.total);
-        }
-
-        console.log(
-          `✅ LOADED ${newQuestions.length} questions | TOTAL ANSWERS: ${allAnswers.length}`,
-        );
-      } else {
-        // No more questions - submit all answers
-        if (allAnswers.length > 0) {
-          console.log(
-            '🚀 NO MORE QUESTIONS - SUBMITTING ALL:',
-            allAnswers.length,
-          );
-          await submitAllAnswers();
-        } else {
-        //   Alert.alert('No Questions', 'No questions found.');
-          setIsLoading(false);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading questions:', error);
-      if (allAnswers.length > 0) {
-        console.log('🚀 ERROR BUT SUBMITTING:', allAnswers.length);
-        await submitAllAnswers();
-      } else {
-        Alert.alert('Error', 'Failed to load questions. Please try again.');
-        setIsLoading(false);
-      }
-    }
-  };
+  }, [totalTime, currentQuestionIndex]);
 
   const parseQuestions = questionsArray => {
     const parsed = questionsArray.map(q => {
@@ -317,7 +80,6 @@ const Testfrom = ({
       const questionText =
         questionData[currentLanguage]?.question || 'Question not available';
 
-      // FIX: Check if q.answers exists and is an array before filtering
       const languageAnswers =
         q.answers && Array.isArray(q.answers)
           ? q.answers.filter(answer => answer.lang === currentLanguage)
@@ -347,15 +109,12 @@ const Testfrom = ({
 
     setParsedQuestions(parsed);
     setIsLoading(false);
-  };
-
-  useEffect(() => {
-    if (currentQuestionIndex > 0 && totalTime > 0) {
-      setAverageTime(
-        totalTime / (totalQuestionsAnswered + currentQuestionIndex),
-      );
+    
+    // Initialize timing for first question
+    if (parsed.length > 0) {
+      setQuestionStartTimes({0: Date.now()});
     }
-  }, [totalTime, currentQuestionIndex, totalQuestionsAnswered]);
+  };
 
   const moveToNextQuestion = () => {
     if (currentQuestionIndex < parsedQuestions.length - 1) {
@@ -375,39 +134,18 @@ const Testfrom = ({
       setShowFeedback(false);
       setIsTransitioning(false);
       setSelectedOption(null);
-      resettimer(true);
+      resettimer && resettimer(true);
     } else {
+      // Last question - submit all answers
       const endTime = Date.now();
       const startTime = questionStartTimes[currentQuestionIndex] || endTime;
       const timeTaken = (endTime - startTime) / 1000;
       setTotalTime(prevTotal => prevTotal + timeTaken);
 
-      const totalAnsweredSoFar =
-        totalQuestionsAnswered + parsedQuestions.length;
-      const hasMoreQuestions = totalAnsweredSoFar < totalQuestionsCount;
-
-      console.log(
-        `📄 PAGE COMPLETE | last_id: ${lastId} | Answers: ${allAnswers.length} | Total: ${totalQuestionsCount}`,
-      );
-
-      if (hasMoreQuestions) {
-        setTotalQuestionsAnswered(totalAnsweredSoFar);
-        setShowFeedback(false);
-        setIsTransitioning(false);
-        setSelectedOption(null);
-        // Load next page with incremented last_id
-        loadQuestions(lastId, 0, true);
-      } else {
-        setTotalQuestionsAnswered(totalAnsweredSoFar);
-        setShowFeedback(false);
-        setIsTransitioning(false);
-        setSelectedOption(null);
-        console.log(
-          '🎯 FINAL SUBMISSION TRIGGERED - ANSWERS:',
-          allAnswers.length,
-        );
-        submitAllAnswers();
-      }
+      setShowFeedback(false);
+      setIsTransitioning(false);
+      setSelectedOption(null);
+      submitAllAnswers();
     }
   };
 
@@ -435,27 +173,12 @@ const Testfrom = ({
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setShowFeedback(false);
       setSelectedOption(null);
-      resettimer(true);
+      resettimer && resettimer(true);
     } else {
-      const totalAnsweredSoFar =
-        totalQuestionsAnswered + parsedQuestions.length;
-      const hasMoreQuestions = totalAnsweredSoFar < totalQuestionsCount;
-
-      if (hasMoreQuestions) {
-        setTotalQuestionsAnswered(totalAnsweredSoFar);
-        setShowFeedback(false);
-        setSelectedOption(null);
-        loadQuestions(lastId, 0, true);
-      } else {
-        setTotalQuestionsAnswered(totalAnsweredSoFar);
-        setShowFeedback(false);
-        setSelectedOption(null);
-        console.log(
-          '🎯 FINAL SUBMISSION AFTER SKIP - ANSWERS:',
-          allAnswers.length,
-        );
-        submitAllAnswers();
-      }
+      // Last question - submit
+      setShowFeedback(false);
+      setSelectedOption(null);
+      submitAllAnswers();
     }
   };
 
@@ -505,17 +228,7 @@ const Testfrom = ({
       const filtered = prev.filter(
         ans => ans.question_id !== currentQuestion.id,
       );
-      const newAnswers = [...filtered, answerData];
-      console.log(
-        `💾 SAVED ANSWER | TOTAL: ${newAnswers.length} | QID: ${currentQuestion.id}`,
-      );
-
-      AsyncStorage.setItem(
-        STORAGE_KEYS.ALL_ANSWERS,
-        JSON.stringify(newAnswers),
-      );
-
-      return newAnswers;
+      return [...filtered, answerData];
     });
 
     if (isCorrect) {
@@ -553,45 +266,21 @@ const Testfrom = ({
 
       const finalAverageTime = totalTime / (allAnswers.length || 1);
 
-      const finalAnswers = await AsyncStorage.getItem(STORAGE_KEYS.ALL_ANSWERS);
-      const allAnswersToSubmit = finalAnswers
-        ? JSON.parse(finalAnswers)
-        : allAnswers;
-
-      console.log('🚀🚀🚀 FINAL SUBMISSION 🚀🚀🚀');
-      console.log('TOTAL ANSWERS TO SUBMIT:', allAnswersToSubmit.length);
-      console.log('SCORE:', score);
-      console.log('TOTAL QUESTIONS COUNT:', totalQuestionsCount);
-      console.log('LAST_ID:', lastId);
-
-      allAnswersToSubmit.forEach((answer, index) => {
-        console.log(
-          `Answer ${index + 1}: QID ${answer.question_id} - ${
-            answer.skiped ? 'SKIPPED' : 'ANSWERED'
-          }`,
-        );
+      console.log('Submitting answers:', {
+        score,
+        totalQuestions: allAnswers.length,
+        averageTime: finalAverageTime,
+        answersCount: allAnswers.length,
+        isMockup: mockuptest
       });
 
       if (mockuptest) {
-        const mockupResults = {
+        // Use navigate instead of replace for mockup tests
+        navigation.replace('Congratulations', {
           score: score,
-          totalQuestions: allAnswersToSubmit.length,
+          totalQuestions: allAnswers.length,
           averageTime: finalAverageTime,
-          answers: allAnswersToSubmit,
-          timestamp: Date.now(),
-          date: new Date().toISOString(),
-        };
-
-        await AsyncStorage.setItem(
-          STORAGE_KEYS.MOCKUP_RESULTS,
-          JSON.stringify(mockupResults),
-        );
-
-        navigation.replace('MockupResults', {
-          score: score,
-          totalQuestions: allAnswersToSubmit.length,
-          averageTime: finalAverageTime,
-          answers: allAnswersToSubmit,
+          answers: allAnswers,
           isMockup: true,
         });
       } else {
@@ -599,7 +288,7 @@ const Testfrom = ({
           type: 'add_data',
           user_id: token,
           table_name: 'user_questionnaire',
-          questions: JSON.stringify(allAnswersToSubmit),
+          questions: JSON.stringify(allAnswers),
           score: score,
           average_time: finalAverageTime,
           is_mockup: mockup,
@@ -607,25 +296,18 @@ const Testfrom = ({
           lesson_id: isLessonMode ? lesson_id : null,
         };
 
-        console.log(
-          '📤 SUBMITTING BODY WITH ANSWERS:',
-          allAnswersToSubmit.length,
-        );
-
+        console.log('Submitting to API:', Body);
         const response = await ApiRequest(Body);
 
-        await clearSavedProgress();
-
-        navigation.replace('Congratulations', {
+        // Use navigate instead of replace for regular tests
+        navigation.navigate('Congratulations', {
           score: score,
-          totalQuestions: allAnswersToSubmit.length,
+          totalQuestions: allAnswers.length,
           averageTime: finalAverageTime,
           isMockup: false,
           isLesson: isLessonMode,
         });
       }
-
-      await clearSavedProgress();
     } catch (error) {
       console.error('Error submitting answers:', error);
       Alert.alert('Error', 'Failed to submit answers. Please try again.');
@@ -634,50 +316,11 @@ const Testfrom = ({
     }
   };
 
-  const saveQuestionHistory = async () => {
-    try {
-      const currentQuestion = parsedQuestions[currentQuestionIndex];
-      const currentAnswer = allAnswers.find(
-        ans => ans.question_id === currentQuestion.id,
-      );
-
-      const Body = {
-        type: 'add_data',
-        table_name: 'user_history',
-        user_id: token,
-        question_id: currentQuestion.id,
-        lesson_id: lesson_id || null,
-        answere:
-          currentAnswer?.selected_option !== null &&
-          currentAnswer?.selected_option !== undefined
-            ? currentQuestion.options[currentAnswer.selected_option]?.answer ||
-              ''
-            : '',
-        is_correct: currentAnswer?.is_correct ? 1 : 0,
-      };
-
-      await ApiRequest(Body);
-    } catch (error) {
-      console.error('Error saving question history:', error);
-    }
-  };
-
   const handleNextOrSubmit = async () => {
-    await saveQuestionHistory();
+    const isLastQuestion = currentQuestionIndex === parsedQuestions.length - 1;
 
-    const totalAnsweredSoFar =
-      totalQuestionsAnswered + currentQuestionIndex + 1;
-    const isLastQuestionOverall = totalAnsweredSoFar >= totalQuestionsCount;
-
-    console.log(
-      `➡️ NEXT | Answers: ${allAnswers.length} | Total: ${totalQuestionsCount}`,
-    );
-
-    if (isLastQuestionOverall) {
-      console.log('🎯 LAST QUESTION - SUBMITTING ALL');
+    if (isLastQuestion) {
       submitAllAnswers();
-    } else if (currentQuestionIndex === parsedQuestions.length - 1) {
-      moveToNextQuestion();
     } else {
       handleNext();
     }
@@ -704,14 +347,12 @@ const Testfrom = ({
     }
   };
 
-  if (isLoading || parsedQuestions.length === 0 || submitloading) {
+  if (isLoading || parsedQuestions.length === 0) {
     return (
       <View style={[styles.centerContent]}>
         <ActivityIndicator size="large" color={COLORS.primaryColor4} />
         <CustomText
-          label={
-            submitloading ? 'Submitting answers...' : 'Loading questions...'
-          }
+          label={'Loading questions...'}
           fontFamily={fonts.regular}
           marginTop={10}
           fontSize={14}
@@ -720,11 +361,22 @@ const Testfrom = ({
     );
   }
 
-  const currentQuestionNumber =
-    totalQuestionsAnswered + currentQuestionIndex + 1;
-  const progressWidth = `${
-    (currentQuestionNumber / totalQuestionsCount) * 100
-  }%`;
+  if (submitloading) {
+    return (
+      <View style={[styles.centerContent]}>
+        <ActivityIndicator size="large" color={COLORS.primaryColor4} />
+        <CustomText
+          label={'Submitting answers...'}
+          fontFamily={fonts.regular}
+          marginTop={10}
+          fontSize={14}
+        />
+      </View>
+    );
+  }
+
+  const currentQuestionNumber = currentQuestionIndex + 1;
+  const progressWidth = `${(currentQuestionNumber / parsedQuestions.length) * 100}%`;
   const currentQuestion = parsedQuestions[currentQuestionIndex];
   const shouldShowFeedback = showFeedback && !mockuptest;
 
@@ -741,7 +393,7 @@ const Testfrom = ({
           }}>
           <CustomText
             label={
-              t('question') + `${currentQuestionNumber}/${totalQuestionsCount}`
+              t('question') + ` ${currentQuestionNumber}/${parsedQuestions.length}`
             }
             fontFamily={fonts.jakartaBold}
             fontSize={16}

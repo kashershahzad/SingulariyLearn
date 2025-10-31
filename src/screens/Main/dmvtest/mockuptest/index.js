@@ -9,7 +9,7 @@ import Testfrom from './Testfrom';
 import {useTranslation} from 'react-i18next';
 import {ApiRequest} from '../../../../services/ApiRequest';
 
-const Mockuptest = ({route}) => {
+const Mockuptest = ({route, navigation}) => {
   const {t} = useTranslation();
   const [questiontimer, setquestiontimer] = useState(false);
   const [resettimer, setresettimer] = useState(false);
@@ -87,6 +87,7 @@ const Mockuptest = ({route}) => {
           timercomplete={questiontimer}
           questions={questions}
           mockuptest={true}
+          navigation={true}
         />
       ) : null}
     </ScreenWrapper>
