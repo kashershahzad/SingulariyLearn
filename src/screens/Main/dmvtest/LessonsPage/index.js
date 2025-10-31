@@ -24,7 +24,8 @@ const LessonPage = ({ route, navigation }) => {
                 const Body = {
                     type: "get_data",
                     table_name: "questions",
-                    lesson_id: lesson_id
+                    lesson_id: lesson_id,
+                    limit :50
                 }
 
                 const response = await ApiRequest(Body)

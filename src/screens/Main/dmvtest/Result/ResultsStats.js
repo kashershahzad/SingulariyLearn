@@ -30,7 +30,7 @@ const ResultsStats = ({ currentAttemptData }) => {
     const obtainedMarks = correct;
     
     // Determine status based on percentage (assuming 50% is passing)
-    const isPassed = percentage >= 50;
+    const isPassed = percentage >= 80;
     const status = isPassed ? t('Passed') : t('Failed');
     const statusColor = isPassed ? '#00B35D' : '#FF0000';
     

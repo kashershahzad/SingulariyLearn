@@ -38,9 +38,9 @@ const DmvTest = ({navigation}) => {
       fnc: () => navigation.navigate('PratiseQuestion',{roadsign:true})
     },
     {
-      title: t('Road Signs Mockup test'),
-      icon: Images.road,
-      bgColor: "#28A164",
+      title: t('Mockup Test Road Signs'),
+      icon: Images.roadsigntest,
+      bgColor: "#0298EF",
       fnc: () => navigation.navigate("Roadsign")
     },
     // {
@@ -68,7 +68,7 @@ const DmvTest = ({navigation}) => {
       headerUnScrollable={() => (<Header2 title={t('dmvTitle')} />)}
     >
       <CustomText 
-        label={t('testTitle')} 
+        label={t('adultPermit')} 
         fontFamily={fonts.medium} 
         fontSize={24} 
         marginTop={5} 

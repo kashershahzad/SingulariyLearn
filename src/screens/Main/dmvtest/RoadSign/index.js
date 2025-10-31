@@ -28,12 +28,12 @@ const RoadSign = () => {
                 const Body = {
                     type: "get_data",
                     table_name: "questions",
-                    is_roadsign: true,
-                    last_id:0
+                    is_roadsign: 1,
+                    // last_id:0
                 }
 
                 const response = await ApiRequest(Body)
-                console.log("Pratise response", response.data.total); 
+                console.log("RoadSign response", response.data); 
                 settotalQuestion(response.data.total);
                 
                 if (response.data.data) {
@@ -76,7 +76,7 @@ const RoadSign = () => {
             ) : null}
 
             {!error ? (
-                <Testfrom resettimer={setresettimer}  totalQuestions={totalQuestion} timercomplete={questiontimer} questions={questions} mockuptest={true} />
+                <Testfrom roadsign={true} resettimer={setresettimer}  totalQuestions={totalQuestion} timercomplete={questiontimer} questions={questions} mockuptest={true} />
             ) : null}
         </ScreenWrapper>
     )

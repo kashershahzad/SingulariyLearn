@@ -84,6 +84,7 @@ export const Images = {
   edit: require('./icons/edit.png'),
   immigrationicon: require('./icons/immigration.png'),
   usefulknowledge: require('./icons/usefulknowledge.png'),
+  roadsigntest :require('./icons/roadtest.png'),
 
   sucess: require('./success.gif'),
 

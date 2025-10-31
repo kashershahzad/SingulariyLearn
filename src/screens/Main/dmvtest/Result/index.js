@@ -13,7 +13,7 @@ import QuestionsCheck from './QuestionsCheck';
 import {useTranslation} from 'react-i18next';
 import {ApiRequest} from '../../../../services/ApiRequest';
 import {useSelector} from 'react-redux';
-import Loading from '../../../../components/Loading'
+import Loading from '../../../../components/Loading';
 
 const Result = () => {
   const {t} = useTranslation();
@@ -24,8 +24,7 @@ const Result = () => {
   const [resultsData, setResultsData] = useState([]);
   const [currentAttempt, setCurrentAttempt] = useState(1);
   const [currentAttemptData, setCurrentAttemptData] = useState(null);
-  const [loading, setLoading] = useState(true); // Add loading state
-
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchresult = async () => {
       setLoading(true);
@@ -39,28 +38,27 @@ const Result = () => {
       const response = await ApiRequest(body);
       const rawResponse = response.data;
       console.log('📊 RAW API RESPONSE:', rawResponse);
-      
+
       const totalAttemptsCount = rawResponse.data.length;
       setTotalAttempts(totalAttemptsCount);
 
-      // Inside your Result component's useEffect
-rawResponse.data.forEach((item, index) => {
-    const total = item?.question_data?.total;
-    const correct = item?.question_data?.correct;
-    const skipped = item?.question_data?.skipped;
-    const percentage = item?.percentage;
-    const totalDone = total - skipped;
-    
-    // Process questions data if available
-    if (item.questions && Array.isArray(item.questions)) {
-        // You might need to transform the questions data here
-        // based on your API response structure
-        console.log(`Attempt ${index + 1} questions:`, item.questions);
-    }
-});
-      
+      rawResponse.data.forEach((item, index) => {
+        const total = item?.question_data?.total;
+        const correct = item?.question_data?.correct;
+        const skipped = item?.question_data?.skipped;
+        const percentage = item?.percentage;
+        const totalDone = total - skipped;
+
+        // Process questions data if available
+        if (item.questions && Array.isArray(item.questions)) {
+          // You might need to transform the questions data here
+          // based on your API response structure
+          console.log(`Attempt ${index + 1} questions:`, item.questions);
+        }
+      });
+
       setResultsData(rawResponse.data);
-      
+
       if (totalAttemptsCount > 0) {
         setCurrentAttempt(totalAttemptsCount);
         const latestAttemptData = rawResponse.data[rawResponse.data.length - 1];
@@ -68,14 +66,14 @@ rawResponse.data.forEach((item, index) => {
       } else {
         setCurrentAttemptData(null);
       }
-      
+
       setLoading(false);
     };
 
     fetchresult();
   }, [token, currentLanguage]);
 
-  const handleAttemptChange = (attemptId) => {
+  const handleAttemptChange = attemptId => {
     const attemptIndex = resultsData.length - attemptId;
     const attemptData = resultsData[attemptIndex];
     setCurrentAttempt(attemptId);
@@ -119,12 +117,12 @@ rawResponse.data.forEach((item, index) => {
           marginTop={10}
         />
 
-        <Resultbtn 
-          attempts={totalAttempts} 
+        <Resultbtn
+          attempts={totalAttempts}
           currentAttempt={currentAttempt}
           onAttemptChange={handleAttemptChange}
         />
-        
+
         <ResultsStats currentAttemptData={currentAttemptData} />
         <QuestionsCheck currentAttemptData={currentAttemptData} />
       </View>

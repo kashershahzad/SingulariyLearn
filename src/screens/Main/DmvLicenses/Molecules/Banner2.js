@@ -9,7 +9,7 @@ const Banner2 = ({ image }) => {
     <View style={styles.container}>
       <ImageFast
         source={{ uri: image }}
-        resizeMode="cover"
+        resizeMode="contain"
         style={styles.icon}
       />
     </View>
