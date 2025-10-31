@@ -62,7 +62,7 @@ export const Images = {
   language: require('./icons/language.png'),
   driving2: require('./icons/driving.png'),
   unread: require('./icons/unread.png'),
-  filter: require('./icons/Filter.png'),
+  // filter: require('./icons/Filter.png'),
   arrowdown: require('./icons/arrowdown.png'),
   audiobtn: require('./icons/audiobtn.png'),
   lan: require('./icons/lan.png'),
