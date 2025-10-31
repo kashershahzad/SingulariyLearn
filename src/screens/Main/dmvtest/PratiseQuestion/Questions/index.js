@@ -29,6 +29,7 @@ const Questions = ({navigation, route}) => {
       type: 'get_data',
       table_name: 'questions',
       lesson_id: id,
+      limit:50
     };
     console.log("Request Body:", Body);
     
