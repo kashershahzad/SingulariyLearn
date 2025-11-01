@@ -13,12 +13,6 @@ const DmvTest = ({navigation}) => {
   
   const practiceMenuItems = [
 
-    // {
-    //   title: t('Lessons'),
-    //   icon: Images.usefulknowledge,
-    //   bgColor: "#0DC1BE",
-    //   fnc: () => navigation.navigate('Lessons')
-    // },
     {
       title: t('practiceQuestion'),
       icon: Images.pratisequestion,
@@ -43,10 +37,6 @@ const DmvTest = ({navigation}) => {
       bgColor: "#0298EF",
       fnc: () => navigation.navigate("Roadsign")
     },
-    // {
-    //   title: t('study'),
-    //   icon: Images.study,
-    //   bgColor: "#F35555",
     {
       title: t('testHistory'),
       icon: Images.test,
@@ -59,7 +49,6 @@ const DmvTest = ({navigation}) => {
       bgColor: "#0DC1BE",
       fnc: () => navigation.navigate('UsefulKnowledge')
     },
-
   ];
 
   return (

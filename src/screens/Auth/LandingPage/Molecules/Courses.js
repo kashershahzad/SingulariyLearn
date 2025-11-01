@@ -11,7 +11,7 @@ const Courses = ({navigation}) => {
   const servicedata = [
     {
       title: 'DMV Licenses',
-      function: () => packages === true ? navigation.navigate('PratiseQuestion') : navigation.navigate('PermitType'),
+      function: () => packages === true ? navigation.navigate('PratiseQuestion',{roadsign:false}) : navigation.navigate('PermitType'),
     },
   ];
 

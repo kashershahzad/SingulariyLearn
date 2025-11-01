@@ -274,16 +274,15 @@ const Testfrom = ({
         isMockup: mockuptest
       });
 
-      if (mockuptest) {
-        // Use navigate instead of replace for mockup tests
-        navigation.replace('Congratulations', {
-          score: score,
-          totalQuestions: allAnswers.length,
-          averageTime: finalAverageTime,
-          answers: allAnswers,
-          isMockup: true,
-        });
-      } else {
+
+        // navigation.replace('Congratulations', {
+        //   score: score,
+        //   totalQuestions: allAnswers.length,
+        //   averageTime: finalAverageTime,
+        //   answers: allAnswers,
+        //   isMockup: true,
+        // });
+       
         const Body = {
           type: 'add_data',
           user_id: token,
@@ -299,15 +298,14 @@ const Testfrom = ({
         console.log('Submitting to API:', Body);
         const response = await ApiRequest(Body);
 
-        // Use navigate instead of replace for regular tests
-        navigation.navigate('Congratulations', {
+        navigation.replace('Congratulations', {
           score: score,
           totalQuestions: allAnswers.length,
           averageTime: finalAverageTime,
           isMockup: false,
           isLesson: isLessonMode,
         });
-      }
+      
     } catch (error) {
       console.error('Error submitting answers:', error);
       Alert.alert('Error', 'Failed to submit answers. Please try again.');
