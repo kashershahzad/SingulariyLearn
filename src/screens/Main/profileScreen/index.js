@@ -27,6 +27,8 @@ const ProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const token = useSelector(state => state.authConfig.token);
   const userData = useSelector(state => state.users.userData)
+   const permit = userData?.purchase?.permit;
+
   // const [loading, setLoading] = useState(true)
   // const [data, setdata] = useState()
 
@@ -133,14 +135,14 @@ const ProfileScreen = ({ navigation }) => {
         />
       </View>
 
-      <View style={styles.status}>
+      {/* <View style={styles.status}>
         <CustomText
           fontSize={10}
           color={COLORS.white}
           fontFamily={fonts.semiBold}
           textAlign={'center'}
           label={'premium'} />
-      </View>
+      </View> */}
 
       <View style={styles.mincontainer}>
         <ProfileOptions />
