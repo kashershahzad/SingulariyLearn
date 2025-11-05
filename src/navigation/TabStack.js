@@ -17,6 +17,7 @@ const Tab = createBottomTabNavigator();
 const TabStack = () => {
   const { t } = useTranslation();
   const packages = useSelector((state) => state.package.package);
+  const userData = useSelector(state => state.users.userData)
 
   return (
     <SafeAreaProvider>
@@ -59,7 +60,7 @@ const TabStack = () => {
         />
 
         {/* DMV Test (Conditional Tab) */}
-        {packages === true && (
+        {userData.purchase !== undefined && (
           <Tab.Screen
             name={t('Dmv Test')}
             component={DmvTest}

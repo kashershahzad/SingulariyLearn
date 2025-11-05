@@ -25,49 +25,48 @@ const Result = () => {
   const [currentAttempt, setCurrentAttempt] = useState(1);
   const [currentAttemptData, setCurrentAttemptData] = useState(null);
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchresult = async () => {
-      setLoading(true);
-      const body = {
-        type: 'get_data',
-        table_name: 'user_questionnaire',
-        user_id: token,
-        limit: 1000,
-      };
+      try {
+        setLoading(true);
+        const body = {
+          type: 'get_data',
+          table_name: 'user_questionnaire',
+          user_id: token,
+          limit: 1000,
+        };
 
-      const response = await ApiRequest(body);
-      const rawResponse = response.data;
-      console.log('📊 RAW API RESPONSE:', rawResponse);
+        const response = await ApiRequest(body);
+        const rawResponse = response.data;
+        console.log('📊 RAW API RESPONSE:', rawResponse);
 
-      const totalAttemptsCount = rawResponse.data.length;
-      setTotalAttempts(totalAttemptsCount);
-
-      rawResponse.data.forEach((item, index) => {
-        const total = item?.question_data?.total;
-        const correct = item?.question_data?.correct;
-        const skipped = item?.question_data?.skipped;
-        const percentage = item?.percentage;
-        const totalDone = total - skipped;
-
-        // Process questions data if available
-        if (item.questions && Array.isArray(item.questions)) {
-          // You might need to transform the questions data here
-          // based on your API response structure
-          console.log(`Attempt ${index + 1} questions:`, item.questions);
+        // If there is no record (total = 0 or data is empty)
+        if (!rawResponse?.data || rawResponse?.data?.length === 0) {
+          setTotalAttempts(0);
+          setResultsData([]);
+          setCurrentAttemptData(null);
+          setLoading(false);
+          return;
         }
-      });
 
-      setResultsData(rawResponse.data);
+        const totalAttemptsCount = rawResponse.data.length;
+        setTotalAttempts(totalAttemptsCount);
+        setResultsData(rawResponse.data);
 
-      if (totalAttemptsCount > 0) {
-        setCurrentAttempt(totalAttemptsCount);
-        const latestAttemptData = rawResponse.data[rawResponse.data.length - 1];
-        setCurrentAttemptData(latestAttemptData);
-      } else {
-        setCurrentAttemptData(null);
+        if (totalAttemptsCount > 0) {
+          setCurrentAttempt(totalAttemptsCount);
+          const latestAttemptData =
+            rawResponse.data[rawResponse.data.length - 1];
+          setCurrentAttemptData(latestAttemptData);
+        } else {
+          setCurrentAttemptData(null);
+        }
+      } catch (error) {
+        console.error('Error fetching results:', error);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     fetchresult();
@@ -95,6 +94,7 @@ const Result = () => {
     );
   }
 
+  // Main return
   return (
     <ScreenWrapper
       scrollEnabled
@@ -109,22 +109,37 @@ const Result = () => {
           style={styles.icon}
         />
 
-        <CustomText
-          label={`${t('totalAttempts')}: ${totalAttempts}`}
-          fontFamily={fonts.medium}
-          fontSize={14}
-          textAlign={'start'}
-          marginTop={10}
-        />
+        {totalAttempts === 0 ? (
+          <View style={styles.noDataContainer}>
+            <CustomText
+              label={t('noTestHistory')}
+              fontFamily={fonts.medium}
+              fontSize={16}
+              textAlign="center"
+              color={COLORS.black}
+              marginTop={20}
+            />
+          </View>
+        ) : (
+          <>
+            <CustomText
+              label={`${t('totalAttempts')}: ${totalAttempts}`}
+              fontFamily={fonts.medium}
+              fontSize={14}
+              textAlign={'start'}
+              marginTop={10}
+            />
 
-        <Resultbtn
-          attempts={totalAttempts}
-          currentAttempt={currentAttempt}
-          onAttemptChange={handleAttemptChange}
-        />
+            <Resultbtn
+              attempts={totalAttempts}
+              currentAttempt={currentAttempt}
+              onAttemptChange={handleAttemptChange}
+            />
 
-        <ResultsStats currentAttemptData={currentAttemptData} />
-        <QuestionsCheck currentAttemptData={currentAttemptData} />
+            <ResultsStats currentAttemptData={currentAttemptData} />
+            <QuestionsCheck currentAttemptData={currentAttemptData} />
+          </>
+        )}
       </View>
     </ScreenWrapper>
   );
@@ -139,11 +154,17 @@ const styles = StyleSheet.create({
     padding: 20,
     marginTop: -30,
     paddingBottom: 40,
+    minHeight:"100%"
   },
   icon: {
     height: 231,
     width: '100%',
     alignSelf: 'center',
+  },
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

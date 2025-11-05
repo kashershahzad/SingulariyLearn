@@ -76,7 +76,6 @@ const SignupScreen = ({navigation}) => {
   };
 
   const handlePasswordFocus = () => {
-    // Small delay to ensure layout is complete
     setTimeout(() => {
       passwordRef.current?.measureLayout(
         scrollViewRef.current?.getScrollResponder()?.getInnerViewNode(),

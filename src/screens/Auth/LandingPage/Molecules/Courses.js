@@ -8,10 +8,15 @@ import { useSelector } from 'react-redux';
 const Courses = ({navigation}) => {
   const {t} = useTranslation()
    const packages = useSelector((state) => state.package.package);
+    const userData = useSelector(state => state.users.userData)
+    console.log("smdc",userData)
+
+    
+
   const servicedata = [
     {
       title: 'DMV Licenses',
-      function: () => packages === true ? navigation.navigate('PratiseQuestion',{roadsign:false}) : navigation.navigate('PermitType'),
+      function: () => userData.purchase !== undefined ? navigation.navigate('PratiseQuestion',{roadsign:false}) : navigation.navigate('PermitType'),
     },
   ];
 

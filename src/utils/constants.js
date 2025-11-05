@@ -112,6 +112,7 @@ export const getTokenHome = async () => {
 export const getProfile = () => async (dispatch, getState) => {
   try {
     const token = getState().authConfig.token;
+    console.log(token)
     const body = {
       type: "profile",
       user_id: token.toString()
