@@ -14,10 +14,12 @@ const QuestionsContainer = ({
   answer,
   totalQuestion,
   image,
+  video,
   audio,
 }) => {
   const {t} = useTranslation();
   const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
   const videoRef = useRef(null);
 
   const progress = (questionNumber / totalQuestion) * 100;
@@ -34,7 +36,7 @@ const QuestionsContainer = ({
         {/* Header */}
         <View style={styles.header}>
           <CustomText
-            label={`${t('question')} ${questionNumber}/ ${totalQuestion}`}
+            label={`${t('question')} ${questionNumber}/${totalQuestion}`}
             fontFamily={fonts.jakartaBold}
             fontSize={16}
             color={'#4F4F4F'}
@@ -64,14 +66,26 @@ const QuestionsContainer = ({
           />
         </View>
 
-        {/* Image */}
-        {image && (
+        {/* Show either video OR image (never both) */}
+        {video ? (
+          <Video
+            ref={videoRef}
+            source={{uri: video}}
+            style={styles.video}
+            resizeMode="contain"
+            repeat
+            paused={false}
+            muted={false}
+            controls={false}
+            onError={e => console.log('Video error:', e)}
+          />
+        ) : image ? (
           <ImageFast
             source={{uri: image}}
             resizeMode="contain"
             style={styles.icon}
           />
-        )}
+        ) : null}
 
         {/* Answer */}
         <View style={styles.option}>
@@ -87,7 +101,7 @@ const QuestionsContainer = ({
         {/* Hidden audio player */}
         {audio && (
           <Video
-            ref={videoRef}
+            ref={audioRef}
             source={{uri: audio}}
             paused={!isPlaying}
             onEnd={() => setIsPlaying(false)}
@@ -144,7 +158,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 15,
     borderRadius: 8,
-    minHeight: 120,
   },
   audio: {
     height: 23,
@@ -159,5 +172,12 @@ const styles = StyleSheet.create({
     width: 181,
     alignSelf: 'center',
     marginBottom: 5,
+  },
+  video: {
+    height: 200,
+    width: '100%',
+    borderRadius: 10,
+    marginVertical: 10,
+    backgroundColor: '#000',
   },
 });

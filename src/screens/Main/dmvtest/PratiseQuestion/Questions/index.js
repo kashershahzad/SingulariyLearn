@@ -79,6 +79,7 @@ const Questions = ({navigation, route}) => {
       return {
         image: question.image,
         audio: question.audio,
+        video: question.video,
         id: question.id.toString(),
         questionNumber: index + 1,
         question: questionText,
@@ -159,6 +160,7 @@ const Questions = ({navigation, route}) => {
           audio={currentQuestion.audio}
           image={currentQuestion.image}
           totalQuestion={total}
+          video={currentQuestion.video}
         />
       )}
 
