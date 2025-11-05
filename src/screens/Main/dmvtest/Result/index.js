@@ -154,7 +154,6 @@ const styles = StyleSheet.create({
     padding: 20,
     marginTop: -30,
     paddingBottom: 40,
-    minHeight:"100%"
   },
   icon: {
     height: 231,

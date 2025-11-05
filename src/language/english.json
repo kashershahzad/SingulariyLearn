@@ -482,6 +482,7 @@
   "lessons": "Lessons",
   "attempt": "Attempt",
   "roadsign": "Study Road Signs",
-   "previous": "Previous",
-     "Mockup Test Road Signs": "Mockup Test Road Signs"
+  "previous": "Previous",
+  "Mockup Test Road Signs": "Mockup Test Road Signs",
+  "noTestHistory": "There is no test history"
 }
