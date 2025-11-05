@@ -365,7 +365,8 @@ const Testfrom = ({
           controls={false}
         />
       );
-    } else if (imageUrl) {
+    }
+    if (imageUrl) {
       return (
         <ImageFast
           source={imageUrl}
@@ -374,7 +375,16 @@ const Testfrom = ({
         />
       );
     }
-    return null;
+    return (
+      <View
+        style={{
+          height: 200,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+        <Text style={{color: 'gray'}}>{t('noMedia')}</Text>
+      </View>
+    );
   };
 
   if (isLoading || parsedQuestions.length === 0) {
@@ -459,7 +469,6 @@ const Testfrom = ({
           />
         </View>
 
-        {/* Render media (video or image) - only one at a time */}
         {renderMedia(currentQuestion)}
 
         {currentQuestion.options.map((option, index) => (
@@ -589,11 +598,10 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   video: {
-    height: 202,
+    height: 200,
     width: '100%',
-    alignSelf: 'center',
-    marginBottom: 5,
-    backgroundColor: '#000',
+    borderRadius: 10,
+    marginVertical: 10,
   },
   option: {
     backgroundColor: '#F9F9F9',
@@ -605,6 +613,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 15,
     borderRadius: 8,
+    minHeight: 100,
   },
   selectedOption: {
     borderColor: COLORS.btn,
@@ -621,6 +630,7 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     marginTop: 'auto',
+    marginBottom: 30,
   },
   btn: {
     flexDirection: 'row',

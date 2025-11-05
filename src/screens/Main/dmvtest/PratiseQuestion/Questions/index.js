@@ -23,82 +23,85 @@ const Questions = ({navigation, route}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [total, settotal] = useState();
 
- const fetchQuestions = async () => {
-  try {
-    const Body = {
-      type: 'get_data',
-      table_name: 'questions',
-      lesson_id: id,
-      limit:50
-    };
-    console.log("Request Body:", Body);
-    
-    const response = await ApiRequest(Body);
-    const apiData = response.data.data || [];
-    
-    console.log("Full API Response:", response.data);
-    console.log("Questions Data:", apiData);
-    
-    const totalQuestion = response.data.total;
-    settotal(totalQuestion);
-
-    // Check if we have answers data
-    if (apiData.length > 0) {
-      console.log("First question data:", apiData[0]);
-    }
-
-    const preparedQuestions = apiData.map((question, index) => {
-      // Parse the question text safely
-      let questionText = t('questionNotAvailable');
-      try {
-        const parsedQuestion = JSON.parse(question.question);
-        questionText = parsedQuestion[currentLanguage]?.question || 
-                      parsedQuestion.en?.question || 
-                      t('questionNotAvailable');
-      } catch (error) {
-        console.log('Error parsing question:', error);
-      }
-
-      // Check if answers exist and find correct answer
-      let correctAnswerText = t('noCorrectAnswer');
-      
-      // If answers array exists in the response
-      if (question.answers && Array.isArray(question.answers)) {
-        const correctAnswer = question.answers.find(
-          answer => answer.is_correct === '1' && answer.lang === currentLanguage,
-        );
-        correctAnswerText = correctAnswer ? correctAnswer.answer : t('noCorrectAnswer');
-      }
-      // If answers don't exist in the response structure you showed
-      else {
-        console.log('No answers array found for question:', question.id);
-        // You might need to make another API call to get answers
-        // or the answers might be in a different format
-      }
-
-      return {
-        image: question.image,
-        audio: question.audio,
-        video: question.video,
-        id: question.id.toString(),
-        questionNumber: index + 1,
-        question: questionText,
-        answer: correctAnswerText,
-        // Include full question data for debugging
-        rawData: question,
+  const fetchQuestions = async () => {
+    try {
+      const Body = {
+        type: 'get_data',
+        table_name: 'questions',
+        lesson_id: id,
+        limit: 50,
       };
-    });
+      console.log('Request Body:', Body);
 
-    console.log("Prepared Questions:", preparedQuestions);
-    setQuestions(preparedQuestions);
-    
-  } catch (err) {
-    console.log('API Error:', err);
-    console.log('Error details:', err.response?.data || err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+      const response = await ApiRequest(Body);
+      const apiData = response.data.data || [];
+
+      console.log('Full API Response:', response.data);
+      console.log('Questions Data:', apiData);
+
+      const totalQuestion = response.data.total;
+      settotal(totalQuestion);
+
+      // Check if we have answers data
+      if (apiData.length > 0) {
+        console.log('First question data:', apiData[0]);
+      }
+
+      const preparedQuestions = apiData.map((question, index) => {
+        // Parse the question text safely
+        let questionText = t('questionNotAvailable');
+        try {
+          const parsedQuestion = JSON.parse(question.question);
+          questionText =
+            parsedQuestion[currentLanguage]?.question ||
+            parsedQuestion.en?.question ||
+            t('questionNotAvailable');
+        } catch (error) {
+          console.log('Error parsing question:', error);
+        }
+
+        // Check if answers exist and find correct answer
+        let correctAnswerText = t('noCorrectAnswer');
+
+        // If answers array exists in the response
+        if (question.answers && Array.isArray(question.answers)) {
+          const correctAnswer = question.answers.find(
+            answer =>
+              answer.is_correct === '1' && answer.lang === currentLanguage,
+          );
+          correctAnswerText = correctAnswer
+            ? correctAnswer.answer
+            : t('noCorrectAnswer');
+        }
+        // If answers don't exist in the response structure you showed
+        else {
+          console.log('No answers array found for question:', question.id);
+          // You might need to make another API call to get answers
+          // or the answers might be in a different format
+        }
+
+        return {
+          image: question.image,
+          audio: question.audio,
+          video: question.video,
+          id: question.id.toString(),
+          questionNumber: index + 1,
+          question: questionText,
+          answer: correctAnswerText,
+          // Include full question data for debugging
+          rawData: question,
+        };
+      });
+
+      console.log('Prepared Questions:', preparedQuestions);
+      setQuestions(preparedQuestions);
+    } catch (err) {
+      console.log('API Error:', err);
+      console.log('Error details:', err.response?.data || err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchQuestions();
@@ -116,6 +119,13 @@ const Questions = ({navigation, route}) => {
     }
   };
 
+  const handleDone = () => {
+    // Navigate back or to results screen
+    navigation.goBack();
+    // Or navigate to a results screen:
+    // navigation.navigate('Results', { lessonId: id });
+  };
+
   const handleLessonPress = () => {
     navigation.navigate('LessonPage', {lesson_id: id, name});
   };
@@ -123,6 +133,7 @@ const Questions = ({navigation, route}) => {
   if (loading) return <Loading />;
 
   const currentQuestion = questions[currentIndex];
+  const isLastQuestion = currentIndex === questions.length - 1;
 
   return (
     <ScreenWrapper
@@ -178,18 +189,33 @@ const Questions = ({navigation, route}) => {
             onPress={handlePrevious}
             backgroundColor={'white'}
           />
-          <CustomButton
-            width={149}
-            height={52}
-            fontSize={16}
-            title={t('nextButton')}
-            color={'white'}
-            borderColor={'#ECEFF3'}
-            borderWidth={1}
-            borderRadius={25}
-            backgroundColor={'black'}
-            onPress={handleNext}
-          />
+          {isLastQuestion ? (
+            <CustomButton
+              width={149}
+              height={52}
+              fontSize={16}
+              title={t('nextButton')} // Make sure you have this translation key
+              color={'white'}
+              borderColor={'#ECEFF3'}
+              borderWidth={1}
+              borderRadius={25}
+              backgroundColor={COLORS.success} // Use a different color for Done
+              onPress={handleDone}
+            />
+          ) : (
+            <CustomButton
+              width={149}
+              height={52}
+              fontSize={16}
+              title={t('nextButton')}
+              color={'white'}
+              borderColor={'#ECEFF3'}
+              borderWidth={1}
+              borderRadius={25}
+              backgroundColor={'black'}
+              onPress={handleNext}
+            />
+          )}
         </View>
       </View>
     </ScreenWrapper>

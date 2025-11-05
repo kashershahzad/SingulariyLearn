@@ -1,21 +1,21 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-import Svg, { Circle } from 'react-native-svg'
-import ScreenWrapper from '../../../../components/ScreenWrapper'
-import MockupHeader from '../Molecules/MockupHeader'
-import { COLORS } from '../../../../utils/COLORS'
-import CustomText from '../../../../components/CustomText'
-import fonts from '../../../../assets/fonts'
-import ImageFast from '../../../../components/ImageFast'
-import { Images } from '../../../../assets/images'
-import CustomButton from '../../../../components/CustomButton'
-import { useTranslation } from 'react-i18next'
+import {StyleSheet, Text, View} from 'react-native';
+import React from 'react';
+import Svg, {Circle} from 'react-native-svg';
+import ScreenWrapper from '../../../../components/ScreenWrapper';
+import MockupHeader from '../Molecules/MockupHeader';
+import {COLORS} from '../../../../utils/COLORS';
+import CustomText from '../../../../components/CustomText';
+import fonts from '../../../../assets/fonts';
+import ImageFast from '../../../../components/ImageFast';
+import {Images} from '../../../../assets/images';
+import CustomButton from '../../../../components/CustomButton';
+import {useTranslation} from 'react-i18next';
 
-const CircularProgress = ({ percentage, size = 200, strokeWidth = 30 }) => {
-  const radius = (size - strokeWidth) / 2
-  const circumference = 2 * Math.PI * radius
-  const strokeDasharray = circumference
-  const strokeDashoffset = circumference - (percentage / 100) * circumference
+const CircularProgress = ({percentage, size = 200, strokeWidth = 30}) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
     <View style={styles.progressContainer}>
@@ -42,7 +42,7 @@ const CircularProgress = ({ percentage, size = 200, strokeWidth = 30 }) => {
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
-      
+
       <View style={styles.percentageContainer}>
         <CustomText
           label={`${percentage}%`}
@@ -53,36 +53,37 @@ const CircularProgress = ({ percentage, size = 200, strokeWidth = 30 }) => {
         />
       </View>
     </View>
-  )
-}
+  );
+};
 
-const Congratulations = ({ navigation, route }) => {
-  const { t } = useTranslation();
-  
-  const { 
-    score = 0, 
-    totalQuestions = 50, 
-    averageTime = '00:00' 
+const Congratulations = ({navigation, route}) => {
+  const {t} = useTranslation();
+
+  const {
+    score = 0,
+    totalQuestions = 50,
+    averageTime = '00:00',
   } = route.params || {};
 
-  const percentage = totalQuestions > 0 
-    ? Math.round((score / totalQuestions) * 100) 
-    : 0;
+  const percentage =
+    totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
 
   return (
     <ScreenWrapper
       scrollEnabled
       statusBarColor={COLORS.btn}
       backgroundColor={COLORS.btn}
-      paddingHorizontal={0}
-    >
+      paddingHorizontal={0}>
       <MockupHeader />
       <View style={styles.container}>
-        
         <CircularProgress percentage={percentage} />
 
         <CustomText
-          label={percentage >= 70 ? t('Driving Test Passed') : t('Driving Test Failed')}
+          label={
+            percentage >= 70
+              ? t('Driving Test Passed')
+              : t('Driving Test Failed')
+          }
           fontFamily={fonts.medium}
           fontSize={24}
           textAlign={'center'}
@@ -110,7 +111,7 @@ const Congratulations = ({ navigation, route }) => {
 
           <View>
             <CustomText
-               label={parseFloat(averageTime).toFixed(1) + ' sec'}
+              label={parseFloat(averageTime).toFixed(1) + ' sec'}
               fontFamily={fonts.semiBold}
               fontSize={20}
               textAlign={'center'}
@@ -127,7 +128,9 @@ const Congratulations = ({ navigation, route }) => {
         </View>
 
         <CustomButton
-          onPress={() => navigation.replace('Mockuptest')}
+          onPress={() =>
+            navigation.navigate('TabStack', {screen: t('Dmv Test')})
+          }
           width={318}
           height={52}
           title={t('startNewTestButton')}
@@ -140,11 +143,13 @@ const Congratulations = ({ navigation, route }) => {
         />
 
         <CustomButton
-          onPress={() => navigation.navigate('Result', {
-            score: score,
-            totalQuestions: totalQuestions,
-            averageTime: averageTime
-          })}
+          onPress={() =>
+            navigation.navigate('Result', {
+              score: score,
+              totalQuestions: totalQuestions,
+              averageTime: averageTime,
+            })
+          }
           width={318}
           height={52}
           title={t('checkResultButton')}
@@ -159,20 +164,20 @@ const Congratulations = ({ navigation, route }) => {
         />
       </View>
     </ScreenWrapper>
-  )
-}
+  );
+};
 
-export default Congratulations
+export default Congratulations;
 
 const styles = StyleSheet.create({
   container: {
-    height:1000 ,
+    height: 1000,
     backgroundColor: 'white',
     borderTopLeftRadius: 45,
     borderTopRightRadius: 45,
     padding: 20,
     marginTop: -30,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   progressContainer: {
     justifyContent: 'center',
@@ -198,6 +203,6 @@ const styles = StyleSheet.create({
   min: {
     flexDirection: 'row',
     gap: 80,
-    justifyContent: 'center'
-  }
-})
+    justifyContent: 'center',
+  },
+});

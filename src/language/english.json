@@ -484,5 +484,6 @@
   "roadsign": "Study Road Signs",
   "previous": "Previous",
   "Mockup Test Road Signs": "Mockup Test Road Signs",
-  "noTestHistory": "There is no test history"
+  "noTestHistory": "There is no test history",
+  "noMedia": "No media available"
 }

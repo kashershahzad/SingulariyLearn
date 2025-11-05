@@ -1,5 +1,5 @@
 import React, {useState, useRef} from 'react';
-import {StyleSheet, View, ScrollView, TouchableOpacity} from 'react-native';
+import {StyleSheet, View, ScrollView, TouchableOpacity, Text} from 'react-native';
 import CustomText from '../../../../../components/CustomText';
 import ImageFast from '../../../../../components/ImageFast';
 import {Images} from '../../../../../assets/images';
@@ -57,7 +57,7 @@ const QuestionsContainer = ({
         </View>
 
         {/* Question */}
-        <View style={{minHeight: 120}}>
+        <View style={{minHeight: 150}}>
           <CustomText
             label={question}
             fontFamily={fonts.regular}
@@ -67,25 +67,37 @@ const QuestionsContainer = ({
         </View>
 
         {/* Show either video OR image (never both) */}
-        {video ? (
-          <Video
-            ref={videoRef}
-            source={{uri: video}}
-            style={styles.video}
-            resizeMode="contain"
-            repeat
-            paused={false}
-            muted={false}
-            controls={false}
-            onError={e => console.log('Video error:', e)}
-          />
-        ) : image ? (
-          <ImageFast
-            source={{uri: image}}
-            resizeMode="contain"
-            style={styles.icon}
-          />
-        ) : null}
+        <View
+          style={{height: 200, justifyContent: 'center', alignItems: 'center'}}>
+          {video ? (
+            <Video
+              ref={videoRef}
+              source={{uri: video}}
+              style={styles.video}
+              resizeMode="contain"
+              repeat
+              paused={false}
+              muted={false}
+              controls={false}
+              onError={e => console.log('Video error:', e)}
+            />
+          ) : image ? (
+            <ImageFast
+              source={{uri: image}}
+              resizeMode="contain"
+              style={styles.icon}
+            />
+          ) : (
+            <View
+              style={{
+                height: 200,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
+              <Text style={{color: 'gray'}}>{t('noMedia')}</Text>
+            </View>
+          )}
+        </View>
 
         {/* Answer */}
         <View style={styles.option}>
@@ -158,6 +170,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 15,
     borderRadius: 8,
+    minHeight: 120,
   },
   audio: {
     height: 23,
@@ -178,6 +191,5 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 10,
     marginVertical: 10,
-    backgroundColor: '#000',
   },
 });
