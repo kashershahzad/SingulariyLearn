@@ -42,7 +42,7 @@ const TabStack = () => {
           headerShown: false,
         }}
       >
-        {/* Home Tab */}
+        {/* Home Tab */} 
         <Tab.Screen
           name={t('Home')}
           component={HomeScreen}
