@@ -109,7 +109,7 @@ const Testfrom = ({
 
     setParsedQuestions(parsed);
     setIsLoading(false);
-    
+
     // Initialize timing for first question
     if (parsed.length > 0) {
       setQuestionStartTimes({0: Date.now()});
@@ -271,41 +271,31 @@ const Testfrom = ({
         totalQuestions: allAnswers.length,
         averageTime: finalAverageTime,
         answersCount: allAnswers.length,
-        isMockup: mockuptest
+        isMockup: mockuptest,
       });
 
+      const Body = {
+        type: 'add_data',
+        user_id: token,
+        table_name: 'user_questionnaire',
+        questions: JSON.stringify(allAnswers),
+        score: score,
+        average_time: finalAverageTime,
+        is_mockup: mockup,
+        is_roadsign: roadsign,
+        lesson_id: isLessonMode ? lesson_id : null,
+      };
 
-        // navigation.replace('Congratulations', {
-        //   score: score,
-        //   totalQuestions: allAnswers.length,
-        //   averageTime: finalAverageTime,
-        //   answers: allAnswers,
-        //   isMockup: true,
-        // });
-       
-        const Body = {
-          type: 'add_data',
-          user_id: token,
-          table_name: 'user_questionnaire',
-          questions: JSON.stringify(allAnswers),
-          score: score,
-          average_time: finalAverageTime,
-          is_mockup: mockup,
-          is_roadsign: roadsign,
-          lesson_id: isLessonMode ? lesson_id : null,
-        };
+      console.log('Submitting to API:', Body);
+      const response = await ApiRequest(Body);
 
-        console.log('Submitting to API:', Body);
-        const response = await ApiRequest(Body);
-
-        navigation.replace('Congratulations', {
-          score: score,
-          totalQuestions: allAnswers.length,
-          averageTime: finalAverageTime,
-          isMockup: false,
-          isLesson: isLessonMode,
-        });
-      
+      navigation.replace('Congratulations', {
+        score: score,
+        totalQuestions: allAnswers.length,
+        averageTime: finalAverageTime,
+        isMockup: false,
+        isLesson: isLessonMode,
+      });
     } catch (error) {
       console.error('Error submitting answers:', error);
       Alert.alert('Error', 'Failed to submit answers. Please try again.');
@@ -336,6 +326,18 @@ const Testfrom = ({
     return null;
   };
 
+  const getVideoUrl = question => {
+    if (
+      question.video &&
+      question.video !== '' &&
+      question.video !== 'https://7tracking.com/dmvpermit/images/' &&
+      !question.video.includes('/images/""')
+    ) {
+      return {uri: question.video};
+    }
+    return null;
+  };
+
   const getAudioUrl = question => {
     try {
       const audioData = JSON.parse(question.audio);
@@ -343,6 +345,36 @@ const Testfrom = ({
     } catch (error) {
       return null;
     }
+  };
+
+  // Function to render media (image or video)
+  const renderMedia = question => {
+    const imageUrl = getImageUrl(question);
+    const videoUrl = getVideoUrl(question);
+
+    // Priority: Show video if available, otherwise show image
+    if (videoUrl) {
+      return (
+        <Video
+          source={videoUrl}
+          style={styles.video}
+          resizeMode="contain"
+          paused={false}
+          repeat
+          muted={false}
+          controls={false}
+        />
+      );
+    } else if (imageUrl) {
+      return (
+        <ImageFast
+          source={imageUrl}
+          resizeMode={'contain'}
+          style={styles.icon}
+        />
+      );
+    }
+    return null;
   };
 
   if (isLoading || parsedQuestions.length === 0) {
@@ -374,7 +406,9 @@ const Testfrom = ({
   }
 
   const currentQuestionNumber = currentQuestionIndex + 1;
-  const progressWidth = `${(currentQuestionNumber / parsedQuestions.length) * 100}%`;
+  const progressWidth = `${
+    (currentQuestionNumber / parsedQuestions.length) * 100
+  }%`;
   const currentQuestion = parsedQuestions[currentQuestionIndex];
   const shouldShowFeedback = showFeedback && !mockuptest;
 
@@ -391,7 +425,8 @@ const Testfrom = ({
           }}>
           <CustomText
             label={
-              t('question') + ` ${currentQuestionNumber}/${parsedQuestions.length}`
+              t('question') +
+              ` ${currentQuestionNumber}/${parsedQuestions.length}`
             }
             fontFamily={fonts.jakartaBold}
             fontSize={16}
@@ -424,13 +459,8 @@ const Testfrom = ({
           />
         </View>
 
-        {getImageUrl(currentQuestion) ? (
-          <ImageFast
-            source={getImageUrl(currentQuestion)}
-            resizeMode={'contain'}
-            style={styles.icon}
-          />
-        ) : null}
+        {/* Render media (video or image) - only one at a time */}
+        {renderMedia(currentQuestion)}
 
         {currentQuestion.options.map((option, index) => (
           <TouchableOpacity
@@ -467,9 +497,7 @@ const Testfrom = ({
                 backgroundColor={'white'}
               />
               <CustomButton
-                disabled={
-                  (selectedOption === null && !mockuptest) || isTransitioning
-                }
+                disabled={selectedOption === null || isTransitioning}
                 width={149}
                 height={52}
                 fontSize={16}
@@ -478,7 +506,11 @@ const Testfrom = ({
                 borderColor={'#ECEFF3'}
                 borderWidth={1}
                 borderRadius={25}
-                backgroundColor={'black'}
+                backgroundColor={
+                  selectedOption === null || isTransitioning
+                    ? '#C0C0C0'
+                    : 'black'
+                }
                 onPress={handleNextOrSubmit}
               />
             </>
@@ -552,9 +584,16 @@ const styles = StyleSheet.create({
   },
   icon: {
     height: 202,
-    width: 181,
+    width: '100%',
     alignSelf: 'center',
     marginBottom: 5,
+  },
+  video: {
+    height: 202,
+    width: '100%',
+    alignSelf: 'center',
+    marginBottom: 5,
+    backgroundColor: '#000',
   },
   option: {
     backgroundColor: '#F9F9F9',
