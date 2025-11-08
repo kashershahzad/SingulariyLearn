@@ -16,8 +16,7 @@ import MockupHeader from '../../Molecules/MockupHeader';
 const Questions = ({navigation, route}) => {
   const {t} = useTranslation();
   const currentLanguage = useSelector(state => state.language.language);
-  const {id, name, roadsign} = route.params;
-
+  const {id, name, roadsign, permit_id} = route.params;
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -30,6 +29,7 @@ const Questions = ({navigation, route}) => {
         table_name: 'questions',
         lesson_id: id,
         limit: 50,
+        permit_id: permit_id,
       };
       console.log('Request Body:', Body);
 
@@ -38,6 +38,7 @@ const Questions = ({navigation, route}) => {
 
       console.log('Full API Response:', response.data);
       console.log('Questions Data:', apiData);
+        console.log("total questions:", total);
 
       const totalQuestion = response.data.total;
       settotal(totalQuestion);
@@ -72,12 +73,8 @@ const Questions = ({navigation, route}) => {
           correctAnswerText = correctAnswer
             ? correctAnswer.answer
             : t('noCorrectAnswer');
-        }
-        // If answers don't exist in the response structure you showed
-        else {
+        } else {
           console.log('No answers array found for question:', question.id);
-          // You might need to make another API call to get answers
-          // or the answers might be in a different format
         }
 
         return {
@@ -88,12 +85,12 @@ const Questions = ({navigation, route}) => {
           questionNumber: index + 1,
           question: questionText,
           answer: correctAnswerText,
-          // Include full question data for debugging
           rawData: question,
         };
       });
 
       console.log('Prepared Questions:', preparedQuestions);
+
       setQuestions(preparedQuestions);
     } catch (err) {
       console.log('API Error:', err);
@@ -105,6 +102,7 @@ const Questions = ({navigation, route}) => {
 
   useEffect(() => {
     fetchQuestions();
+    
   }, []);
 
   const handleNext = () => {
@@ -120,7 +118,6 @@ const Questions = ({navigation, route}) => {
   };
 
   const handleDone = () => {
-    // Navigate back or to results screen
     navigation.goBack();
     // Or navigate to a results screen:
     // navigation.navigate('Results', { lessonId: id });
@@ -135,6 +132,7 @@ const Questions = ({navigation, route}) => {
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
 
+
   return (
     <ScreenWrapper
       paddingBottom={20}
@@ -143,15 +141,17 @@ const Questions = ({navigation, route}) => {
       statusBarColor={COLORS.primaryColor4}
       backgroundColor="white"
       // headerUnScrollable={() => <MockupHeader title={name}/>}
-      footerUnScrollable={() => (
-        <View style={{paddingHorizontal: 20, marginTop: 20}}>
-          <CustomButton
-            title={t('practiceQuiz')}
-            onPress={handleLessonPress}
-            backgroundColor={COLORS.btn}
-          />
-        </View>
-      )}>
+      footerUnScrollable={() =>
+        total > 1 && (
+          <View style={{paddingHorizontal: 20, marginTop: 20}}>
+            <CustomButton
+              title={t('practiceQuiz')}
+              onPress={handleLessonPress}
+              backgroundColor={COLORS.btn}
+            />
+          </View>
+        )
+      }>
       {/* <CustomText
         label={t('questionText')}
         fontFamily={fonts.medium}
@@ -194,12 +194,12 @@ const Questions = ({navigation, route}) => {
               width={149}
               height={52}
               fontSize={16}
-              title={t('nextButton')} // Make sure you have this translation key
+              title={t('nextButton')}
               color={'white'}
               borderColor={'#ECEFF3'}
               borderWidth={1}
               borderRadius={25}
-              backgroundColor={COLORS.success} // Use a different color for Done
+              backgroundColor={COLORS.success}
               onPress={handleDone}
             />
           ) : (

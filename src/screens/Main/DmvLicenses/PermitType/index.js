@@ -54,12 +54,9 @@ const PermitType = () => {
     permitData();
   }, [currentlanguage]);
 
-  // Show loading screen while fetching data
   if (loading) {
     return <Loading />;
   }
-
-  // Show error state if fetch failed
   if (fetchError) {
     return (
       <ScreenWrapper

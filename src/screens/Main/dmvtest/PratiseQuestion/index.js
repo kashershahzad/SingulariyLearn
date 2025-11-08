@@ -22,8 +22,7 @@ const PratiseQuestion = ({navigation, route}) => {
   const [loading, setLoading] = useState(true);
   const currentLanguage = useSelector(state => state.language.language);
   const token = useSelector(state => state.authConfig.token);
-  const { roadsign } = route.params;
-
+  const {roadsign} = route.params;
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -42,15 +41,18 @@ const PratiseQuestion = ({navigation, route}) => {
         if (response && response.status === 200) {
           console.log('lessons', response.data);
           const rawData = response.data.data;
+
           const processedData = rawData.map(item => ({
             id: item.id.toString(),
             percentage: item.percentage.toString(),
             name: JSON.parse(item.name)[currentLanguage],
             description: JSON.parse(item.description)[currentLanguage],
             status: 'Start',
+            permit_id: item.permit.id.toString(),
           }));
 
           setLessons(processedData);
+          console.log('Processed Lessons:', processedData);
         } else {
           console.log('Error in lessons api');
         }
@@ -64,8 +66,13 @@ const PratiseQuestion = ({navigation, route}) => {
     fetchLessons();
   }, [currentLanguage]);
 
-  const handleLessonPress = (id, name) => {
-    navigation.navigate('Questions', {id: id, name, roadsign});
+  const handleLessonPress = (id, name, permit_id) => {
+    navigation.navigate('Questions', {
+      id: id, 
+      name, 
+      roadsign,
+      permit_id: permit_id
+    });
   };
 
   if (loading) {
@@ -78,7 +85,10 @@ const PratiseQuestion = ({navigation, route}) => {
       statusBarColor={COLORS.primaryColor4}
       backgroundColor="white"
       headerUnScrollable={() => (
-        <Header2 line={true} title={roadsign ? t('roadsign'):t('practiceQuestion') } />
+        <Header2
+          line={true}
+          title={roadsign ? t('roadsign') : t('practiceQuestion')}
+        />
       )}>
       <CustomText
         label={t('lessons')}
@@ -96,10 +106,10 @@ const PratiseQuestion = ({navigation, route}) => {
             name={lesson.name}
             description={lesson.description}
             status={lesson.status}
-            onPress={() => handleLessonPress(lesson.id, lesson.name)}
+            onPress={() => handleLessonPress(lesson.id, lesson.name, lesson.permit_id)}
             percentage={lesson.percentage}
           />
-        ))}
+        ))}\
       </View>
     </ScreenWrapper>
   );

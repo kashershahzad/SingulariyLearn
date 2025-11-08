@@ -17,6 +17,7 @@ const Lessons = ({ id, name, status, onPress , percentage, description}) => {
           fontFamily={fonts.regular}
           fontSize={14}
           color={COLORS.btn}
+          width={100}
         />
 
         <CustomText
