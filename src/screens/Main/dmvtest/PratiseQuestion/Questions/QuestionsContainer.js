@@ -78,7 +78,7 @@ const QuestionsContainer = ({
               repeat
               paused={false}
               muted={false}
-              controls={false}
+              controls={true}
               onError={e => console.log('Video error:', e)}
             />
           ) : image ? (
@@ -119,6 +119,7 @@ const QuestionsContainer = ({
             onEnd={() => setIsPlaying(false)}
             audioOnly
             playInBackground={false}
+            
             style={styles.audioElement}
           />
         )}

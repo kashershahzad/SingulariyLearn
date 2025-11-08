@@ -26,6 +26,8 @@ const HomeScreen = ({navigation}) => {
   const token = useSelector(state => state.authConfig.token);
   const [packagess, setpackagess] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [packages, setpackages] = useState([]);
   const [fetchError, setFetchError] = useState(false);
   const currentlanguage = useSelector(state => state.language.language);
   const {t} = useTranslation();
@@ -85,13 +87,75 @@ const HomeScreen = ({navigation}) => {
     permitData();
   }, [currentlanguage]);
 
-  const handlePermitSelect = permitId => {
+  // Fetch packages data on component mount
+  useEffect(() => {
+    const fetchPackages = async () => {
+      try {
+        const body = {
+          type: 'get_data',
+          table_name: 'package',
+        };
+        const response = await ApiRequest(body);
+
+        if (response.status === 200) {
+          const rawPackages = response.data.data || [];
+
+          const parsedPackages = rawPackages.map(pkg => ({
+            id: pkg.id,
+            title: JSON.parse(pkg.title)[currentlanguage],
+            description: JSON.parse(pkg.description)[currentlanguage],
+            duration: JSON.parse(pkg.duration)[currentlanguage],
+            price: '$ ' + JSON.parse(pkg.price)[currentlanguage],
+            vehicle: JSON.parse(pkg.vehicle)[currentlanguage],
+          }));
+          console.log('Fetched Packages:', parsedPackages);
+          setpackages(parsedPackages);
+        } else {
+          console.error('API Error:', response.status);
+        }
+      } catch (error) {
+        console.error('Fetch Error:', error);
+      }
+    };
+
+    fetchPackages();
+  }, [currentlanguage]);
+
+  const handlePermitSelect = async (permitId) => {
     const mockup = userData?.purchase?.permit?.mockup;
     const roadsigns = userData?.purchase?.permit?.road_signs;
 
     console.log('Permit ID:', permitId);
     console.log('Mockup:', mockup);
     console.log('Roadsigns:', roadsigns);
+
+    // Check if user has purchased permit
+    if (userData.purchase !== undefined) {
+      if (permitId == 1) {
+        navigation.navigate('PratiseQuestion', {roadsign: false});
+      } else {
+        navigation.navigate('PratiseQuestion', {roadsign: true});
+      }
+      return;
+    }
+
+    // If user hasn't purchased, navigate to checkout
+    if (!userData || Object.keys(userData).length === 0) {
+      ToastMessage(t('LoginRequid'), 'error');
+      navigation.navigate('LoginScreen');
+      return;
+    }
+
+    // Use the first package from the already fetched packages data
+    if (packages.length > 0) {
+      navigation.navigate('Checkout', {
+        selectedPackage: packages[0],
+        permit_id: permitId
+      });
+    } else {
+      console.error('No packages available for checkout');
+      // You might want to show an error message to the user here
+    }
 
     // if (mockup == 1 && roadsigns == 1) {
     //   if (permitId == 1) {
@@ -115,18 +179,6 @@ const HomeScreen = ({navigation}) => {
     // else{
     //   navigation.navigate('SelectPackage', {permit_id: permitId});
     // }
-
-    if (userData.purchase !== undefined) {
-      if (permitId == 1) {
-        navigation.navigate('PratiseQuestion', {roadsign: false});
-      }
-      if (permitId !== 1) {
-        navigation.navigate('PratiseQuestion', {roadsign: true});
-      }
-    }
-    else {
-      navigation.navigate('SelectPackage', {permit_id: permitId});
-    }
   };
 
   // Show loading screen while fetching data

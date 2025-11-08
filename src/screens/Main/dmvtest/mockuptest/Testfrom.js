@@ -362,7 +362,7 @@ const Testfrom = ({
           paused={false}
           repeat
           muted={false}
-          controls={false}
+          controls={true}
         />
       );
     }
