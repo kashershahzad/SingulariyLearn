@@ -23,6 +23,9 @@ const PratiseQuestion = ({navigation, route}) => {
   const currentLanguage = useSelector(state => state.language.language);
   const token = useSelector(state => state.authConfig.token);
   const {roadsign} = route.params;
+  const userData = useSelector(state => state.users.userData);
+
+  const permit_id = userData?.purchase?.permit?.id;
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -32,6 +35,7 @@ const PratiseQuestion = ({navigation, route}) => {
           table_name: 'lesson',
           limit: 100,
           user_id: token,
+          permit_id: permit_id,
           ...(roadsign ? {is_roadsign: 1} : {}),
         };
 
@@ -109,7 +113,7 @@ const PratiseQuestion = ({navigation, route}) => {
             onPress={() => handleLessonPress(lesson.id, lesson.name, lesson.permit_id)}
             percentage={lesson.percentage}
           />
-        ))}\
+        ))}
       </View>
     </ScreenWrapper>
   );

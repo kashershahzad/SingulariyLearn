@@ -16,6 +16,12 @@ import MockupHeader from '../../Molecules/MockupHeader';
 const Questions = ({navigation, route}) => {
   const {t} = useTranslation();
   const currentLanguage = useSelector(state => state.language.language);
+  const userData = useSelector(state => state.users.userData);
+  
+  // Get mockup and roadsigns values from userData
+  const mockup = userData?.purchase?.permit?.mockup;
+  const roadsigns = userData?.purchase?.permit?.road_signs;
+
   const {id, name, roadsign, permit_id} = route.params;
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,6 +138,8 @@ const Questions = ({navigation, route}) => {
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
 
+  // Check if we should show the practice quiz button
+  const shouldShowPracticeQuiz = mockup == 1 && roadsigns == 1 && total > 1;
 
   return (
     <ScreenWrapper
@@ -142,7 +150,7 @@ const Questions = ({navigation, route}) => {
       backgroundColor="white"
       // headerUnScrollable={() => <MockupHeader title={name}/>}
       footerUnScrollable={() =>
-        total > 1 && (
+        shouldShowPracticeQuiz && (
           <View style={{paddingHorizontal: 20, marginTop: 20}}>
             <CustomButton
               title={t('practiceQuiz')}
