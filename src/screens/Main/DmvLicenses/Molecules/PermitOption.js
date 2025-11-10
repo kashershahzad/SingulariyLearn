@@ -21,17 +21,18 @@ const PermitOption = ({ price, title, isSelected, onPress }) => {
                 style={styles.icon}
             />
             <View styles={styles.mincontainer}>
-                <CustomText
+                {/* <CustomText
                     textAlign={"center"}
                     marginTop={10}
                     fontSize={14}
                     fontFamily={fonts.jakartaSemiBold}
                     label={price}
-                />
+                /> */}
                 <CustomText
                     fontSize={14}
                     fontFamily={fonts.jakartaSemiBold}
                     label={title}
+                    marginTop={10}
                 />
             </View>
         </TouchableOpacity>

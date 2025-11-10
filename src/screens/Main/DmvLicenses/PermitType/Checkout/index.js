@@ -27,6 +27,7 @@ const Checkout = ({route, navigation}) => {
   const dispatch = useDispatch();
   const token = useSelector(state => state.authConfig.token);
   const total = parseInt(price.replace(/\D/g, '')) + 20;
+  const {price2} = route.params;
 
   const openPaymentSheet = async paymentId => {
     const {error} = await presentPaymentSheet();
@@ -51,7 +52,7 @@ const Checkout = ({route, navigation}) => {
     try {
       const body = {
         type: 'payment_intent',
-        amount: total,
+        amount: price2,
       };
 
       const response = await ApiRequest(body);
@@ -90,7 +91,7 @@ const Checkout = ({route, navigation}) => {
         pi_id: paymentId,
         package_id: id,
         permit_id: permit_id,
-        amount: total,
+        amount: price2,
         user_id: token,
       };
       console.log(body);
@@ -137,7 +138,7 @@ const Checkout = ({route, navigation}) => {
           />
           <CustomText
             color={'white'}
-            label={price}
+            label={'$' +price2}
             fontFamily={fonts.semiBold}
             fontSize={20}
           />
@@ -200,7 +201,7 @@ const Checkout = ({route, navigation}) => {
         />
       </View> */}
 
-      <CustomHorizontalLine />
+      {/* <CustomHorizontalLine />
       <View style={styles.head}>
         <CustomText
           marginTop={5}
@@ -214,7 +215,7 @@ const Checkout = ({route, navigation}) => {
           fontFamily={fonts.regular}
           fontSize={14}
         />
-      </View>
+      </View> */}
 
       <CustomHorizontalLine />
       <View style={styles.head}>
@@ -226,7 +227,7 @@ const Checkout = ({route, navigation}) => {
         />
         <CustomText
           marginTop={5}
-          label={'$' + total}
+          label={'$' + price2}
           fontFamily={fonts.regular}
           fontSize={14}
         />

@@ -9,20 +9,31 @@ import {Images} from '../../../assets/images';
 import {useTranslation} from 'react-i18next';
 import {useSelector} from 'react-redux';
 
-const DmvTest = ({navigation}) => {
+const DmvTest = ({navigation, route}) => {
   const {t} = useTranslation();
   const userData = useSelector(state => state.users.userData);
-  const mockup = userData?.purchase?.permit?.mockup;
-  const roadsigns = userData?.purchase?.permit?.road_signs;
+
+  // Get permitId passed from previous screen
+  const {permitId} = route.params || {};
+
+  // Find the purchased permit object matching the selected permitId
+  const purchasedPermit = userData?.purchase?.find(
+    item => item.permit.id === String(permitId), // ids in your data are strings
+  )?.permit;
+
+  const mockup = purchasedPermit?.mockup;
+  const roadsigns = purchasedPermit?.road_signs;
 
   const practiceMenuItems = [
-    {
-      title: t('practiceQuestion'),
-      icon: Images.pratisequestion,
-      bgColor: '#4378DB',
-      fnc: () => navigation.navigate('PratiseQuestion', {roadsign: false}),
-    },
-    ...(mockup == 1 && roadsigns == 1
+   
+          {
+            title: t('practiceQuestion'),
+            icon: Images.pratisequestion,
+            bgColor: '#4378DB',
+            fnc: () =>
+              navigation.navigate('PratiseQuestion', {roadsign: false}),
+          },
+           ...(mockup === '1'
       ? [
           {
             title: t('mockupTest'),
@@ -33,28 +44,34 @@ const DmvTest = ({navigation}) => {
         ]
       : []),
 
-    {
-      title: t('roadSigns'),
-      icon: Images.road,
-      bgColor: '#28A164',
-      fnc: () => navigation.navigate('PratiseQuestion', {roadsign: true}),
-    },
-    ...(mockup == 1 && roadsigns == 1
+    ...(roadsigns === '1'
       ? [
           {
-            title: t('mockupTest'),
-            icon: Images.mockup,
-            bgColor: '#FDCD55',
+            title: t('roadSigns'),
+            icon: Images.road,
+            bgColor: '#28A164',
+            fnc: () => navigation.navigate('PratiseQuestion', {roadsign: true}),
+          },
+          {
+            title: t('Mockup Test Road Signs'),
+            icon: Images.roadsigntest,
+            bgColor: '#0298EF',
             fnc: () => navigation.navigate('Roadsign'),
           },
         ]
       : []),
-    {
-      title: t('testHistory'),
-      icon: Images.test,
-      bgColor: '#F38E55',
-      fnc: () => navigation.navigate('Result'),
-    },
+
+    ...(mockup === '1'
+      ? [
+          {
+            title: t('testHistory'),
+            icon: Images.test,
+            bgColor: '#F38E55',
+            fnc: () => navigation.navigate('Result'),
+          },
+        ]
+      : []),
+
     {
       title: t('usefulKnowledge'),
       icon: Images.usefulknowledge,

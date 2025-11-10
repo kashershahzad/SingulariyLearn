@@ -1,5 +1,5 @@
-import React, {useState, useRef} from 'react';
-import {StyleSheet, View, ScrollView, TouchableOpacity, Text} from 'react-native';
+import React, {useState, useRef, useEffect} from 'react';
+import {StyleSheet, View, ScrollView, TouchableOpacity, Text, Alert} from 'react-native';
 import CustomText from '../../../../../components/CustomText';
 import ImageFast from '../../../../../components/ImageFast';
 import {Images} from '../../../../../assets/images';
@@ -19,13 +19,163 @@ const QuestionsContainer = ({
 }) => {
   const {t} = useTranslation();
   const [isPlaying, setIsPlaying] = useState(false);
+  const [mediaError, setMediaError] = useState(false);
+  const [mediaType, setMediaType] = useState('unknown'); // 'video', 'audio', 'image', 'unknown'
   const audioRef = useRef(null);
   const videoRef = useRef(null);
 
   const progress = (questionNumber / totalQuestion) * 100;
 
+  // Detect media type from URL
+  const detectMediaType = (url) => {
+    if (!url) return 'unknown';
+    
+    const urlLower = url.toLowerCase();
+    
+    // Audio file extensions
+    const audioExtensions = ['.mp3', '.wav', '.aac', '.m4a', '.ogg', '.flac'];
+    // Video file extensions  
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv', '.webm'];
+    // Image file extensions
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+    
+    if (audioExtensions.some(ext => urlLower.includes(ext))) return 'audio';
+    if (videoExtensions.some(ext => urlLower.includes(ext))) return 'video';
+    if (imageExtensions.some(ext => urlLower.includes(ext))) return 'image';
+    
+    return 'unknown';
+  };
+
+  useEffect(() => {
+    if (video) {
+      const detectedType = detectMediaType(video);
+      setMediaType(detectedType);
+      setMediaError(false);
+      console.log('Detected media type:', detectedType, 'for URL:', video);
+    }
+  }, [video]);
+
   const handleAudioPress = () => {
     setIsPlaying(prev => !prev);
+  };
+
+  const handleVideoError = (error) => {
+    console.log('Media playback error:', error);
+    setMediaError(true);
+    
+    // If we thought it was video but failed, check if it's actually audio
+    if (mediaType === 'video') {
+      const detectedType = detectMediaType(video);
+      if (detectedType === 'audio') {
+        setMediaType('audio');
+        console.log('Auto-corrected to audio type after playback failure');
+      }
+    }
+  };
+
+  const handleAudioPlayback = () => {
+    setIsPlaying(prev => !prev);
+  };
+
+  const renderMediaContent = () => {
+    // If we have an image and no video, show image
+    if (image && !video) {
+      return (
+        <ImageFast
+          source={{uri: image}}
+          resizeMode="contain"
+          style={styles.icon}
+        />
+      );
+    }
+
+    // If we have video/audio content
+    if (video) {
+      // Show video player for actual video files that haven't errored
+      if (mediaType === 'video' && !mediaError) {
+        return (
+          <Video
+            ref={videoRef}
+            source={{uri: video}}
+            style={styles.video}
+            resizeMode="contain"
+            paused={false}
+            muted={false}
+            controls={true}
+            onError={handleVideoError}
+            onLoad={() => console.log('Video loaded successfully')}
+          />
+        );
+      }
+      
+      // Show audio player for audio files OR when video playback fails for audio content
+      if (mediaType === 'audio' || (mediaError && detectMediaType(video) === 'audio')) {
+        return (
+          <View style={styles.audioContainer}>
+            <TouchableOpacity 
+              style={[styles.audioPlayButton, isPlaying && styles.audioPlayingButton]}
+              onPress={handleAudioPlayback}
+            >
+              <ImageFast
+                source={isPlaying ? Images.pause : Images.play}
+                resizeMode="contain"
+                style={styles.audioButtonIcon}
+              />
+            </TouchableOpacity>
+            <CustomText
+              label={t('audioPlayback')}
+              fontFamily={fonts.regular}
+              fontSize={14}
+              color={COLORS.gray}
+              marginTop={10}
+            />
+            {mediaError && (
+              <CustomText
+                label={t('fallbackAudioMode')}
+                fontFamily={fonts.regular}
+                fontSize={12}
+                color={COLORS.orange}
+                marginTop={5}
+              />
+            )}
+          </View>
+        );
+      }
+      
+      // Show error for failed video playback
+      if (mediaError) {
+        return (
+          <View style={styles.errorContainer}>
+            <CustomText
+              label={t('playbackError')}
+              fontFamily={fonts.bold}
+              fontSize={16}
+              color={COLORS.red}
+            />
+            <CustomText
+              label={t('unsupportedFormat')}
+              fontFamily={fonts.regular}
+              fontSize={14}
+              color={COLORS.gray}
+              marginTop={5}
+              textAlign="center"
+            />
+          </View>
+        );
+      }
+    }
+
+    // Default fallback - no media
+    return (
+      <View style={styles.placeholder}>
+        <CustomText
+          label={t('noMedia')}
+          fontFamily={fonts.regular}
+          fontSize={14}
+          color={COLORS.gray}
+        />
+      </View>
+    );
   };
 
   return (
@@ -33,6 +183,7 @@ const QuestionsContainer = ({
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
+        
         {/* Header */}
         <View style={styles.header}>
           <CustomText
@@ -42,13 +193,16 @@ const QuestionsContainer = ({
             color={'#4F4F4F'}
           />
 
-          <TouchableOpacity onPress={handleAudioPress}>
-            <ImageFast
-              source={isPlaying ? Images.audiobtn : Images.audiobtn}
-              resizeMode="contain"
-              style={styles.audio}
-            />
-          </TouchableOpacity>
+          {/* Original audio button */}
+          {audio && (
+            <TouchableOpacity onPress={handleAudioPress}>
+              <ImageFast
+                source={isPlaying ? Images.audiobtn : Images.audiobtn}
+                resizeMode="contain"
+                style={styles.audio}
+              />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Progress Bar */}
@@ -57,7 +211,7 @@ const QuestionsContainer = ({
         </View>
 
         {/* Question */}
-        <View style={{minHeight: 150}}>
+        <View style={styles.questionContainer}>
           <CustomText
             label={question}
             fontFamily={fonts.regular}
@@ -66,37 +220,9 @@ const QuestionsContainer = ({
           />
         </View>
 
-        {/* Show either video OR image (never both) */}
-        <View
-          style={{height: 200, justifyContent: 'center', alignItems: 'center'}}>
-          {video ? (
-            <Video
-              ref={videoRef}
-              source={{uri: video}}
-              style={styles.video}
-              resizeMode="contain"
-              repeat
-              paused={false}
-              muted={false}
-              controls={true}
-              onError={e => console.log('Video error:', e)}
-            />
-          ) : image ? (
-            <ImageFast
-              source={{uri: image}}
-              resizeMode="contain"
-              style={styles.icon}
-            />
-          ) : (
-            <View
-              style={{
-                height: 200,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}>
-              <Text style={{color: 'gray'}}>{t('noMedia')}</Text>
-            </View>
-          )}
+        {/* Media Section */}
+        <View style={styles.mediaWrapper}>
+          {renderMediaContent()}
         </View>
 
         {/* Answer */}
@@ -110,16 +236,41 @@ const QuestionsContainer = ({
           />
         </View>
 
-        {/* Hidden audio player */}
+        {/* Hidden audio player for original audio prop */}
         {audio && (
           <Video
             ref={audioRef}
             source={{uri: audio}}
             paused={!isPlaying}
             onEnd={() => setIsPlaying(false)}
-            audioOnly
+            audioOnly={true}
             playInBackground={false}
-            
+            onError={(e) => {
+              console.log('Audio playback error:', e);
+              setIsPlaying(false);
+            }}
+            style={styles.audioElement}
+          />
+        )}
+
+        {/* Hidden audio player for video URLs that are actually audio files */}
+        {video && (mediaType === 'audio' || (mediaError && detectMediaType(video) === 'audio')) && (
+          <Video
+            ref={audioRef}
+            source={{uri: video}}
+            paused={!isPlaying}
+            onEnd={() => setIsPlaying(false)}
+            onError={(e) => {
+              console.log('Audio playback error:', e);
+              setIsPlaying(false);
+              setMediaError(true);
+            }}
+            onLoad={() => {
+              console.log('Audio loaded successfully');
+              setMediaError(false);
+            }}
+            audioOnly={true}
+            playInBackground={false}
             style={styles.audioElement}
           />
         )}
@@ -161,6 +312,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: COLORS.btn,
   },
+  questionContainer: {
+    minHeight: 150,
+  },
   option: {
     backgroundColor: '#F9F9F9',
     borderWidth: 1,
@@ -180,17 +334,73 @@ const styles = StyleSheet.create({
   audioElement: {
     width: 0,
     height: 0,
+    position: 'absolute',
   },
   icon: {
     height: 202,
     width: 181,
     alignSelf: 'center',
-    marginBottom: 5,
   },
   video: {
     height: 200,
     width: '100%',
     borderRadius: 10,
+  },
+  mediaWrapper: {
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginVertical: 10,
+  },
+  audioContainer: {
+    height: 200,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#e9ecef',
+    padding: 20,
+  },
+  audioPlayButton: {
+    padding: 20,
+    backgroundColor: COLORS.btn,
+    borderRadius: 50,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  audioPlayingButton: {
+    backgroundColor: COLORS.primary, // Use a different color when playing
+  },
+  audioButtonIcon: {
+    height: 30,
+    width: 30,
+    tintColor: 'white',
+  },
+  errorContainer: {
+    height: 200,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff3f3',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ffcdd2',
+    padding: 20,
+  },
+  placeholder: {
+    height: 200,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ececec',
   },
 });

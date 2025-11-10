@@ -121,67 +121,39 @@ const HomeScreen = ({navigation}) => {
     fetchPackages();
   }, [currentlanguage]);
 
-  const handlePermitSelect = async (permitId) => {
-    const mockup = userData?.purchase?.permit?.mockup;
-    const roadsigns = userData?.purchase?.permit?.road_signs;
+const handlePermitSelect = (permitId) => {
+  const permitdata = userData?.purchase || [];
 
-    console.log('Permit ID:', permitId);
-    console.log('Mockup:', mockup);
-    console.log('Roadsigns:', roadsigns);
+  // Extract purchased permit IDs
+  const purchasedPermitIds = permitdata.map(item => item.permit.id);
 
-    // Check if user has purchased permit
-    if (userData.purchase !== undefined) {
-      if (permitId == 1) {
-        navigation.navigate('PratiseQuestion', {roadsign: false});
-      } else {
-        navigation.navigate('PratiseQuestion', {roadsign: true});
-      }
-      return;
-    }
+  console.log('Selected Permit ID:', permitId);
+  console.log('Purchased Permit IDs:', purchasedPermitIds);
 
-    // If user hasn't purchased, navigate to checkout
-    if (!userData || Object.keys(userData).length === 0) {
-      ToastMessage(t('LoginRequid'), 'error');
-      navigation.navigate('LoginScreen');
-      return;
-    }
+  // Find the selected permit item to get its price
+  const selectedPermit = packagess.find(item => item.id === permitId);
 
-    // Use the first package from the already fetched packages data
-    if (packages.length > 0) {
-      navigation.navigate('Checkout', {
-        selectedPackage: packages[0],
-        permit_id: permitId
-      });
-    } else {
-      console.error('No packages available for checkout');
-      // You might want to show an error message to the user here
-    }
+  // Check if the selected permit was already purchased
+  if (purchasedPermitIds.includes(String(permitId))) {
+    // Navigate to DmvTest (or TabStack) and pass permitId
+    navigation.navigate('TabStack', { 
+      screen: t('Dmv Test'), 
+      params: { permitId } 
+    });
+  } else {
+    // Permit not purchased → go to Checkout
+    const selectedPackage =
+      packages.find(pkg => pkg.id === permitId) || packages[0];
 
-    // if (mockup == 1 && roadsigns == 1) {
-    //   if (permitId == 1) {
-    //     navigation.navigate('PratiseQuestion', {roadsign: false});
-    //   }
-    //   if (permitId !== 1) {
-    //     navigation.navigate('PratiseQuestion', {roadsign: true});
-    //   } else {
-    //     navigation.navigate('SelectPackage', {permit_id: permitId});
-    //   }
-    // }
+    navigation.navigate('Checkout', {
+      selectedPackage,
+      permit_id: permitId,
+      price2: selectedPermit?.price 
+    });
+  }
+};
 
-    // if (mockup == 0 && roadsigns == 1) {
-    //   if (permitId == 1) {
-    //     navigation.navigate('SelectPackage', {permit_id: permitId});
-    //   }
-    //    if (permitId !== 1){
-    //     navigation.navigate('PratiseQuestion', {roadsign: true});
-    //    }
-    // }
-    // else{
-    //   navigation.navigate('SelectPackage', {permit_id: permitId});
-    // }
-  };
 
-  // Show loading screen while fetching data
   if (loading) {
     return <Loading />;
   }
