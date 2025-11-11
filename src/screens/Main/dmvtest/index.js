@@ -14,7 +14,10 @@ const DmvTest = ({navigation, route}) => {
   const userData = useSelector(state => state.users.userData);
 
   // Get permitId passed from previous screen
-  const {permitId} = route.params || {};
+const { permitId, name } = route.params || {};
+console.log('Received permitId:', permitId);
+console.log('Received name:', name);
+
 
   // Find the purchased permit object matching the selected permitId
   const purchasedPermit = userData?.purchase?.find(
@@ -25,15 +28,17 @@ const DmvTest = ({navigation, route}) => {
   const roadsigns = purchasedPermit?.road_signs;
 
   const practiceMenuItems = [
-   
-          {
-            title: t('practiceQuestion'),
-            icon: Images.pratisequestion,
-            bgColor: '#4378DB',
-            fnc: () =>
-              navigation.navigate('PratiseQuestion', {roadsign: false}),
-          },
-           ...(mockup === '1'
+    {
+      title: t('practiceQuestion'),
+      icon: Images.pratisequestion,
+      bgColor: '#4378DB',
+      fnc: () =>
+        navigation.navigate('PratiseQuestion', {
+          roadsign: false,
+          permitId: permitId,
+        }),
+    },
+    ...(mockup === '1'
       ? [
           {
             title: t('mockupTest'),
@@ -50,7 +55,11 @@ const DmvTest = ({navigation, route}) => {
             title: t('roadSigns'),
             icon: Images.road,
             bgColor: '#28A164',
-            fnc: () => navigation.navigate('PratiseQuestion', {roadsign: true}),
+            fnc: () =>
+              navigation.navigate('PratiseQuestion', {
+                roadsign: true,
+                permitId: permitId,
+              }),
           },
           {
             title: t('Mockup Test Road Signs'),
@@ -85,7 +94,8 @@ const DmvTest = ({navigation, route}) => {
       scrollEnabled
       headerUnScrollable={() => <Header2 title={t('dmvTitle')} />}>
       <CustomText
-        label={t('adultPermit')}
+        // label={t('adultPermit')}
+        label={name}
         fontFamily={fonts.medium}
         fontSize={24}
         marginTop={5}

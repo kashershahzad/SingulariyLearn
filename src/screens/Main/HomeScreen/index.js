@@ -83,11 +83,9 @@ const HomeScreen = ({navigation}) => {
         setLoading(false);
       }
     };
-
     permitData();
   }, [currentlanguage]);
 
-  // Fetch packages data on component mount
   useEffect(() => {
     const fetchPackages = async () => {
       try {
@@ -121,38 +119,31 @@ const HomeScreen = ({navigation}) => {
     fetchPackages();
   }, [currentlanguage]);
 
-const handlePermitSelect = (permitId) => {
-  const permitdata = userData?.purchase || [];
+  const handlePermitSelect = (permitId, name) => {
+    const permitdata = userData?.purchase || [];
+    console.log(permitId);
 
-  // Extract purchased permit IDs
-  const purchasedPermitIds = permitdata.map(item => item.permit.id);
+    const purchasedPermitIds = permitdata.map(item => item.permit.id);
 
-  console.log('Selected Permit ID:', permitId);
-  console.log('Purchased Permit IDs:', purchasedPermitIds);
+    console.log('Selected Permit ID:', permitId);
+    console.log('Purchased Permit IDs:', purchasedPermitIds);
+    const selectedPermit = packagess.find(item => item.id === permitId);
+    if (purchasedPermitIds.includes(String(permitId))) {
+      navigation.navigate('TabStack', {
+        screen: t('Dmv Test'),
+        params: {permitId, name},
+      });
+    } else {
+      const selectedPackage =
+        packages.find(pkg => pkg.id === permitId) || packages[0];
 
-  // Find the selected permit item to get its price
-  const selectedPermit = packagess.find(item => item.id === permitId);
-
-  // Check if the selected permit was already purchased
-  if (purchasedPermitIds.includes(String(permitId))) {
-    // Navigate to DmvTest (or TabStack) and pass permitId
-    navigation.navigate('TabStack', { 
-      screen: t('Dmv Test'), 
-      params: { permitId } 
-    });
-  } else {
-    // Permit not purchased → go to Checkout
-    const selectedPackage =
-      packages.find(pkg => pkg.id === permitId) || packages[0];
-
-    navigation.navigate('Checkout', {
-      selectedPackage,
-      permit_id: permitId,
-      price2: selectedPermit?.price 
-    });
-  }
-};
-
+      navigation.navigate('Checkout', {
+        selectedPackage,
+        permit_id: permitId,
+        price2: selectedPermit?.price,
+      });
+    }
+  };
 
   if (loading) {
     return <Loading />;
@@ -161,7 +152,6 @@ const handlePermitSelect = (permitId) => {
   return (
     <ScreenWrapper scrollEnabled headerUnScrollable={() => <Header />}>
       <Banner />
-
       <CustomText
         label={t('services')}
         fontFamily={fonts.jakartaSemiBold}
@@ -186,7 +176,7 @@ const handlePermitSelect = (permitId) => {
               key={item.id || i}
               price={item.price}
               title={item.name}
-              onPress={() => handlePermitSelect(item.id)}
+              onPress={() => handlePermitSelect(item.id, item.name)}
             />
           ))
         ) : (

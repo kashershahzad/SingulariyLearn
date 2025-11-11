@@ -25,7 +25,9 @@ const PratiseQuestion = ({navigation, route}) => {
   const {roadsign} = route.params;
   const userData = useSelector(state => state.users.userData);
 
-  const permit_id = userData?.purchase?.permit?.id;
+  // const permit_id = userData?.purchase?.permit?.id;
+
+  const permit_id = route.params?.permitId;
 
   useEffect(() => {
     const fetchLessons = async () => {
