@@ -17,7 +17,7 @@ const Questions = ({navigation, route}) => {
   const {t} = useTranslation();
   const currentLanguage = useSelector(state => state.language.language);
   const userData = useSelector(state => state.users.userData);
-  
+
   // Get mockup and roadsigns values from userData
   const mockup = userData?.purchase?.permit?.mockup;
   const roadsigns = userData?.purchase?.permit?.road_signs;
@@ -44,7 +44,7 @@ const Questions = ({navigation, route}) => {
 
       console.log('Full API Response:', response.data);
       console.log('Questions Data:', apiData);
-        console.log("total questions:", total);
+      console.log('total questions:', total);
 
       const totalQuestion = response.data.total;
       settotal(totalQuestion);
@@ -108,7 +108,6 @@ const Questions = ({navigation, route}) => {
 
   useEffect(() => {
     fetchQuestions();
-    
   }, []);
 
   const handleNext = () => {
@@ -138,7 +137,7 @@ const Questions = ({navigation, route}) => {
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
 
-  const shouldShowPracticeQuiz =  total > 1;
+  const shouldShowPracticeQuiz = total > 1;
 
   return (
     <ScreenWrapper
@@ -182,49 +181,51 @@ const Questions = ({navigation, route}) => {
         />
       )}
 
-      <View style={styles.btnContainer}>
-        <View style={styles.btn}>
-          <CustomButton
-            width={149}
-            height={52}
-            fontSize={16}
-            title={t('previous')}
-            color={'black'}
-            borderColor={'#ECEFF3'}
-            borderWidth={2}
-            borderRadius={25}
-            onPress={handlePrevious}
-            backgroundColor={'white'}
-          />
-          {isLastQuestion ? (
+      {shouldShowPracticeQuiz && (
+        <View style={styles.btnContainer}>
+          <View style={styles.btn}>
             <CustomButton
               width={149}
               height={52}
               fontSize={16}
-              title={t('nextButton')}
-              color={'white'}
+              title={t('previous')}
+              color={'black'}
               borderColor={'#ECEFF3'}
-              borderWidth={1}
+              borderWidth={2}
               borderRadius={25}
-              backgroundColor={COLORS.success}
-              onPress={handleDone}
+              onPress={handlePrevious}
+              backgroundColor={'white'}
             />
-          ) : (
-            <CustomButton
-              width={149}
-              height={52}
-              fontSize={16}
-              title={t('nextButton')}
-              color={'white'}
-              borderColor={'#ECEFF3'}
-              borderWidth={1}
-              borderRadius={25}
-              backgroundColor={'black'}
-              onPress={handleNext}
-            />
-          )}
+            {isLastQuestion ? (
+              <CustomButton
+                width={149}
+                height={52}
+                fontSize={16}
+                title={t('nextButton')}
+                color={'white'}
+                borderColor={'#ECEFF3'}
+                borderWidth={1}
+                borderRadius={25}
+                backgroundColor={COLORS.success}
+                onPress={handleDone}
+              />
+            ) : (
+              <CustomButton
+                width={149}
+                height={52}
+                fontSize={16}
+                title={t('nextButton')}
+                color={'white'}
+                borderColor={'#ECEFF3'}
+                borderWidth={1}
+                borderRadius={25}
+                backgroundColor={'black'}
+                onPress={handleNext}
+              />
+            )}
+          </View>
         </View>
-      </View>
+      )}
     </ScreenWrapper>
   );
 };
