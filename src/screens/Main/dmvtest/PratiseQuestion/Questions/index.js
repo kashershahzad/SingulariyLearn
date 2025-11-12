@@ -138,8 +138,7 @@ const Questions = ({navigation, route}) => {
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
 
-  // Check if we should show the practice quiz button
-  const shouldShowPracticeQuiz = mockup == 1 && roadsigns == 1 && total > 1;
+  const shouldShowPracticeQuiz =  total > 1;
 
   return (
     <ScreenWrapper

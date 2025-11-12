@@ -28,7 +28,7 @@ const Banner = () => {
             />
             
             <CustomButton 
-                onPress={() => packages === true ? navigation.navigate('PratiseQuestion') : navigation.navigate('PermitType')} 
+                onPress={() => packages === true ? navigation.navigate('PratiseQuestion',{roadsign:false}) : navigation.navigate('PermitType')} 
                 title={t('start')} 
                 backgroundColor={COLORS.btn} 
                 height={32} 
