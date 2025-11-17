@@ -51,8 +51,6 @@ const StartQuestions = () => {
             scrollEnabled
             statusBarColor={COLORS.primaryColor4}
             paddingHorizontal={0}>
-
-            {/* Success State */}
             {!isLoading && !error && (
                 <>
                     <MockupHeader
@@ -62,7 +60,6 @@ const StartQuestions = () => {
                         timer={false}
                         title={t('Practise Question')} 
                     />
-                    
                     <Testfrom
                         resettimer={setresettimer} 
                         timercomplete={questiontimer} 

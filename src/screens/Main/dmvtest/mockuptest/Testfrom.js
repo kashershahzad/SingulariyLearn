@@ -471,21 +471,41 @@ const Testfrom = ({
 
         {renderMedia(currentQuestion)}
 
-        {currentQuestion.options.map((option, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[styles.option, getOptionStyle(index)]}
-            onPress={() => handleOptionSelect(index)}
-            disabled={(showFeedback && !mockuptest) || isTransitioning}>
-            <CustomText
-              textAlign={'center'}
-              label={option.answer}
-              fontFamily={fonts.regular}
-              fontSize={14}
-              color={'#707070'}
-            />
-          </TouchableOpacity>
-        ))}
+        {currentQuestion.options.map((option, index) => {
+          const isImageOption =
+            option.answer &&
+            option.answer.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i);
+
+          return (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.option,
+                getOptionStyle(index),
+                isImageOption && styles.imageOption, // Add specific style for image options
+              ]}
+              onPress={() => handleOptionSelect(index)}
+              disabled={(showFeedback && !mockuptest) || isTransitioning}>
+              {isImageOption ? (
+                // Render ImageFast if it's an image URL
+                <ImageFast
+                  source={{uri: option.answer}}
+                  resizeMode={'contain'}
+                  style={styles.optionImage}
+                />
+              ) : (
+                // Render CustomText if it's regular text
+                <CustomText
+                  textAlign={'center'}
+                  label={option.answer}
+                  fontFamily={fonts.regular}
+                  fontSize={14}
+                  color={'#707070'}
+                />
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
       <View style={styles.btnContainer}>
@@ -615,9 +635,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     minHeight: 100,
   },
+  imageOption: {
+    width: '48%',
+    marginHorizontal: '1%',
+    minHeight: 120, 
+    paddingVertical: 10,
+  },
+  optionImage: {
+    height: 80,
+    width: '100%',
+    borderRadius: 8,
+  },
   selectedOption: {
     borderColor: COLORS.btn,
-    borderWidth: 2,
+    borderWidth: 2,                                
     backgroundColor: '#EFEFEF',
   },
   correctOption: {

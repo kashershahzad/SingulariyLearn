@@ -46,6 +46,14 @@ const QuestionsContainer = ({
     return 'unknown';
   };
 
+  // Check if answer is an image URL
+  const isAnswerImage = () => {
+    if (!answer) return false;
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+    const answerLower = answer.toLowerCase();
+    return imageExtensions.some(ext => answerLower.includes(ext));
+  };
+
   useEffect(() => {
     if (video) {
       const detectedType = detectMediaType(video);
@@ -178,6 +186,59 @@ const QuestionsContainer = ({
     );
   };
 
+  const renderAnswerContent = () => {
+    // If answer is an image URL, show ImageFast
+    if (isAnswerImage()) {
+      return (
+        <View style={styles.option}>
+          <ImageFast
+            source={{uri: answer}}
+            resizeMode="contain"
+            style={styles.answerImage}
+          />
+        </View>
+      );
+    }
+    
+    // If answer has audio and is text, show both audio button and text
+    if (audio && answer) {
+      return (
+        <View style={styles.option}>
+          <View style={styles.audioAnswerContainer}>
+            <ImageFast
+              source={Images.audiobtn}
+              onPress={handleAudioPress}
+              resizeMode={'contain'}
+              style={styles.audio}
+            />
+            <CustomText
+              textAlign="center"
+              label={answer}
+              fontFamily={fonts.regular}
+              fontSize={14}
+              color="#707070"
+              marginLeft={10}
+              flex={1}
+            />
+          </View>
+        </View>
+      );
+    }
+    
+    // Default: show text answer
+    return (
+      <View style={styles.option}>
+        <CustomText
+          textAlign="center"
+          label={answer}
+          fontFamily={fonts.regular}
+          fontSize={14}
+          color="#707070"
+        />
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -225,16 +286,8 @@ const QuestionsContainer = ({
           {renderMediaContent()}
         </View>
 
-        {/* Answer */}
-        <View style={styles.option}>
-          <CustomText
-            textAlign="center"
-            label={answer}
-            fontFamily={fonts.regular}
-            fontSize={14}
-            color="#707070"
-          />
-        </View>
+        {/* Answer - Conditionally rendered */}
+        {renderAnswerContent()}
 
         {/* Hidden audio player for original audio prop */}
         {audio && (
@@ -326,6 +379,18 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 8,
     minHeight: 120,
+  },
+  audioAnswerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    paddingHorizontal: 10,
+  },
+  answerImage: {
+    height: 100,
+    width: '100%',
+    borderRadius: 8,
   },
   audio: {
     height: 23,
