@@ -69,6 +69,7 @@ const Questions = ({navigation, route}) => {
 
         // Check if answers exist and find correct answer
         let correctAnswerText = t('noCorrectAnswer');
+        let correctAnswerImage = null; // Add this line
 
         // If answers array exists in the response
         if (question.answers && Array.isArray(question.answers)) {
@@ -76,9 +77,50 @@ const Questions = ({navigation, route}) => {
             answer =>
               answer.is_correct === '1' && answer.lang === currentLanguage,
           );
+
           correctAnswerText = correctAnswer
             ? correctAnswer.answer
             : t('noCorrectAnswer');
+
+          // Extract the correct answer image if it exists
+          if (correctAnswer && correctAnswer.image) {
+            correctAnswerImage = typeof correctAnswer.image === 'string' 
+              ? correctAnswer.image 
+              : correctAnswer.image.url;
+            console.log('🖼️ Correct answer has image:', correctAnswerImage);
+          }
+
+          // Handle image for correct answer
+          if (correctAnswer) {
+            if (correctAnswer.image) {
+              console.log('🖼️ Correct answer has image:', {
+                answerText: correctAnswer.answer,
+                imageUrl:
+                  typeof correctAnswer.image === 'string'
+                    ? correctAnswer.image
+                    : correctAnswer.image.url,
+                answerId: correctAnswer.id,
+              });
+            } else {
+              console.log('✅ Correct answer text only:', correctAnswer.answer);
+            }
+          }
+
+          // Log all images from all answers
+          const answersWithImages = question.answers.filter(
+            answer => answer.image,
+          );
+          if (answersWithImages.length > 0) {
+            console.log(
+              '📸 Answers with images:',
+              answersWithImages.map(answer => ({
+                id: answer.id,
+                text: answer.answer,
+                image: answer.image,
+                isCorrect: answer.is_correct,
+              })),
+            );
+          }
         } else {
           console.log('No answers array found for question:', question.id);
         }
@@ -91,6 +133,7 @@ const Questions = ({navigation, route}) => {
           questionNumber: index + 1,
           question: questionText,
           answer: correctAnswerText,
+          answerImage: correctAnswerImage, // Add this line
           rawData: question,
         };
       });
@@ -174,6 +217,7 @@ const Questions = ({navigation, route}) => {
           questionNumber={currentQuestion.questionNumber}
           question={currentQuestion.question}
           answer={currentQuestion.answer}
+          answerImage={currentQuestion.answerImage} // Pass the answer image
           audio={currentQuestion.audio}
           image={currentQuestion.image}
           totalQuestion={total}

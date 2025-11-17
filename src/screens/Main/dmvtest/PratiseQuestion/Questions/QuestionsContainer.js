@@ -1,5 +1,12 @@
 import React, {useState, useRef, useEffect} from 'react';
-import {StyleSheet, View, ScrollView, TouchableOpacity, Text, Alert} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  TouchableOpacity,
+  Text,
+  Alert,
+} from 'react-native';
 import CustomText from '../../../../../components/CustomText';
 import ImageFast from '../../../../../components/ImageFast';
 import {Images} from '../../../../../assets/images';
@@ -12,6 +19,7 @@ const QuestionsContainer = ({
   questionNumber,
   question,
   answer,
+  answerImage, // Add this prop
   totalQuestion,
   image,
   video,
@@ -27,31 +35,31 @@ const QuestionsContainer = ({
   const progress = (questionNumber / totalQuestion) * 100;
 
   // Detect media type from URL
-  const detectMediaType = (url) => {
+  const detectMediaType = url => {
     if (!url) return 'unknown';
-    
+
     const urlLower = url.toLowerCase();
-    
+
     // Audio file extensions
     const audioExtensions = ['.mp3', '.wav', '.aac', '.m4a', '.ogg', '.flac'];
-    // Video file extensions  
-    const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv', '.webm'];
+    // Video file extensions
+    const videoExtensions = [
+      '.mp4',
+      '.avi',
+      '.mov',
+      '.wmv',
+      '.flv',
+      '.mkv',
+      '.webm',
+    ];
     // Image file extensions
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
-    
+
     if (audioExtensions.some(ext => urlLower.includes(ext))) return 'audio';
     if (videoExtensions.some(ext => urlLower.includes(ext))) return 'video';
     if (imageExtensions.some(ext => urlLower.includes(ext))) return 'image';
-    
-    return 'unknown';
-  };
 
-  // Check if answer is an image URL
-  const isAnswerImage = () => {
-    if (!answer) return false;
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
-    const answerLower = answer.toLowerCase();
-    return imageExtensions.some(ext => answerLower.includes(ext));
+    return 'unknown';
   };
 
   useEffect(() => {
@@ -67,10 +75,10 @@ const QuestionsContainer = ({
     setIsPlaying(prev => !prev);
   };
 
-  const handleVideoError = (error) => {
+  const handleVideoError = error => {
     console.log('Media playback error:', error);
     setMediaError(true);
-    
+
     // If we thought it was video but failed, check if it's actually audio
     if (mediaType === 'video') {
       const detectedType = detectMediaType(video);
@@ -115,15 +123,20 @@ const QuestionsContainer = ({
           />
         );
       }
-      
+
       // Show audio player for audio files OR when video playback fails for audio content
-      if (mediaType === 'audio' || (mediaError && detectMediaType(video) === 'audio')) {
+      if (
+        mediaType === 'audio' ||
+        (mediaError && detectMediaType(video) === 'audio')
+      ) {
         return (
           <View style={styles.audioContainer}>
-            <TouchableOpacity 
-              style={[styles.audioPlayButton, isPlaying && styles.audioPlayingButton]}
-              onPress={handleAudioPlayback}
-            >
+            <TouchableOpacity
+              style={[
+                styles.audioPlayButton,
+                isPlaying && styles.audioPlayingButton,
+              ]}
+              onPress={handleAudioPlayback}>
               <ImageFast
                 source={isPlaying ? Images.pause : Images.play}
                 resizeMode="contain"
@@ -149,7 +162,7 @@ const QuestionsContainer = ({
           </View>
         );
       }
-      
+
       // Show error for failed video playback
       if (mediaError) {
         return (
@@ -186,57 +199,21 @@ const QuestionsContainer = ({
     );
   };
 
-  const renderAnswerContent = () => {
-    // If answer is an image URL, show ImageFast
-    if (isAnswerImage()) {
+  const renderAnswerImage = () => {
+    if (answerImage) {
       return (
-        <View style={styles.option}>
+        <View style={styles.answerImageContainer}>
           <ImageFast
-            source={{uri: answer}}
+            source={{
+              uri: 'https://7tracking.com/dmvpermit/images/' + answerImage,
+            }}
             resizeMode="contain"
             style={styles.answerImage}
           />
         </View>
       );
     }
-    
-    // If answer has audio and is text, show both audio button and text
-    if (audio && answer) {
-      return (
-        <View style={styles.option}>
-          <View style={styles.audioAnswerContainer}>
-            <ImageFast
-              source={Images.audiobtn}
-              onPress={handleAudioPress}
-              resizeMode={'contain'}
-              style={styles.audio}
-            />
-            <CustomText
-              textAlign="center"
-              label={answer}
-              fontFamily={fonts.regular}
-              fontSize={14}
-              color="#707070"
-              marginLeft={10}
-              flex={1}
-            />
-          </View>
-        </View>
-      );
-    }
-    
-    // Default: show text answer
-    return (
-      <View style={styles.option}>
-        <CustomText
-          textAlign="center"
-          label={answer}
-          fontFamily={fonts.regular}
-          fontSize={14}
-          color="#707070"
-        />
-      </View>
-    );
+    return null;
   };
 
   return (
@@ -244,7 +221,6 @@ const QuestionsContainer = ({
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
-        
         {/* Header */}
         <View style={styles.header}>
           <CustomText
@@ -282,12 +258,24 @@ const QuestionsContainer = ({
         </View>
 
         {/* Media Section */}
-        <View style={styles.mediaWrapper}>
-          {renderMediaContent()}
-        </View>
+        <View style={styles.mediaWrapper}>{renderMediaContent()}</View>
 
-        {/* Answer - Conditionally rendered */}
-        {renderAnswerContent()}
+        {/* Answer */}
+
+        <View style={styles.option}>
+          {renderAnswerImage()}
+          <CustomText
+            textAlign="center"
+            label={answer}
+            fontFamily={fonts.regular}
+            fontSize={20}
+            color="#707070"
+            marginBottom={answerImage ? 15 : 0}
+          />
+
+          {/* Display answer image if available */}
+          
+        </View>
 
         {/* Hidden audio player for original audio prop */}
         {audio && (
@@ -298,7 +286,7 @@ const QuestionsContainer = ({
             onEnd={() => setIsPlaying(false)}
             audioOnly={true}
             playInBackground={false}
-            onError={(e) => {
+            onError={e => {
               console.log('Audio playback error:', e);
               setIsPlaying(false);
             }}
@@ -307,26 +295,28 @@ const QuestionsContainer = ({
         )}
 
         {/* Hidden audio player for video URLs that are actually audio files */}
-        {video && (mediaType === 'audio' || (mediaError && detectMediaType(video) === 'audio')) && (
-          <Video
-            ref={audioRef}
-            source={{uri: video}}
-            paused={!isPlaying}
-            onEnd={() => setIsPlaying(false)}
-            onError={(e) => {
-              console.log('Audio playback error:', e);
-              setIsPlaying(false);
-              setMediaError(true);
-            }}
-            onLoad={() => {
-              console.log('Audio loaded successfully');
-              setMediaError(false);
-            }}
-            audioOnly={true}
-            playInBackground={false}
-            style={styles.audioElement}
-          />
-        )}
+        {video &&
+          (mediaType === 'audio' ||
+            (mediaError && detectMediaType(video) === 'audio')) && (
+            <Video
+              ref={audioRef}
+              source={{uri: video}}
+              paused={!isPlaying}
+              onEnd={() => setIsPlaying(false)}
+              onError={e => {
+                console.log('Audio playback error:', e);
+                setIsPlaying(false);
+                setMediaError(true);
+              }}
+              onLoad={() => {
+                console.log('Audio loaded successfully');
+                setMediaError(false);
+              }}
+              audioOnly={true}
+              playInBackground={false}
+              style={styles.audioElement}
+            />
+          )}
       </ScrollView>
     </View>
   );
@@ -380,18 +370,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     minHeight: 120,
   },
-  audioAnswerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    paddingHorizontal: 10,
-  },
-  answerImage: {
-    height: 100,
-    width: '100%',
-    borderRadius: 8,
-  },
   audio: {
     height: 23,
     width: 23,
@@ -434,7 +412,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginBottom: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
@@ -467,5 +445,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ececec',
+  },
+  answerImageContainer: {
+    alignItems: 'center',
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 8,
+  },
+  answerImage: {
+    height: 150,
+    width: 150,
+    borderRadius: 8,
   },
 });

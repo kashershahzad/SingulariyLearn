@@ -54,6 +54,24 @@ const Testfrom = ({
     setIsPlaying(!isPlaying);
   };
 
+  // Function to get complete image URL
+  const getCompleteImageUrl = (imagePath) => {
+    if (!imagePath || imagePath.trim() === '') return null;
+    
+    // If imagePath is already a full URL, return it as is
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    // If imagePath is just a filename, concatenate with base URL
+    const baseUrl = 'https://7tracking.com/dmvpermit/images/';
+    
+    // Remove leading slash if present
+    const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+    
+    return baseUrl + cleanPath;
+  };
+
   useEffect(() => {
     setIsLessonMode(lesson_id && lesson);
     if (initialQuestions && initialQuestions.length > 0) {
@@ -92,10 +110,20 @@ const Testfrom = ({
           ? q.answers.filter(answer => answer.lang === 'en')
           : [];
 
+      // Create options with both text and complete image URL
       const options = fallbackAnswers.map(answer => ({
         answer: answer.answer,
+        image: getCompleteImageUrl(answer.image),
         correct: parseInt(answer.is_correct),
       }));
+
+      // Check if any option has a valid image
+      const hasOptionImages = options.some(option => 
+        option.image && 
+        option.image.trim() !== '' && 
+        option.image !== 'https://7tracking.com/dmvpermit/images/' &&
+        !option.image.includes('/images/""')
+      );
 
       const correctIndex = options.findIndex(option => option.correct === 1);
 
@@ -103,6 +131,7 @@ const Testfrom = ({
         ...q,
         question: questionText,
         options: options,
+        hasOptionImages: hasOptionImages, // Flag to indicate if options have images
         correctAnswerIndex: correctIndex !== -1 ? correctIndex : 0,
       };
     });
@@ -250,7 +279,7 @@ const Testfrom = ({
       }
     }
 
-    return isSelected ? styles.selectedOption : styles.option;
+    return isSelected ? styles.selectedOption : null;
   };
 
   const handleNext = () => {
@@ -321,7 +350,8 @@ const Testfrom = ({
       question.image !== 'https://7tracking.com/dmvpermit/images/' &&
       !question.image.includes('/images/""')
     ) {
-      return {uri: question.image};
+      // Use the helper function to get complete URL for question image too
+      return {uri: getCompleteImageUrl(question.image)};
     }
     return null;
   };
@@ -347,12 +377,10 @@ const Testfrom = ({
     }
   };
 
-  // Function to render media (image or video)
   const renderMedia = question => {
     const imageUrl = getImageUrl(question);
     const videoUrl = getVideoUrl(question);
 
-    // Priority: Show video if available, otherwise show image
     if (videoUrl) {
       return (
         <Video
@@ -471,41 +499,66 @@ const Testfrom = ({
 
         {renderMedia(currentQuestion)}
 
-        {currentQuestion.options.map((option, index) => {
-          const isImageOption =
-            option.answer &&
-            option.answer.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i);
+        <View style={styles.optionsContainer}>
+          {currentQuestion.options.map((option, index) => {
+            // Check if this option has a valid image
+            const hasImage = option.image && 
+                            option.image.trim() !== '' && 
+                            option.image !== 'https://7tracking.com/dmvpermit/images/' &&
+                            !option.image.includes('/images/""');
 
-          return (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.option,
-                getOptionStyle(index),
-                isImageOption && styles.imageOption, // Add specific style for image options
-              ]}
-              onPress={() => handleOptionSelect(index)}
-              disabled={(showFeedback && !mockuptest) || isTransitioning}>
-              {isImageOption ? (
-                // Render ImageFast if it's an image URL
-                <ImageFast
-                  source={{uri: option.answer}}
-                  resizeMode={'contain'}
-                  style={styles.optionImage}
-                />
-              ) : (
-                // Render CustomText if it's regular text
-                <CustomText
-                  textAlign={'center'}
-                  label={option.answer}
-                  fontFamily={fonts.regular}
-                  fontSize={14}
-                  color={'#707070'}
-                />
-              )}
-            </TouchableOpacity>
-          );
-        })}
+            if (hasImage) {
+              // Image options - 48% width (2 per row) ALWAYS
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.imageOption, // This has 48% width
+                    getOptionStyle(index)
+                  ]}
+                  onPress={() => handleOptionSelect(index)}
+                  disabled={(showFeedback && !mockuptest) || isTransitioning}>
+                  
+                  <ImageFast
+                    source={{uri: option.image}}
+                    resizeMode={'contain'}
+                    style={styles.optionImage}
+                  />
+                  
+                  <CustomText
+                    textAlign={'center'}
+                    label={option.answer}
+                    fontFamily={fonts.regular}
+                    fontSize={12}
+                    color={'#707070'}
+                    marginTop={5}
+                    numberOfLines={2}
+                  />
+                </TouchableOpacity>
+              );
+            } else {
+              // Text-only options - 100% width (1 per row) ALWAYS
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.textOption, // This has 100% width
+                    getOptionStyle(index)
+                  ]}
+                  onPress={() => handleOptionSelect(index)}
+                  disabled={(showFeedback && !mockuptest) || isTransitioning}>
+                  <CustomText
+                    textAlign={'center'}
+                    label={option.answer}
+                    fontFamily={fonts.regular}
+                    fontSize={14}
+                    color={'#707070'}
+                  />
+                </TouchableOpacity>
+              );
+            }
+          })}
+        </View>
       </ScrollView>
 
       <View style={styles.btnContainer}>
@@ -623,7 +676,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginVertical: 10,
   },
-  option: {
+  optionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  textOption: {
     backgroundColor: '#F9F9F9',
     borderWidth: 1,
     borderColor: '#ECEFF3',
@@ -634,21 +692,41 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 8,
     minHeight: 100,
+    width: '100%', // 100% width for text-only options (1 per row)
   },
   imageOption: {
-    width: '48%',
-    marginHorizontal: '1%',
-    minHeight: 120, 
+    width: '48%', // 48% width for image options (2 per row)
+    backgroundColor: '#F9F9F9',
+    borderWidth: 1,
+    borderColor: '#ECEFF3',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    paddingHorizontal: 5,
     paddingVertical: 10,
+    borderRadius: 8,
+    minHeight: 120,
   },
   optionImage: {
     height: 80,
     width: '100%',
     borderRadius: 8,
   },
+  optionImagePlaceholder: {
+    height: 80,
+    width: '100%',
+    borderRadius: 8,
+    backgroundColor: '#E5E5E5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    color: '#999',
+    fontSize: 12,
+  },
   selectedOption: {
     borderColor: COLORS.btn,
-    borderWidth: 2,                                
+    borderWidth: 2,
     backgroundColor: '#EFEFEF',
   },
   correctOption: {
