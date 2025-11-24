@@ -1,78 +1,97 @@
-import {NavigationContainer} from '@react-navigation/native';
-import {PersistGate} from 'redux-persist/integration/react';
+import React, { useEffect } from 'react';
+import { StatusBar } from 'react-native';
+import { Provider, useSelector } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { NavigationContainer } from '@react-navigation/native';
+import { I18nextProvider } from 'react-i18next';
 import messaging from '@react-native-firebase/messaging';
-import RNBootSplash from 'react-native-bootsplash';
-import {I18nextProvider} from 'react-i18next';
 import notifee from '@notifee/react-native';
-import React, {useEffect} from 'react';
-import {StatusBar} from 'react-native';
-import {Provider} from 'react-redux';
-import 'intl-pluralrules';
-
-import SocketProvider from './src/components/SocketProvider';
-import BrainBox from './src/components/BrainBox';
-
-import {persistor, store} from './src/store';
-import {COLORS} from './src/utils/COLORS';
-import Navigation from './src/navigation';
-import i18n from './src/language/i18n';
+import RNBootSplash from 'react-native-bootsplash';
 import { StripeProvider } from '@stripe/stripe-react-native';
 
-const App = () => {
+import { store, persistor } from './src/store';
+import i18n from './src/language/i18n';
+import Navigation from './src/navigation';
+import SocketProvider from './src/components/SocketProvider';
+import BrainBox from './src/components/BrainBox';
+import { COLORS } from './src/utils/COLORS';
+
+const AppInner = () => {
+  // Get current language from Redux
+  const currentLanguage = useSelector(state => state.language.language);
+
+  // Update i18n language whenever Redux state changes
   useEffect(() => {
-    RNBootSplash.hide({fade: true});
+    if (currentLanguage) {
+      i18n.changeLanguage(currentLanguage);
+    }
+  }, [currentLanguage]);
+
+  // Hide splash screen
+  useEffect(() => {
+    RNBootSplash.hide({ fade: true });
   }, []);
-  const onMessageHandler = async () => {
+
+  // Handle foreground push notifications
+  const onMessageHandler = async remoteMessage => {
     const channelId = await notifee.createChannel({
       id: 'default',
       name: 'Default Channel',
     });
     await notifee.displayNotification({
-      title: 'Notification Title',
-      body: 'Main notification message',
+      title: remoteMessage.notification?.title || 'Notification Title',
+      body: remoteMessage.notification?.body || 'Main notification message',
       android: {
         channelId,
-        // Optional properties
-        smallIcon: 'ic_launcher', // app icon
+        smallIcon: 'ic_launcher', // your app icon
       },
     });
   };
 
-  // Background tasks handle
-  notifee.onBackgroundEvent(async ({type, detail}) => {
-    // Handle background events
-  });
-
-  // Foreground events handle
-  notifee.onForegroundEvent(({type, detail}) => {
-    // Handle foreground events
-  });
   useEffect(() => {
-    const unSubMessaging = messaging().onMessage(onMessageHandler);
+    const unsubscribeMessaging = messaging().onMessage(onMessageHandler);
+    return () => unsubscribeMessaging();
+  }, []);
+
+  // Notifee background & foreground event handlers
+  useEffect(() => {
+    const unsubscribeForeground = notifee.onForegroundEvent(({ type, detail }) => {
+      // Handle foreground events here
+    });
+
+    const unsubscribeBackground = notifee.onBackgroundEvent(async ({ type, detail }) => {
+      // Handle background events here
+    });
+
     return () => {
-      unSubMessaging();
+      unsubscribeForeground();
+      unsubscribeBackground();
     };
   }, []);
+
   return (
-    <StripeProvider publishableKey="pk_test_51QjTNeAIEkqtoj6HU7pRcf2KeBKgz2VQ3eLqZWqYG8juHUtTu1zFV2aNEVjhiGflaXDvtMsPVMljh6c2YXj5ZpT200FSo683mj">
     <I18nextProvider i18n={i18n}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={COLORS.white}
-      />
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <NavigationContainer>
-            <SocketProvider>
-              <BrainBox>
-                <Navigation />
-              </BrainBox>
-            </SocketProvider>
-          </NavigationContainer>
-        </PersistGate>
-      </Provider>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <NavigationContainer>
+        <SocketProvider>
+          <BrainBox>
+            <Navigation />
+          </BrainBox>
+        </SocketProvider>
+      </NavigationContainer>
     </I18nextProvider>
-    </StripeProvider>
+  );
+};
+
+const App = () => {
+  return (
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <StripeProvider publishableKey="pk_test_51QjTNeAIEkqtoj6HU7pRcf2KeBKgz2VQ3eLqZWqYG8juHUtTu1zFV2aNEVjhiGflaXDvtMsPVMljh6c2YXj5ZpT200FSo683mj">
+          <AppInner />
+        </StripeProvider>
+      </PersistGate>
+    </Provider>
   );
 };
 

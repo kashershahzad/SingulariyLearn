@@ -113,7 +113,7 @@ const Checkout = ({route, navigation}) => {
   return (
     <ScreenWrapper
       paddingBottom={20}
-      headerUnScrollable={() => <Header2 line={true} title={'Checkout'} />}
+      headerUnScrollable={() => <Header2 line={true} title={t('checkoutButton')} />}
       footerUnScrollable={() => (
         <View style={{marginHorizontal: 16}}>
           <CustomButton
@@ -240,7 +240,6 @@ export default Checkout;
 
 const styles = StyleSheet.create({
   container: {
-    height: 185,
     borderColor: '#E3E3E3',
     borderWidth: 1,
     padding: 10,

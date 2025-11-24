@@ -22,7 +22,7 @@ const Language = ({ navigation, route}) => {
     const {ProfileScreen} = route.params || {};
     console.log("ProfileScreen",ProfileScreen)
 
-    useEffect(() => {
+    useEffect(() => { 
         const fetchLanguage = async () => {
             setLoading(true);
             try {
