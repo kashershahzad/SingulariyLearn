@@ -403,16 +403,16 @@ const Testfrom = ({
         />
       );
     }
-    return (
-      <View
-        style={{
-          height: 200,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-        <Text style={{color: 'gray'}}>{t('noMedia')}</Text>
-      </View>
-    );
+    // return (
+    //   <View
+    //     style={{
+    //       height: 50,
+    //       justifyContent: 'center',
+    //       alignItems: 'center',
+    //     }}>
+    //     <Text style={{color: 'gray'}}>{t('noMedia')}</Text>
+    //   </View>
+    // );
   };
 
   if (isLoading || parsedQuestions.length === 0) {
@@ -488,7 +488,7 @@ const Testfrom = ({
           <View style={[styles.lineProgress, {width: progressWidth}]}></View>
         </View>
 
-        <View style={{minHeight: 80}}>
+        <View >
           <CustomText
             label={currentQuestion.question}
             fontFamily={fonts.regular}

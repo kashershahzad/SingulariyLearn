@@ -10,7 +10,7 @@ import Loading from '../../../../components/Loading'
 import {ApiRequest} from '../../../../services/ApiRequest'
 import { useSelector } from 'react-redux'
 
-const Service = () => {
+const Service = ({permitId}) => {
     const navigation = useNavigation()
     const { t } = useTranslation()
     const [service, setService] = useState([])
@@ -22,16 +22,16 @@ const Service = () => {
             try {
                 const body = {
                     type: 'get_data',
-                    table_name: 'categories_useful'
+                    table_name: 'categories_useful',
+                    permit_id:permitId
                 }
+                console.log(body)
                 const response = await ApiRequest(body)
                 if (response.status === 200) {
                     console.log('catagories', response.data)
                     
-                    // Fixed: Access the data array directly from response.data
                     const Rawdata = response.data?.data || []
                     
-                    // Add a check to ensure Rawdata is an array
                     if (!Array.isArray(Rawdata)) {
                         console.log('Rawdata is not an array:', Rawdata)
                         setService([])
@@ -41,7 +41,7 @@ const Service = () => {
                     const pdata = Rawdata.map(item => ({
                         id: item.id.toString(),
                         title: JSON.parse(item.title)[currentLanguage],
-                        image: item.thumb, // Using thumb URL from API
+                        image: item.thumb,
                         cat_img: item.cat_img,
                         headline: JSON.parse(item.headline || '{}')[currentLanguage] || '',
                         content: JSON.parse(item.editor_content || '{}')[currentLanguage] || '',

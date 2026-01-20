@@ -6,6 +6,7 @@ import Testfrom from '../mockuptest/Testfrom'
 import { useTranslation } from 'react-i18next'
 import MockupHeader from '../Molecules/MockupHeader'
 import { ApiRequest } from '../../../../services/ApiRequest'
+import { useSelector } from 'react-redux'
 
 const LessonPage = ({ route, navigation }) => {
     const { t } = useTranslation();
@@ -17,6 +18,7 @@ const LessonPage = ({ route, navigation }) => {
     const [totalQuestion, settotalQuestion] = useState('')
 
     const { lesson_id, name } = route.params;
+    const token = useSelector(state => state.authConfig.token);
 
     useEffect(() => {
         const fetchquestion = async () => {
@@ -25,11 +27,13 @@ const LessonPage = ({ route, navigation }) => {
                     type: "get_data",
                     table_name: "questions",
                     lesson_id: lesson_id,
-                    limit :50
+                    limit :50,
+                    user_id: token,
                 }
 
                 const response = await ApiRequest(Body)
                 console.log("Lesson questions response", response.data); 
+                console.log("Lesson questions body", Body);
                 
                 if (response.data && response.data.data) {
                     setQuestions(response.data.data);

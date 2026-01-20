@@ -16,12 +16,12 @@ class MainActivity : ReactActivity() {
     // 🚫 Block screenshots and screen recordings
     
     RNBootSplash.init(this, R.style.BootTheme)
-     /*
+    
     window.setFlags(
       WindowManager.LayoutParams.FLAG_SECURE,
       WindowManager.LayoutParams.FLAG_SECURE
     )
-    */
+    
 
   }
 

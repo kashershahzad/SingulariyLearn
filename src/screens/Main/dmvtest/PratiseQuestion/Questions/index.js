@@ -17,6 +17,7 @@ const Questions = ({navigation, route}) => {
   const {t} = useTranslation();
   const currentLanguage = useSelector(state => state.language.language);
   const userData = useSelector(state => state.users.userData);
+  const token = useSelector(state => state.authConfig.token);
 
   // Get mockup and roadsigns values from userData
   const mockup = userData?.purchase?.permit?.mockup;
@@ -36,6 +37,8 @@ const Questions = ({navigation, route}) => {
         lesson_id: id,
         limit: 50,
         permit_id: permit_id,
+        user_id: token,
+        
       };
       console.log('Request Body:', Body);
 

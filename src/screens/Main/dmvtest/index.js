@@ -14,10 +14,9 @@ const DmvTest = ({navigation, route}) => {
   const userData = useSelector(state => state.users.userData);
 
   // Get permitId passed from previous screen
-const { permitId, name } = route.params || {};
-console.log('Received permitId:', permitId);
-console.log('Received name:', name);
-
+  const {permitId, name} = route.params || {};
+  console.log('Received permitId:', permitId);
+  console.log('Received name:', name);
 
   // Find the purchased permit object matching the selected permitId
   const purchasedPermit = userData?.purchase?.find(
@@ -44,7 +43,10 @@ console.log('Received name:', name);
             title: t('mockupTest'),
             icon: Images.mockup,
             bgColor: '#FDCD55',
-            fnc: () => navigation.navigate('Mockuptest'),
+            fnc: () =>
+              navigation.navigate('Mockuptest', {
+                permitId: permitId,
+              }),
           },
         ]
       : []),
@@ -85,7 +87,10 @@ console.log('Received name:', name);
       title: t('usefulKnowledge'),
       icon: Images.usefulknowledge,
       bgColor: '#0DC1BE',
-      fnc: () => navigation.navigate('UsefulKnowledge'),
+      fnc: () =>
+        navigation.navigate('UsefulKnowledge', {
+          permitId: permitId,
+        }),
     },
   ];
 

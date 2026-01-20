@@ -18,6 +18,7 @@ const Mockuptest = ({route, navigation}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [totalQuestion, settotalQuestion] = useState('');
   // const {roadsign} = route.params
+  const {permitId} = route.params
 
   useEffect(() => {
     const fetchquestion = async () => {
@@ -26,10 +27,11 @@ const Mockuptest = ({route, navigation}) => {
           type: 'get_data',
           table_name: 'questions',
           is_mockup: 1,
-          // last_id: 0,
+          permit_id:permitId
         };
 
         const response = await ApiRequest(Body);
+        console.log(Body)
         console.log('Pratise response', response.data);
         settotalQuestion(response.data.total);
 
