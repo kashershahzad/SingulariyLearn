@@ -63,6 +63,7 @@ const Congratulations = ({navigation, route}) => {
     score = 0,
     totalQuestions = 50,
     averageTime = '00:00',
+    permitId,
   } = route.params || {};
 
   const percentage =
@@ -128,9 +129,16 @@ const Congratulations = ({navigation, route}) => {
         </View>
 
         <CustomButton
+          // onPress={() =>
+          //   navigation.navigate('TabStack', {screen: t('Dmv Test')})
+          // }
           onPress={() =>
-            navigation.navigate('TabStack', {screen: t('Dmv Test')})
+            navigation.navigate('PratiseQuestion', {
+              roadsign: false,
+              permitId: permitId,
+            })
           }
+          
           width={318}
           height={52}
           title={t('startNewTestButton')}

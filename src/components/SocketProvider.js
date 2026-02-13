@@ -22,10 +22,11 @@ const SocketProvider = ({children}) => {
   const initializeSocket = () => {
     if (!token) return;
 
-    const newSocket = io(endPoints.SOCKET_BASE_URL, {
-      reconnectionAttempts: 15,
-      transports: ['websocket'],
-    });
+    try {
+      const newSocket = io(endPoints.SOCKET_BASE_URL, {
+        reconnectionAttempts: 15,
+        transports: ['websocket'],
+      });
 
     newSocket.emit('authenticate', token);
     newSocket.on('authenticated', id => {
@@ -40,13 +41,16 @@ const SocketProvider = ({children}) => {
       console.error('Unauthorized socket connection:', error.message);
     });
 
-    newSocket.on('disconnect', () => {
-      console.log('Socket disconnected. Attempting to reconnect...');
-      setSocket(null); // Clear the current socket
-      initializeSocket(); // Re-initialize socket on disconnect
-    });
+      newSocket.on('disconnect', () => {
+        console.log('Socket disconnected. Attempting to reconnect...');
+        setSocket(null); // Clear the current socket
+        initializeSocket(); // Re-initialize socket on disconnect
+      });
 
-    socketRef.current = newSocket;
+      socketRef.current = newSocket;
+    } catch (e) {
+      if (__DEV__) console.warn('Socket init failed:', e?.message);
+    }
   };
 
   useEffect(() => {

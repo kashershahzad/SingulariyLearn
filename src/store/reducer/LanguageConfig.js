@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { lang } from "moment/moment";
 
 const initialState = {  
     language: 'en',

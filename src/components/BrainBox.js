@@ -20,9 +20,14 @@ const BrainBox = ({children}) => {
     }
   };
   useEffect(() => {
-    messaging().onNotificationOpenedApp(remoteMessage => {
-      handlePress(remoteMessage?.data);
-    });
+    try {
+      const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
+        handlePress(remoteMessage?.data);
+      });
+      return () => unsubscribe?.();
+    } catch (e) {
+      if (__DEV__) console.warn('BrainBox: Firebase messaging init failed:', e?.message);
+    }
   }, []);
 
   return <View style={{flex: 1}}>{children}</View>;

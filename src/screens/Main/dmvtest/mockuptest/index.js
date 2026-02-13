@@ -90,6 +90,7 @@ const Mockuptest = ({route, navigation}) => {
           questions={questions}
           mockuptest={true}
           navigation={true}
+          permitId={permitId}
         />
       ) : null}
     </ScreenWrapper>

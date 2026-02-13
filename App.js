@@ -49,23 +49,32 @@ const AppInner = () => {
   };
 
   useEffect(() => {
-    const unsubscribeMessaging = messaging().onMessage(onMessageHandler);
-    return () => unsubscribeMessaging();
+    let unsubscribe;
+    try {
+      unsubscribe = messaging().onMessage(onMessageHandler);
+    } catch (e) {
+      if (__DEV__) console.warn('Firebase messaging init failed:', e?.message);
+    }
+    return () => unsubscribe?.();
   }, []);
 
   // Notifee background & foreground event handlers
   useEffect(() => {
-    const unsubscribeForeground = notifee.onForegroundEvent(({ type, detail }) => {
-      // Handle foreground events here
-    });
-
-    const unsubscribeBackground = notifee.onBackgroundEvent(async ({ type, detail }) => {
-      // Handle background events here
-    });
-
+    let unsubscribeForeground;
+    let unsubscribeBackground;
+    try {
+      unsubscribeForeground = notifee.onForegroundEvent(({ type, detail }) => {
+        // Handle foreground events here
+      });
+      unsubscribeBackground = notifee.onBackgroundEvent(async ({ type, detail }) => {
+        // Handle background events here
+      });
+    } catch (e) {
+      if (__DEV__) console.warn('Notifee init failed:', e?.message);
+    }
     return () => {
-      unsubscribeForeground();
-      unsubscribeBackground();
+      unsubscribeForeground?.();
+      unsubscribeBackground?.();
     };
   }, []);
 

@@ -30,6 +30,7 @@ const Testfrom = ({
   lesson_id,
   lesson = true,
   questions: initialQuestions,
+  permitId,
 }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -324,6 +325,7 @@ const Testfrom = ({
         averageTime: finalAverageTime,
         isMockup: false,
         isLesson: isLessonMode,
+        permitId: permitId,
       });
     } catch (error) {
       console.error('Error submitting answers:', error);
