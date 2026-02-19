@@ -44,6 +44,10 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         paddingHorizontal: 15,
     },
+    backButton: {
+        padding: Platform.OS === 'ios' ? 10 : 4,
+        marginLeft: Platform.OS === 'ios' ? -4 : 0,
+    },
     icon: {
         height: 24,
         width: 24

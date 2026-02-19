@@ -7,6 +7,7 @@ import Icons from './Icons';
 import {COLORS} from '../utils/COLORS';
 import fonts from '../assets/fonts';
 import {Images} from '../assets/images';
+import i18n from '../language/i18n';
 
 // Convert Urdu/Arabic numerals and common symbols to Western (English) for input fields
 const normalizeToWestern = (text) => {
@@ -60,6 +61,10 @@ const CustomInput = ({
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [hidePass, setHidePass] = useState(true);
+
+  // iOS: use system font for Urdu/Arabic so placeholder and input text render
+  const isRTLScript = i18n.language === 'ur' || i18n.language === 'ar';
+  const inputFontFamily = Platform.OS === 'ios' && isRTLScript ? undefined : fonts.regular;
 
   const handleFocus = () => {
     setIsFocused(true);
@@ -124,6 +129,7 @@ const CustomInput = ({
           placeholder={placeholder ?? ''}
           style={[
             styles.input,
+            { fontFamily: inputFontFamily },
             {
               width: secureTextEntry || (iconImage && iconPosition === 'right') ? '92%' : undefined,
               paddingVertical: multiline ? 18 : 0,

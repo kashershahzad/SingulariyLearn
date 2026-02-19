@@ -34,7 +34,7 @@ const LoginScreen = ({ navigation }) => {
     });
 
     const handleSubmit = async (values) => {
-        setLoading(true); // Start loading
+        setLoading(true); 
         
         try {
             const body = {

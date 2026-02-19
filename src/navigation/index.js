@@ -1,27 +1,17 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector } from 'react-redux';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 //screens
 import AuthStack from './AuthStack';
 import MainStack from './MainStack';
-import i18n from '../language/i18n';
 
 const Stack = createNativeStackNavigator();
 
 const RootNavigation = () => {
-    const isToken = useSelector(state => state.authConfig.token);
+  const isToken = useSelector(state => state.authConfig.token);
 
-  const { language } = useSelector(state => state.users);
-
-  useEffect(() => {
-    if (language == 'en') {
-      i18n.changeLanguage('ur');
-    } else {
-      i18n.changeLanguage('en');
-    }
-  }, []);
-   
+  // Language is synced to i18n in App.js from state.language (LanguageConfig)
   return (
     <Stack.Navigator
     // initialRouteName='MainStack'
