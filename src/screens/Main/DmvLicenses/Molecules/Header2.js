@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, Platform } from 'react-native'
 import React from 'react'
 import { Images } from '../../../../assets/images'
 import ImageFast from '../../../../components/ImageFast'
@@ -8,17 +8,19 @@ import CustomHorizontalLine from '../../../../components/CustomHorizontalLine'
 import { useNavigation } from '@react-navigation/native'
 
 const Header2 = ({ title, line }) => {
-    const Navigation = useNavigation()
+    const navigation = useNavigation()
     return (
         <>
             <View style={styles.container}>
-                <ImageFast
-                    onPress={() => { Navigation.goBack() }}
-                    source={Images.leftarrow}
-                    resizeMode={'contain'}
-                    style={styles.icon}
-                />
-                <View style={styles.titleContainer}>
+                <View style={styles.backButton} pointerEvents="box-none">
+                    <ImageFast
+                        onPress={() => navigation.canGoBack() && navigation.goBack()}
+                        source={Images.leftarrow}
+                        resizeMode={'contain'}
+                        style={styles.icon}
+                    />
+                </View>
+                <View style={styles.titleContainer} pointerEvents="box-none">
                     <CustomText
                         fontSize={16}
                         fontFamily={fonts.jakartaSemiBold}
@@ -47,6 +49,7 @@ const styles = StyleSheet.create({
     backButton: {
         padding: Platform.OS === 'ios' ? 10 : 4,
         marginLeft: Platform.OS === 'ios' ? -4 : 0,
+        zIndex: 10,
     },
     icon: {
         height: 24,

@@ -14,7 +14,7 @@ const CustomText = ({
   marginRight,
   marginLeft,
   alignSelf,
-  fontFamily,
+  fontFamily=fonts.regular,
   fontStyle,
   textTransform,
   textAlign,
