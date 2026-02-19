@@ -1,13 +1,27 @@
-import {Image, StyleSheet, TextInput, View} from 'react-native';
+import {Image, Platform, StyleSheet, TextInput, View} from 'react-native';
 import React, {useState} from 'react';
 
 import CustomText from './CustomText';
 import Icons from './Icons';
 
 import {COLORS} from '../utils/COLORS';
-import i18n from '../language/i18n';
 import fonts from '../assets/fonts';
 import {Images} from '../assets/images';
+
+// Convert Urdu/Arabic numerals and common symbols to Western (English) for input fields
+const normalizeToWestern = (text) => {
+  if (text == null || typeof text !== 'string') return text;
+  return text
+    .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/،/g, ',')
+    .replace(/؛/g, ';')
+    .replace(/؟/g, '?')
+    .replace(/٪/g, '%')
+    .replace(/٫/g, '.')
+    .replace(/٬/g, ',')
+    .replace(/۔/g, '.');
+};
 
 const CustomInput = ({
   placeholder,
@@ -57,6 +71,11 @@ const CustomInput = ({
     isBlur?.();
   };
 
+  const handleChangeText = (text) => {
+    const normalized = normalizeToWestern(text);
+    onChangeText?.(normalized);
+  };
+
   return (
     <View style={{width: width || '100%'}}>
       {withLabel && (
@@ -85,7 +104,7 @@ const CustomInput = ({
             borderRadius: borderRadius || 12,
             paddingLeft: iconImage && iconPosition === 'left' ? 10 : 20,
             paddingRight: iconImage && iconPosition === 'right' ? 10 : 20,
-            backgroundColor: isFocused ? '#FBFBFB#' : bgcolor,
+            backgroundColor: isFocused ? '#FBFBFB' : bgcolor,
           },
         ]}>
         {iconImage && iconPosition === 'left' && (
@@ -102,22 +121,26 @@ const CustomInput = ({
 
         <TextInput
           ref={ref}
-          placeholder={i18n.t(placeholder)}
+          placeholder={placeholder ?? ''}
           style={[
             styles.input,
             {
-              width: secureTextEntry || (iconImage && iconPosition === 'right') ? '92%' : '99%',
+              width: secureTextEntry || (iconImage && iconPosition === 'right') ? '92%' : undefined,
               paddingVertical: multiline ? 18 : 0,
               marginLeft: iconImage && iconPosition === 'left' ? 10 : 0,
               marginRight: iconImage && iconPosition === 'right' ? 10 : 0,
               paddingRight: secureTextEntry ? 10 : 0,
+              ...(Platform.OS === 'ios' && iconImage && iconPosition === 'left' && {
+                paddingLeft: 1,
+                minWidth: 0,
+              }),
             },
           ]}
           secureTextEntry={secureTextEntry ? (hidePass ? true : false) : false}
           onFocus={handleFocus}
           onBlur={handleBlur}
           value={value}
-          onChangeText={onChangeText}
+          onChangeText={handleChangeText}
           keyboardType={keyboardType}
           multiline={multiline}
           onEndEditing={onEndEditing}
@@ -181,6 +204,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.black,
     flex: 1,
+    textAlign: 'left',
+    writingDirection: 'ltr',
   },
   leftIcon: {
     marginRight: 5,
