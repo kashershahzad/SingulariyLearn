@@ -9,16 +9,19 @@ import fonts from '../../../assets/fonts'
 // import { Images } from '../../../../assets/images'
 // import fonts from '../../../../assets/fonts'
 
-const Options = ({ title, icon, bg , fnc }) => {
+const Options = ({ title, icon, iconComponent, bg , fnc }) => {
     return (
         <TouchableOpacity onPress={fnc} style={styles.container}>
             <View style={styles.mincontainer}>
-                
+                {iconComponent ? (
+                    iconComponent
+                ) : (
                     <ImageFast
                         source={icon}
                         resizeMode={'contain'}
                         style={styles.icon}
                     />
+                )}
                
                 <CustomText label={title} fontFamily={fonts.medium} fontSize={16} marginTop={10} marginLeft={5} />
             </View>

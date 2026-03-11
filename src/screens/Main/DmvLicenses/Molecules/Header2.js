@@ -15,7 +15,7 @@ const Header2 = ({ title, line }) => {
     return (
         <>
             <View style={styles.container}>
-                <View style={styles.backButton} pointerEvents="box-only" collapsable={false}>
+                <View style={styles.backButton} pointerEvents="box-none" collapsable={false}>
                     <ImageFast
                         onPress={handleBack}
                         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}

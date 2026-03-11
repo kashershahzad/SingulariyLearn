@@ -8,6 +8,7 @@ import fonts from '../../../assets/fonts'
 import CustomText from '../../../components/CustomText'
 import ProfileOptions from './ProfileOptions'
 import Options from './Options'
+import DeleteAccountIcon from './DeleteAccountIcon'
 import { useTranslation } from 'react-i18next'
 import { COLORS } from '../../../utils/COLORS'
 import { useDispatch } from 'react-redux'
@@ -66,6 +67,26 @@ const ProfileScreen = ({ navigation }) => {
     }, 50);
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      const body = {
+        type: 'delete_account',
+        user_id: token,
+      };
+      const response = await ApiRequest(body);
+      console.log('API Response:', response);
+      if (response?.data.result === true) {
+        dispatch(logoutUser());
+        dispatch(logout());
+        setTimeout(() => navigation.navigate('AuthStack'), 50);
+      }
+    } catch (error) {
+      console.log('Error deleting account: ', error);
+    }
+  };
+
+  const practiceMenuItems = [
+    {
       title: t("Edit Profile"),
       icon: Images.editprofile,
       fnc: () => navigation.navigate('EditProfile')
@@ -96,7 +117,7 @@ const ProfileScreen = ({ navigation }) => {
     },
     {
       title: t("deleteAccount"),
-      icon: Images.logouticon,
+      iconComponent: <DeleteAccountIcon />,
       fnc: handleDeleteAccount
     },
     {
@@ -153,7 +174,7 @@ const ProfileScreen = ({ navigation }) => {
       <View style={styles.mincontainer2}>
         {
           practiceMenuItems.map(((item, i) => (
-            <Options key={i} title={item.title} icon={item.icon} fnc={item.fnc} bg={item.bgColor} />
+            <Options key={i} title={item.title} icon={item.icon} iconComponent={item.iconComponent} fnc={item.fnc} bg={item.bgColor} />
           )))
         }
       </View>
