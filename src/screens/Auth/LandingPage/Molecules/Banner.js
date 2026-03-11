@@ -24,6 +24,7 @@ const Banner = () => {
         fontSize={22}
         marginRight={100}
         width={200}
+        lineHeight={30}
         color={'white'}
       />
 

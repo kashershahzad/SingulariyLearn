@@ -82,8 +82,8 @@ const Congratulations = ({navigation, route}) => {
         <CustomText
           label={
             percentage >= 70
-              ? t('Driving Test Passed')
-              : t('Driving Test Failed')
+              ? t('drivingTestPassed')
+              : t('drivingTestFailed')
           }
           fontFamily={fonts.medium}
           fontSize={24}
@@ -120,7 +120,7 @@ const Congratulations = ({navigation, route}) => {
             />
 
             <CustomText
-              label={t('Average Time ')}
+              label={t('averageTimeLabel')}
               fontFamily={fonts.regular}
               fontSize={16}
               textAlign={'center'}

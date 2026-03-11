@@ -43,7 +43,9 @@ const PratiseQuestion = ({navigation, route}) => {
 
         console.log(body);
 
+
         const response = await ApiRequest(body);
+        console.log('lessons response', response.data);
         if (response && response.status === 200) {
           console.log('lessons', response.data);
           const rawData = response.data.data;

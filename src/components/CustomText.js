@@ -30,7 +30,7 @@ const CustomText = ({
   paddingBottom,
   activeOpacity,
   textDecorationLine,
-  lineHeight,
+  lineHeight=30,
   containerStyle,
   right,
   left,

@@ -9,15 +9,19 @@ import { useNavigation } from '@react-navigation/native'
 
 const Header2 = ({ title, line }) => {
     const navigation = useNavigation()
+    const handleBack = () => {
+        navigation.goBack()
+    }
     return (
         <>
             <View style={styles.container}>
-                <View style={styles.backButton} pointerEvents="box-none">
+                <View style={styles.backButton} pointerEvents="box-only" collapsable={false}>
                     <ImageFast
-                        onPress={() => navigation.canGoBack() && navigation.goBack()}
+                        onPress={handleBack}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                         source={Images.leftarrow}
                         resizeMode={'contain'}
-                        style={styles.icon}
+                        style={[styles.icon, styles.backTouchable]}
                     />
                 </View>
                 <View style={styles.titleContainer} pointerEvents="box-none">

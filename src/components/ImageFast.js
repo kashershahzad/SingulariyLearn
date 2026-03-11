@@ -24,6 +24,7 @@ const ImageFast = ({
   loading,
   children,
   onPress,
+  hitSlop,
 }) => {
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [isViewModal, setIsViewModal] = useState(false);
@@ -73,7 +74,7 @@ const ImageFast = ({
 
   return (
     <TouchableOpacity
-    // hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}
+      hitSlop={hitSlop}
       onPress={isView ? () => setIsViewModal(true) : onPress}
       activeOpacity={0.6}
       disabled={!isView && !onPress}

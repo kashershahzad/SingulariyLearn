@@ -66,8 +66,6 @@ const ProfileScreen = ({ navigation }) => {
     }, 50);
   };
 
-  const practiceMenuItems = [
-    {
       title: t("Edit Profile"),
       icon: Images.editprofile,
       fnc: () => navigation.navigate('EditProfile')
@@ -95,6 +93,11 @@ const ProfileScreen = ({ navigation }) => {
     {
       title: t("website"),
       icon: Images.websiteicon,
+    },
+    {
+      title: t("deleteAccount"),
+      icon: Images.logouticon,
+      fnc: handleDeleteAccount
     },
     {
       title: t("logout"),
