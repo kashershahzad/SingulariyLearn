@@ -5,9 +5,6 @@ import { COLORS } from '../../../utils/COLORS';
 
 const SIZE = 45;
 
-/**
- * Delete Account icon: same colors as logout icon - light blue circle, btn blue symbol.
- */
 const DeleteAccountIcon = () => (
   <View style={{ width: SIZE, height: SIZE }}>
     <Svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}>
