@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, Modal, Text, Platform, Alert } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Modal, Text, Platform, Alert, Linking } from 'react-native';
 import ImageFast from '../../../../components/ImageFast';
 import { Images } from '../../../../assets/images';
 import { openCamera, openPicker } from 'react-native-image-crop-picker';
@@ -40,6 +40,23 @@ const ProfileImagePicker = ({ imageUri, onImageSelected, uploadimage }) => {
     }
   };
 
+  const isCameraUnavailableError = (err) => {
+    const msg = err?.message ?? '';
+    return (
+      msg.includes('simulator') ||
+      msg.includes('Cannot run camera') ||
+      msg.includes('camera') && msg.toLowerCase().includes('not available')
+    );
+  };
+
+  const isPermissionDeniedError = (err) => {
+    const msg = (err?.message ?? '').toLowerCase();
+    return (
+      msg.includes('did not grant') ||
+      msg.includes('permission') && (msg.includes('denied') || msg.includes('library'))
+    );
+  };
+
   const handleImagePick = async (type) => {
     try {
       let image;
@@ -62,13 +79,34 @@ const ProfileImagePicker = ({ imageUri, onImageSelected, uploadimage }) => {
       }
       onImageSelected(image.path);
       await uploadImageToServer(image.path);
-      
+      setIsModalVisible(false);
     } catch (error) {
       console.log('Image picker error:', error);
-      if (error.message !== 'User cancelled image selection') {
-        Alert.alert('Error', 'Failed to process image');
+      if (error.message === 'User cancelled image selection') {
+        setIsModalVisible(false);
+        return;
       }
-    } finally {
+      if (isCameraUnavailableError(error)) {
+        Alert.alert(
+          'Camera not available',
+          "Camera isn't available on simulator. Please use 'Choose from Gallery' to pick a photo.",
+          [{ text: 'OK' }]
+        );
+        // Keep modal open so user can tap "Choose from Gallery"
+        return;
+      }
+      if (isPermissionDeniedError(error)) {
+        Alert.alert(
+          'Photo access needed',
+          'To choose a profile photo, please allow access to your photo library in Settings.',
+          [
+            { text: 'Cancel', style: 'cancel', onPress: () => setIsModalVisible(false) },
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+          ]
+        );
+        return;
+      }
+      Alert.alert('Error', 'Failed to process image');
       setIsModalVisible(false);
     }
   };
