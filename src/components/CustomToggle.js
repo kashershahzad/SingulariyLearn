@@ -1,67 +1,79 @@
-import { TouchableOpacity, View, StyleSheet, Animated } from "react-native";
-import React, { useState } from "react";
+import React, {useEffect, useRef} from 'react';
+import {Animated, Pressable, StyleSheet} from 'react-native';
 
-import { COLORS } from "../utils/COLORS";
+const TRACK_WIDTH = 51;
+const TRACK_HEIGHT = 31;
+const THUMB_SIZE = 27;
+const TRACK_PADDING = 2;
+const THUMB_TRAVEL = TRACK_WIDTH - THUMB_SIZE - TRACK_PADDING * 2;
 
-const CustomToggle = ({ value = false, setValue }) => {
-  const [isToggled, setIsToggled] = useState(value);
-  const [animation] = useState(new Animated.Value(value ? 1 : 0));
+const CustomToggle = ({
+  value = false,
+  onValueChange,
+  trackColorOn = '#00A8FF',
+  trackColorOff = '#C7CDD5',
+  thumbColor = '#FFFFFF',
+  disabled = false,
+}) => {
+  const progress = useRef(new Animated.Value(value ? 1 : 0)).current;
 
-  const handleToggle = () => {
-    Animated.spring(animation, {
-      toValue: isToggled ? 0 : 1,
-      useNativeDriver: true,
+  useEffect(() => {
+    Animated.spring(progress, {
+      toValue: value ? 1 : 0,
+      useNativeDriver: false,
+      friction: 9,
+      tension: 70,
     }).start();
-    setIsToggled(!isToggled);
-    if (setValue) {
-      setValue(!isToggled);
-    }
-  };
+  }, [progress, value]);
 
-  const toggleStyle = {
-    transform: [
-      {
-        translateX: animation.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, 16],
-        }),
-      },
-    ],
-  };
+  const trackBackground = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [trackColorOff, trackColorOn],
+  });
+
+  const thumbTranslateX = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, THUMB_TRAVEL],
+  });
 
   return (
-    <TouchableOpacity onPress={handleToggle} activeOpacity={0.8}>
-      <View
-        style={[
-          styles.toggleContainer,
-          isToggled ? styles.onBackground : styles.offBackground,
-        ]}
-      >
-        <Animated.View style={[styles.toggleCircle, toggleStyle]} />
-      </View>
-    </TouchableOpacity>
+    <Pressable
+      disabled={disabled}
+      onPress={() => onValueChange?.(!value)}
+      accessibilityRole="switch"
+      accessibilityState={{checked: value, disabled}}>
+      <Animated.View style={[styles.track, {backgroundColor: trackBackground}]}>
+        <Animated.View
+          style={[
+            styles.thumb,
+            {
+              backgroundColor: thumbColor,
+              transform: [{translateX: thumbTranslateX}],
+            },
+          ]}
+        />
+      </Animated.View>
+    </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
-  toggleContainer: {
-    width: 36,
-    height: 20,
-    borderRadius: 100,
-    justifyContent: "center",
-    padding: 2,
+  track: {
+    width: TRACK_WIDTH,
+    height: TRACK_HEIGHT,
+    borderRadius: TRACK_HEIGHT / 2,
+    padding: TRACK_PADDING,
+    justifyContent: 'center',
   },
-  toggleCircle: {
-    width: 16,
-    height: 16,
-    borderRadius: 100,
-    backgroundColor: COLORS.white,
-  },
-  onBackground: {
-    backgroundColor: COLORS.green,
-  },
-  offBackground: {
-    backgroundColor: COLORS.lightGray,
+  thumb: {
+    width: THUMB_SIZE,
+    height: THUMB_SIZE,
+    borderRadius: THUMB_SIZE / 2,
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.18,
+    shadowRadius: 1.5,
+    elevation: 2,
   },
 });
 

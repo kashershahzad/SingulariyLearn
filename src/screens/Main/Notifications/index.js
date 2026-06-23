@@ -12,9 +12,10 @@ import Item from './molecules/Item';
 
 import {get} from '../../../services/ApiRequest';
 import {Images} from '../../../assets/images';
-import {COLORS} from '../../../utils/COLORS';
+import {useTheme} from '../../../theme/useTheme';
 
 const Notifications = () => {
+  const {colors} = useTheme();
   const socket = useSocket();
   const navigation = useNavigation();
 
@@ -100,13 +101,13 @@ const Notifications = () => {
           <RefreshControl
             refreshing={loading}
             onRefresh={() => {}}
-            tintColor={COLORS.primaryColor}
+            tintColor={colors.accent}
           />
         }
         ListFooterComponent={
           bottomLoader ? (
             <View style={{marginBottom: 15}}>
-              <ActivityIndicator size="large" color={COLORS.primaryColor} />
+              <ActivityIndicator size="large" color={colors.accent} />
             </View>
           ) : null
         }

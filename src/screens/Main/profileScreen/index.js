@@ -30,31 +30,11 @@ const ProfileScreen = ({ navigation }) => {
   const userData = useSelector(state => state.users.userData)
    const permit = userData?.purchase?.permit;
 
-  // const [loading, setLoading] = useState(true)
-  // const [data, setdata] = useState()
-
-  // const fetchUserData = async () => {
-  //   try {
-  //     const body = {
-  //       type: "profile",
-  //       user_id: token.toString()
-  //     }
-  //     const response = await ApiRequest(body)
-  //     if (response && response.status === 200) {
-  //       setdata(response.data.profile)
-  //       console.log("User Data in profile: ", response.data.profile)
-  //     }
-  //   } catch (error) {
-  //     console.log("Error fetching user data: ", error)
-  //     setLoading(false)
-  //   }
-  //   setLoading(false)
-  // }
-
-  // useEffect(() => {
-
-  //   fetchUserData()
-  // }, [isFocus])
+  useEffect(() => {
+    if (isFocus) {
+      dispatch(getProfile());
+    }
+  }, [isFocus, dispatch]);
 
    const handleLogout = () => {
   
@@ -98,7 +78,7 @@ const ProfileScreen = ({ navigation }) => {
     },
     {
       title: t("Language"),
-      icon: Images.language,
+      icon: Images.languageIcon,
       fnc: () => navigation.navigate('Language', { ProfileScreen: true })
     },
     {
@@ -139,7 +119,11 @@ const ProfileScreen = ({ navigation }) => {
       headerUnScrollable={() => (<Header2 title={t("profileTitle")} line='true' />)}>
       <View style={styles.container}>
         <ImageFast
-          source={userData.images !== "" ? { uri: userData.images } : Images.placeholderUser}
+          source={
+            userData.images || userData.image
+              ? {uri: userData.images || userData.image}
+              : Images.placeholderUser
+          }
           resizeMode={'contain'}
           style={styles.icon}
         />

@@ -7,7 +7,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import CustomText from '../../../../components/CustomText';
 import fonts from '../../../../assets/fonts';
 import {COLORS} from '../../../../utils/COLORS';
@@ -40,6 +40,7 @@ const Testfrom = ({
   const [isLoading, setIsLoading] = useState(true);
   const [submitloading, setsubmitloading] = useState(false);
   const [allAnswers, setAllAnswers] = useState([]);
+  const allAnswersRef = useRef([]);
   const navigation = useNavigation();
   const token = useSelector(state => state.authConfig.token);
   const currentLanguage = useSelector(state => state.language.language);
@@ -186,7 +187,7 @@ const Testfrom = ({
     setTotalTime(prevTotal => prevTotal + timeTaken);
 
     const currentQuestion = parsedQuestions[currentQuestionIndex];
-    const alreadySaved = allAnswers.some(
+    const alreadySaved = allAnswersRef.current.some(
       ans => ans.question_id === currentQuestion.id,
     );
 
@@ -217,7 +218,7 @@ const Testfrom = ({
       setSelectedOption(index);
 
       const currentQuestion = parsedQuestions[currentQuestionIndex];
-      const alreadySaved = allAnswers.some(
+      const alreadySaved = allAnswersRef.current.some(
         ans => ans.question_id === currentQuestion.id,
       );
 
@@ -227,7 +228,13 @@ const Testfrom = ({
 
       if (!mockuptest) {
         setShowFeedback(true);
+        return;
       }
+
+      setIsTransitioning(true);
+      setTimeout(() => {
+        moveToNextQuestion();
+      }, 150);
     }
   };
 
@@ -254,16 +261,18 @@ const Testfrom = ({
       options: currentQuestion.options.map(opt => opt.answer),
     };
 
-    setAllAnswers(prev => {
-      const filtered = prev.filter(
-        ans => ans.question_id !== currentQuestion.id,
-      );
-      return [...filtered, answerData];
-    });
+    let nextAnswers = allAnswersRef.current.filter(
+      ans => ans.question_id !== currentQuestion.id,
+    );
+    nextAnswers = [...nextAnswers, answerData];
+    allAnswersRef.current = nextAnswers;
+    setAllAnswers(nextAnswers);
 
     if (isCorrect) {
       setScore(prevScore => prevScore + 1);
     }
+
+    return nextAnswers;
   };
 
   const getOptionStyle = index => {
@@ -290,17 +299,18 @@ const Testfrom = ({
     }, 100);
   };
 
-  const submitAllAnswers = async () => {
+  const submitAllAnswers = async (answersOverride = null) => {
     try {
       setsubmitloading(true);
 
-      const finalAverageTime = totalTime / (allAnswers.length || 1);
+      const answersToSubmit = answersOverride || allAnswersRef.current;
+      const finalAverageTime = totalTime / (answersToSubmit.length || 1);
 
       console.log('Submitting answers:', {
         score,
-        totalQuestions: allAnswers.length,
+        totalQuestions: answersToSubmit.length,
         averageTime: finalAverageTime,
-        answersCount: allAnswers.length,
+        answersCount: answersToSubmit.length,
         isMockup: mockuptest,
       });
 
@@ -308,7 +318,7 @@ const Testfrom = ({
         type: 'add_data',
         user_id: token,
         table_name: 'user_questionnaire',
-        questions: JSON.stringify(allAnswers),
+        questions: JSON.stringify(answersToSubmit),
         score: score,
         average_time: finalAverageTime,
         is_mockup: mockup,
@@ -321,9 +331,9 @@ const Testfrom = ({
 
       navigation.replace('Congratulations', {
         score: score,
-        totalQuestions: allAnswers.length,
+        totalQuestions: answersToSubmit.length,
         averageTime: finalAverageTime,
-        isMockup: false,
+        isMockup: mockuptest,
         isLesson: isLessonMode,
         permitId: permitId,
       });

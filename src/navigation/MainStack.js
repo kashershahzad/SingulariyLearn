@@ -45,13 +45,27 @@ import Questions from '../screens/Main/dmvtest/PratiseQuestion/Questions';
 import StartQuestions from '../screens/Main/dmvtest/PratiseQuestion/StartQuestions';
 import TestHistory from '../screens/Main/dmvtest/TestHistory';
 import RoadSign from '../screens/Main/dmvtest/RoadSign';
+import CourseEnroll from '../screens/Main/courseEnroll';
+import CourseCheckout from '../screens/Main/courseEnroll/CourseCheckout';
+import CourseEnrolled from '../screens/Main/courseEnrolled';
+import CourseDetails from '../screens/Main/CourseDetails';
+import CourseDetialNew from '../screens/Main/CourseDetailNew';
+import TestformNew from '../screens/Main/TestformNew';
+import MainResult from '../screens/Main/Result';
+import Performence from '../screens/Main/Performence';
+import HelpAndSupport from '../screens/Main/Profile/HelpAndSupport';
+import Settings from '../screens/Main/Profile/Settings';
+import ProfileNotifications from '../screens/Main/Profile/ProfileNotifications';
+import Payments from '../screens/Main/Profile/Payments';
+import Bookmarks from '../screens/Main/Bookmarks';
 
 const Stack = createNativeStackNavigator();
 
 const MainStack = () => {
   return (
     <Stack.Navigator
-    // initialRouteName='Lessons'
+    // initialRouteName="TestformNew"
+
       screenOptions={{
         headerShown: false,
         animation: 'slide_from_right',
@@ -97,7 +111,6 @@ const MainStack = () => {
       <Stack.Screen name="RoundAbout" component={RoundAbout} />
       <Stack.Screen name="Lparking" component={Lparking} />
       <Stack.Screen name="Details" component={Details} />
-
       <Stack.Screen name="StripeForm" component={StripeForm} />
       
 
@@ -110,6 +123,25 @@ const MainStack = () => {
 
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
 
+
+      {/* New Screens */}
+
+      <Stack.Screen name="CourseEnroll" component={CourseEnroll} />
+      <Stack.Screen name="CourseCheckout" component={CourseCheckout} />
+      <Stack.Screen name="CourseEnrolled" component={CourseEnrolled} />
+      <Stack.Screen name="CourseDetails" component={CourseDetails} />
+      <Stack.Screen name="CourseDetialNew" component={CourseDetialNew} />
+      <Stack.Screen name="TestformNew" component={TestformNew} />
+      <Stack.Screen name="MainResult" component={MainResult} />
+      <Stack.Screen name="Performence" component={Performence} />
+      <Stack.Screen name="HelpAndSupport" component={HelpAndSupport} />
+      <Stack.Screen name="Settings" component={Settings} />
+      <Stack.Screen
+        name="ProfileNotifications"
+        component={ProfileNotifications}
+      />
+      <Stack.Screen name="Payments" component={Payments} />
+      <Stack.Screen name="Bookmarks" component={Bookmarks} />
     </Stack.Navigator>
   );
 };

@@ -487,5 +487,40 @@
   "previous": "پچھلا",
   "Mockup Test Road Signs": "موک اپ ٹیسٹ سڑک کے نشانات",
   "noTestHistory": "کوئی ٹیسٹ ہسٹری موجود نہیں ہے",
-  "noMedia": "کوئی میڈیا دستیاب نہیں"
+  "noMedia": "کوئی میڈیا دستیاب نہیں",
+  "profileMenu": {
+    "title": "پروفائل",
+    "proMember": "پرو ممبر",
+    "userNameFallback": "صارف کا نام",
+    "userEmailFallback": "صارف کی ای میل",
+    "sections": {
+      "learningProgress": "سیکھنا اور پیش رفت",
+      "accountPayments": "اکاؤنٹ اور ادائیگیاں",
+      "settingsPreferences": "ترتیبات اور ترجیحات",
+      "supportInfo": "مدد اور معلومات"
+    },
+    "items": {
+      "dashboard": "ڈیش بورڈ",
+      "dashboardSubtitle": "اپنے سیکھنے کا جائزہ دیکھیں",
+      "enrolledCourses": "اندراج شدہ کورسز",
+      "enrolledCoursesSubtitle": "اپنے سیکھنے کا جائزہ دیکھیں",
+      "bookmarks": "بک مارکس",
+      "bookmarksSubtitle": "کورس بک مارک",
+      "payments": "ادائیگیاں",
+      "paymentsSubtitle": "ادائیگیوں کی تاریخ",
+      "settings": "ترتیبات",
+      "settingsSubtitle": "اکاؤنٹ کی ترتیبات اور ترجیحات",
+      "notifications": "نوٹیفکیشنز",
+      "notificationsSubtitle": "اپنی نوٹیفکیشنز منظم کریں",
+      "darkMode": "ڈارک موڈ",
+      "darkModeSubtitle": "ڈارک تھیم پر سوئچ کریں",
+      "language": "زبان",
+      "helpSupport": "مدد اور سپورٹ",
+      "helpSupportSubtitle": "مدد حاصل کریں اور سپورٹ سے رابطہ کریں",
+      "about": "کے بارے میں",
+      "aboutSubtitle": "ایپ ورژن اور معلومات",
+      "logout": "لاگ آؤٹ",
+      "logoutSubtitle": "اپنے اکاؤنٹ سے لاگ آؤٹ کریں"
+    }
+  }
 }

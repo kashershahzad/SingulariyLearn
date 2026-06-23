@@ -15,7 +15,7 @@ const CustomHorizontalLine = ({ height = 2, color = '#E5E7EB', style }) => {
 
 const styles = StyleSheet.create({
   line: {
-    marginTop:3,
+    marginTop:20,
     width: '100%',
   },
 });

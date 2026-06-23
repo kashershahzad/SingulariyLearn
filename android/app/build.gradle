@@ -88,6 +88,8 @@ android {
         versionCode 1
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
+        // react-native-iap has amazon/play flavors — use Google Play for Stripe builds
+        missingDimensionStrategy 'store', 'play'
     }
     signingConfigs {
         debug {

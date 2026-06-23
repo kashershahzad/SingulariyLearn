@@ -12,7 +12,7 @@ const Headers = {
 export const ApiRequest = async (logindata) => {
   try {
     const result = await axios.post(
-      "https://7tracking.com/dmvpermit/api.php",
+      "https://7tracking.com/singularity_learn/api.php",
       logindata,
       {
         headers: Headers.Header,

@@ -2,7 +2,7 @@ import { Text, TouchableOpacity, Platform } from "react-native";
 import { useTranslation } from "react-i18next";
 import React from "react";
 
-import { COLORS } from "../utils/COLORS";
+import { useTheme } from "../theme/useTheme";
 import fonts from "../assets/fonts";
 import i18n from "../language/i18n";
 
@@ -40,6 +40,7 @@ const CustomText = ({
   disabled,
   letterSpacing,
 }) => {
+  const { colors } = useTheme();
   const { t } = useTranslation();
   // iOS: Poppins/Jakarta don't support Urdu/Arabic script — use system font so text renders
   const isRTLScript = (i18n.language === 'ur' || i18n.language === 'ar');
@@ -59,7 +60,7 @@ const CustomText = ({
         style={[
           {
             fontSize: fontSize || 14,
-            color: color || COLORS.black,
+            color: color || colors.textPrimary,
             marginTop: marginTop || 0,
             marginBottom: marginBottom || 0,
             marginLeft: marginLeft || 0,

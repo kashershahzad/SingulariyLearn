@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import { COLORS } from '../../../../utils/COLORS'
+import {useThemedStyles} from '../../../../theme/useTheme'
 import { Images } from '../../../../assets/images'
 import ImageFast from '../../../../components/ImageFast'
 import fonts from '../../../../assets/fonts'
@@ -9,6 +9,21 @@ import { useNavigation } from '@react-navigation/native'
 
 const MockupHeader = ({ timercomplete, resettimer, setreset, timer, title }) => {
     const navigation = useNavigation()
+    const styles = useThemedStyles(c =>
+        StyleSheet.create({
+            container: {
+                backgroundColor: c.accent,
+                height: 90,
+                flexDirection: 'row',
+                paddingTop: 20,
+                paddingHorizontal: 16,
+            },
+            icon: {
+                height: 25,
+                width: 24,
+            },
+        }),
+    )
     const [timeLeft, setTimeLeft] = useState(50)
 
     useEffect(() => {
@@ -69,17 +84,3 @@ const MockupHeader = ({ timercomplete, resettimer, setreset, timer, title }) => 
 }
 
 export default MockupHeader
-
-const styles = StyleSheet.create({
-    container: {
-        backgroundColor: COLORS.btn,
-        height: 90,
-        flexDirection: 'row',
-        paddingTop: 20,
-        paddingHorizontal: 16,
-    },
-    icon: {
-        height: 25,
-        width: 24
-    }
-})

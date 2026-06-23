@@ -112,15 +112,22 @@ export const getTokenHome = async () => {
 export const getProfile = () => async (dispatch, getState) => {
   try {
     const token = getState().authConfig.token;
-    console.log(token)
-    const body = {
-      type: "profile",
-      user_id: token.toString()
+    if (!token) {
+      return;
     }
+
+    const body = {
+      type: 'profile',
+      user_id: token.toString(),
+    };
     const response = await ApiRequest(body);
-    console.log("Profile Response: ", response.data?.profile)
-    dispatch(setUserData(response.data.profile))
+    const profile = response.data?.profile;
+    const user = Array.isArray(profile) ? profile[0] : profile;
+
+    if (user) {
+      dispatch(setUserData(user));
+    }
   } catch (error) {
-    console.log("Error in getProfile: ", error)
+    console.log('Error in getProfile: ', error);
   }
 };

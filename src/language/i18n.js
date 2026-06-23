@@ -3,8 +3,17 @@ import i18n from 'i18next';
 
 import enTranslations from './english.json';
 import arTranslations from './arabic.json';
-import urTranslation from './urdu.json'
-import frTranslation from './french.json'
+import urTranslation from './urdu.json';
+import frTranslation from './french.json';
+import screenEn from './screens/en.json';
+import screenUr from './screens/ur.json';
+import screenAr from './screens/ar.json';
+import screenFr from './screens/fr.json';
+
+const mergeTranslations = (base, screens) => ({
+  ...base,
+  screens,
+});
 
 i18n
   .use(initReactI18next) // Initialize react-i18next
@@ -13,16 +22,16 @@ i18n
     fallbackLng: 'en', // Fallback language
     resources: {
       en: {
-        translation: enTranslations, // English translations
+        translation: mergeTranslations(enTranslations, screenEn),
       },
       ar: {
-        translation: arTranslations, // Arabic translations
+        translation: mergeTranslations(arTranslations, screenAr),
       },
       ur: {
-        translation: urTranslation , // English translations
+        translation: mergeTranslations(urTranslation, screenUr),
       },
       fr: {
-        translation: frTranslation , // English translations
+        translation: mergeTranslations(frTranslation, screenFr),
       },
     },
   });

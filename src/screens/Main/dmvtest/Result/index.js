@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import MockupHeader from '../Molecules/MockupHeader';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import {COLORS} from '../../../../utils/COLORS';
 import ImageFast from '../../../../components/ImageFast';
 import {Images} from '../../../../assets/images';
 import fonts from '../../../../assets/fonts';
@@ -14,9 +13,35 @@ import {useTranslation} from 'react-i18next';
 import {ApiRequest} from '../../../../services/ApiRequest';
 import {useSelector} from 'react-redux';
 import Loading from '../../../../components/Loading';
+import {useTheme, useThemedStyles} from '../../../../theme/useTheme';
 
 const Result = () => {
   const {t} = useTranslation();
+  const {colors} = useTheme();
+  const styles = useThemedStyles(c =>
+    StyleSheet.create({
+      container: {
+        flex: 1,
+        backgroundColor: c.screenBg,
+        borderTopLeftRadius: 45,
+        borderTopRightRadius: 45,
+        padding: 20,
+        marginTop: -30,
+        paddingBottom: 40,
+      },
+      icon: {
+        height: 231,
+        width: '100%',
+        alignSelf: 'center',
+      },
+      noDataContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+    }),
+  );
+
   const token = useSelector(state => state.authConfig.token);
   const currentLanguage = useSelector(state => state.language.language);
 
@@ -39,9 +64,7 @@ const Result = () => {
 
         const response = await ApiRequest(body);
         const rawResponse = response.data;
-        console.log('📊 RAW API RESPONSE:', rawResponse);
 
-        // If there is no record (total = 0 or data is empty)
         if (!rawResponse?.data || rawResponse?.data?.length === 0) {
           setTotalAttempts(0);
           setResultsData([]);
@@ -79,13 +102,15 @@ const Result = () => {
     setCurrentAttemptData(attemptData);
   };
 
-  // Show loader while loading
+  const screenProps = {
+    statusBarColor: colors.accent,
+    backgroundColor: colors.accent,
+    paddingHorizontal: 0,
+  };
+
   if (loading) {
     return (
-      <ScreenWrapper
-        statusBarColor={COLORS.btn}
-        backgroundColor={COLORS.btn}
-        paddingHorizontal={0}>
+      <ScreenWrapper {...screenProps}>
         <MockupHeader title={t('checkResultTitle')} />
         <View style={styles.container}>
           <Loading />
@@ -94,13 +119,8 @@ const Result = () => {
     );
   }
 
-  // Main return
   return (
-    <ScreenWrapper
-      scrollEnabled
-      statusBarColor={COLORS.btn}
-      backgroundColor={COLORS.btn}
-      paddingHorizontal={0}>
+    <ScreenWrapper scrollEnabled {...screenProps}>
       <MockupHeader title={t('checkResultTitle')} />
       <View style={styles.container}>
         <ImageFast
@@ -116,7 +136,7 @@ const Result = () => {
               fontFamily={fonts.medium}
               fontSize={16}
               textAlign="center"
-              color={COLORS.black}
+              color={colors.textPrimary}
               marginTop={20}
             />
           </View>
@@ -127,6 +147,7 @@ const Result = () => {
               fontFamily={fonts.medium}
               fontSize={14}
               textAlign={'start'}
+              color={colors.textPrimary}
               marginTop={10}
             />
 
@@ -144,27 +165,5 @@ const Result = () => {
     </ScreenWrapper>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 45,
-    borderTopRightRadius: 45,
-    padding: 20,
-    marginTop: -30,
-    paddingBottom: 40,
-  },
-  icon: {
-    height: 231,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  noDataContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
 
 export default Result;

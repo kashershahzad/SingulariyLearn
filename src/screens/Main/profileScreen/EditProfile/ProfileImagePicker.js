@@ -13,14 +13,21 @@ const ProfileImagePicker = ({ imageUri, onImageSelected, uploadimage }) => {
   const [isUploading, setIsUploading] = useState(false);
   const insets = useSafeAreaInsets();
 
-  const uploadImageToServer = async (imagePath) => {
+  const uploadImageToServer = async image => {
     try {
       setIsUploading(true);
+      const uri = typeof image === 'string' ? image : image.path;
+      const mime = typeof image === 'string' ? 'image/jpeg' : image.mime || 'image/jpeg';
+      const name =
+        typeof image === 'string'
+          ? 'profile_image.jpg'
+          : image.filename ||
+            (mime.includes('png') ? 'profile_image.png' : 'profile_image.jpg');
       const formData = new FormData();
       formData.append('file', {
-        uri: imagePath,
-        type: 'image/jpeg',
-        name: 'profile_image.jpg'
+        uri,
+        type: mime,
+        name,
       });
       formData.append('type', 'upload_data');
       formData.append('uploadtype', 'image');
@@ -60,25 +67,26 @@ const ProfileImagePicker = ({ imageUri, onImageSelected, uploadimage }) => {
   const handleImagePick = async (type) => {
     try {
       let image;
+      const pickerOptions = {
+        mediaType: 'photo',
+        cropping: false,
+        compressImageQuality: 1,
+      };
+           // image = await openCamera({
+        //   width: 300,
+        //   height: 300,
+        //   cropping: true,
+        //   cropperCircleOverlay: true,
+        //   mediaType: 'photo',
+        // });
       if (type === 'camera') {
-        image = await openCamera({
-          width: 300,
-          height: 300,
-          cropping: true,
-          cropperCircleOverlay: true,
-          mediaType: 'photo',
-        });
+   
+        image = await openCamera(pickerOptions);
       } else {
-        image = await openPicker({
-          width: 300,
-          height: 300,
-          cropping: true,
-          cropperCircleOverlay: true,
-          mediaType: 'photo',
-        });
+        image = await openPicker(pickerOptions);
       }
       onImageSelected(image.path);
-      await uploadImageToServer(image.path);
+      await uploadImageToServer(image);
       setIsModalVisible(false);
     } catch (error) {
       console.log('Image picker error:', error);

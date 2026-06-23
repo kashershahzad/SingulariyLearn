@@ -9,7 +9,7 @@ import OnBoarding from '../screens/Auth/OnBoarding';
 import OTPScreen from '../screens/Auth/OTPScreen';
 import Signup from '../screens/Auth/Signup';
 import Login from '../screens/Auth/Login';
-import LandingPage from '../screens/Auth/LandingPage';
+import LandingPage from '../screens/Main/LandingPage';
 import TabStack from './TabStack';
 import Language from '../screens/Auth/Language';
 import LoginScreen from '../screens/Auth/LoginScreen';
@@ -41,6 +41,13 @@ import AddAcc from '../screens/Main/DmvLicenses/PermitType/AddAcc';
 import AddCard from '../screens/Main/DmvLicenses/PermitType/AddCard';
 import Recipient from '../screens/Main/DmvLicenses/PermitType/Recipient';
 import ComingSoon from '../screens/Main/ComingSoon'
+import NewLogin from '../screens/Auth/NewLogin';
+import Goals from '../screens/Auth/NewLogin/Goals';
+import CourseEnroll from '../screens/Main/courseEnroll';
+import CourseCheckout from '../screens/Main/courseEnroll/CourseCheckout';
+import CourseEnrolled from '../screens/Main/courseEnrolled';
+import CourseDetails from '../screens/Main/CourseDetails';
+import CourseDetialNew from '../screens/Main/CourseDetailNew';
 
 
 
@@ -52,7 +59,7 @@ const AuthStack = () => {
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false }}
-    // initialRouteName="LoginScreen"
+    // initialRouteName="NewLogin"
     >
       {/* {!isOnBoarding && (
         <>
@@ -62,6 +69,11 @@ const AuthStack = () => {
       )} */}
       {/* <Stack.Screen name="TabStack" component={TabStack} /> */}
       <Stack.Screen name="LandingPage" component={LandingPage} />
+      <Stack.Screen name="CourseEnroll" component={CourseEnroll} />
+      <Stack.Screen name="CourseCheckout" component={CourseCheckout} />
+      <Stack.Screen name="CourseEnrolled" component={CourseEnrolled} />
+      <Stack.Screen name="CourseDetails" component={CourseDetails} />
+      <Stack.Screen name="CourseDetialNew" component={CourseDetialNew} />
       
 
       <Stack.Screen name="DmvLicensesOnboading" component={DmvLicensesOnboading} />
@@ -83,6 +95,7 @@ const AuthStack = () => {
       <Stack.Screen name="Recipient" component={Recipient} />
       <Stack.Screen name="ComingSoon" component={ComingSoon} />
       <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
+      
       <Stack.Screen name="OTPScreen" component={OTPScreen} />
      
       
@@ -100,6 +113,8 @@ const AuthStack = () => {
       <Stack.Screen name="Newpassword" component={Newpassword} />
 
       <Stack.Screen name="SignupScreen" component={SignupScreen} />
+      <Stack.Screen name="NewLogin" component={NewLogin} />
+      <Stack.Screen name="Goals" component={Goals} />
 
       {/* <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Signup" component={Signup} />

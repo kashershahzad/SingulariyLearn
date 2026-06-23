@@ -5,8 +5,8 @@ import React, { useState } from 'react';
 import CustomText from './CustomText';
 import Icons from './Icons';
 
-import { COLORS } from '../utils/COLORS';
 import i18n from '../language/i18n';
+import {useTheme, useThemedStyles} from '../theme/useTheme';
 import fonts from '../assets/fonts';
 import ImageFast from './ImageFast';
 import { Images } from '../assets/images';
@@ -24,11 +24,68 @@ const SearchInput = ({
   marginTop,
   isBack,
   onPress,
-  editable=true,
+  editable = true,
   isDropdown,
   select,
   setSelect,
+  /** 'left' (default) | 'right' — search icon placement */
+  iconPosition = 'left',
 }) => {
+  const {colors} = useTheme();
+  const styles = useThemedStyles(c =>
+    StyleSheet.create({
+      mainContainer: {
+        backgroundColor: c.card,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+        borderWidth: 1,
+        height: 50,
+        width: '100%',
+        borderRadius: 10,
+      },
+      input: {
+        flex: 1,
+        height: '100%',
+        padding: 0,
+        margin: 0,
+        fontFamily: fonts.medium,
+        fontSize: 13,
+        color: c.textPrimary,
+      },
+      searchIcon: {
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      searchIconLeft: {
+        marginRight: 10,
+      },
+      searchIconRight: {
+        marginLeft: 10,
+      },
+      row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+      },
+      list: {
+        backgroundColor: c.card,
+        elevation: 2,
+        padding: 10,
+        borderRadius: 5,
+        position: 'absolute',
+        right: 10,
+        bottom: -20,
+      },
+      icon: {
+        height: 20,
+        width: 20,
+      },
+    }),
+  );
   const [isFocused, setIsFocused] = useState(false);
   const [isOpen, setOpen] = useState(false);
   const navigation = useNavigation();
@@ -51,25 +108,27 @@ const SearchInput = ({
         {
           marginBottom,
           marginTop,
-          borderColor: isFocused ? COLORS.primaryColor : '#F2F2F2',
+          borderColor: isFocused ? colors.accent : colors.border,
         },
       ]}>
       {isBack ? (
         <Icons
           family="Ionicons"
           name="arrow-back-outline"
-          color="#0F1621"
+          color={colors.textPrimary}
           size={25}
           style={{ marginRight: 10 }}
           onPress={() => navigation.goBack()}
         />
       ) : null}
-      <TouchableOpacity
-        style={styles.searchIcon}
-        activeOpacity={0.6}
-        onPress={onPress}>
-        <Icons family="Feather" name="search" color={'#BDBDBD'} size={22} />
-      </TouchableOpacity>
+      {iconPosition === 'left' ? (
+        <TouchableOpacity
+          style={[styles.searchIcon, styles.searchIconLeft]}
+          activeOpacity={0.6}
+          onPress={onPress}>
+          <Icons family="Feather" name="search" color={colors.textMuted} size={22} />
+        </TouchableOpacity>
+      ) : null}
       {editable ? (
         <TextInput
           ref={ref}
@@ -80,7 +139,7 @@ const SearchInput = ({
           value={value}
           onChangeText={onChangeText}
           maxLength={maxLength}
-          placeholderTextColor="#9B9E9F"
+          placeholderTextColor={colors.textMuted}
           autoFocus={autoFocus}
           editable={editable}
         />
@@ -88,12 +147,25 @@ const SearchInput = ({
         <View style={{ flex: 1 }}>
           <CustomText
             label={placeholder}
-            color="#9B9E9F"
+            color={colors.textMuted}
             fontSize={15}
             fontFamily={fonts.medium}
           />
         </View>
       )}
+      {iconPosition === 'right' ? (
+        <TouchableOpacity
+          style={[styles.searchIcon, styles.searchIconRight]}
+          activeOpacity={0.6}
+          onPress={onPress}>
+          {/* <Icons family="Feather" name="search" color={'#BDBDBD'} size={22} /> */}
+          <ImageFast
+            source={Images.searchicon}
+            resizeMode={'contain'}
+            style={{height: 22, width: 22}}
+          />
+        </TouchableOpacity>
+      ) : null}
 
       {isDropdown ? (
         <>
@@ -145,51 +217,3 @@ const SearchInput = ({
 };
 
 export default SearchInput;
-
-const styles = StyleSheet.create({
-  mainContainer: {
-    backgroundColor: '#FBFBFB',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    height: 50,
-    width: '100%',
-    borderRadius: 10,
-  },
-  input: {
-    flex: 1,
-    height: '100%',
-    padding: 0,
-    margin: 0,
-    fontFamily: fonts.medium,
-    fontSize: 13,
-    color: COLORS.black,
-  },
-  searchIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  list: {
-    backgroundColor: COLORS.white,
-    elevation: 2,
-    padding: 10,
-    borderRadius: 5,
-    position: 'absolute',
-    right: 10,
-    bottom: -20,
-  },
-  icon:{
-    height:20,
-    width:20
-  }
-});

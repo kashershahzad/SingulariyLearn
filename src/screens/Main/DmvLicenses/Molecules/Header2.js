@@ -6,15 +6,18 @@ import CustomText from '../../../../components/CustomText'
 import fonts from '../../../../assets/fonts'
 import CustomHorizontalLine from '../../../../components/CustomHorizontalLine'
 import { useNavigation } from '@react-navigation/native'
+import { useTheme } from '../../../../theme/useTheme'
 
-const Header2 = ({ title, line }) => {
+const Header2 = ({title, line, hideBack = false, titleRemoveTranslation = false}) => {
     const navigation = useNavigation()
+    const { colors } = useTheme()
     const handleBack = () => {
         navigation.goBack()
     }
     return (
         <>
             <View style={styles.container}>
+                {!hideBack ? (
                 <View style={styles.backButton} pointerEvents="box-none" collapsable={false}>
                     <ImageFast
                         onPress={handleBack}
@@ -24,11 +27,14 @@ const Header2 = ({ title, line }) => {
                         style={[styles.icon, styles.backTouchable]}
                     />
                 </View>
-                <View style={styles.titleContainer} pointerEvents="box-none">
+                ) : null}
+                <View style={[styles.titleContainer, hideBack && styles.titleContainerNoBack]} pointerEvents="box-none">
                     <CustomText
                         fontSize={16}
                         fontFamily={fonts.jakartaSemiBold}
+                        color={colors.headerTitle}
                         label={title}
+                        removeTranslation={titleRemoveTranslation}
                         style={styles.titleText}
                     />
                 </View>
@@ -67,5 +73,8 @@ const styles = StyleSheet.create({
     },
     titleText: {
         textAlign: 'center',
-    }
+    },
+    titleContainerNoBack: {
+        marginLeft: 0,
+    },
 })

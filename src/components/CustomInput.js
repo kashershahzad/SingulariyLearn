@@ -51,6 +51,7 @@ const CustomInput = ({
   isError,
   labelColor,
   borderColor,
+  backgroundColor,
   bgcolor = '#FBFBFB',
   // for image icon
   iconImage,
@@ -109,7 +110,9 @@ const CustomInput = ({
             borderRadius: borderRadius || 12,
             paddingLeft: iconImage && iconPosition === 'left' ? 10 : 20,
             paddingRight: iconImage && iconPosition === 'right' ? 10 : 20,
-            backgroundColor: isFocused ? '#FBFBFB' : bgcolor,
+            backgroundColor: isFocused
+              ? '#FBFBFB'
+              : backgroundColor || bgcolor || 'white',
           },
         ]}>
         {iconImage && iconPosition === 'left' && (

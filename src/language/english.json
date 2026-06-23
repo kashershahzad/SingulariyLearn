@@ -494,5 +494,40 @@
   "previous": "Previous",
   "Mockup Test Road Signs": "Mockup Test Road Signs",
   "noTestHistory": "There is no test history",
-  "noMedia": "No media available"
+  "noMedia": "No media available",
+  "profileMenu": {
+    "title": "Profile",
+    "proMember": "Pro member",
+    "userNameFallback": "User Name",
+    "userEmailFallback": "User Email",
+    "sections": {
+      "learningProgress": "Learning & Progress",
+      "accountPayments": "Account & Payments",
+      "settingsPreferences": "Settings & Preferences",
+      "supportInfo": "Support & Info"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "dashboardSubtitle": "View your learning overview",
+      "enrolledCourses": "Enrolled Courses",
+      "enrolledCoursesSubtitle": "View your learning overview",
+      "bookmarks": "Bookmarks",
+      "bookmarksSubtitle": "Course Bookmark",
+      "payments": "Payments",
+      "paymentsSubtitle": "Payments history",
+      "settings": "Settings",
+      "settingsSubtitle": "Account settings and preferences",
+      "notifications": "Notifications",
+      "notificationsSubtitle": "Manage your notifications",
+      "darkMode": "Dark Mode",
+      "darkModeSubtitle": "Switch to dark theme",
+      "language": "Language",
+      "helpSupport": "Help & Support",
+      "helpSupportSubtitle": "Get help & contact support",
+      "about": "About",
+      "aboutSubtitle": "App version & information",
+      "logout": "Logout",
+      "logoutSubtitle": "Logout of your account"
+    }
+  }
 }
