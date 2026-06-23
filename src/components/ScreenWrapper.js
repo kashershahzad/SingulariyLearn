@@ -45,6 +45,8 @@ const ScreenWrapper = ({
   nestedScrollEnabled,
   paddingHorizontal = 16,
   scrollViewRef,
+  onScroll,
+  scrollEventThrottle = 16,
 }) => {
   const {colors: themeColors} = useTheme();
   const colors = themeColors ?? lightTheme;
@@ -80,6 +82,8 @@ const ScreenWrapper = ({
           ref={scrollViewRef}
           nestedScrollEnabled={nestedScrollEnabled}
           refreshControl={refreshControl}
+          onScroll={onScroll}
+          scrollEventThrottle={scrollEventThrottle}
           style={[
             styles.container,
             {

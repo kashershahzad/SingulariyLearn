@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -67,8 +67,10 @@ const StudyModuleCard = ({
   currentLanguage,
   courseTitle,
   selectedOption = 'Study',
+  onRequestScrollIntoView,
 }) => {
   const navigation = useNavigation();
+  const cardRef = useRef(null);
   const {t} = useTranslation();
   const {colors} = useTheme();
   const styles = useThemedStyles(c =>
@@ -216,6 +218,19 @@ const StudyModuleCard = ({
 
   const isMockTestMode = selectedOption === MOCK_TEST_OPTION;
 
+  const scrollCardIntoView = useCallback(() => {
+    onRequestScrollIntoView?.(cardRef);
+  }, [onRequestScrollIntoView]);
+
+  useEffect(() => {
+    if (!isExpanded) {
+      return;
+    }
+
+    const timer = setTimeout(scrollCardIntoView, 200);
+    return () => clearTimeout(timer);
+  }, [isExpanded, loadingLessons, lessons.length, scrollCardIntoView]);
+
   const lessonCount = lessons.length > 0 ? lessons.length : data.lessonCount;
   const lessonsCountLabel = t('screens.study.lessonsCount', {
     count: String(lessonCount || 0).padStart(2, '0'),
@@ -297,8 +312,11 @@ const StudyModuleCard = ({
     const nextExpanded = !isExpanded;
     setIsExpanded(nextExpanded);
 
-    if (nextExpanded && lessons.length === 0 && !loadingLessons) {
-      fetchLessons();
+    if (nextExpanded) {
+      if (lessons.length === 0 && !loadingLessons) {
+        fetchLessons();
+      }
+      setTimeout(scrollCardIntoView, 250);
     }
   };
 
@@ -327,6 +345,7 @@ const StudyModuleCard = ({
 
   return (
     <View
+      ref={cardRef}
       style={[
         styles.moduleCard,
         !isCourseUnlocked && styles.lockedModuleCard,

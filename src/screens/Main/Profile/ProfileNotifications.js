@@ -22,11 +22,11 @@ const NOTIFICATION_ITEMS = [
     title: 'screens.profileNotifications.discountTitle',
     subtitle: 'screens.profileNotifications.discountSubtitle',
   },
-  {
-    id: 'stores',
-    title: 'screens.profileNotifications.storesTitle',
-    subtitle: SUB_A,
-  },
+  // {
+  //   id: 'stores',
+  //   title: 'screens.profileNotifications.storesTitle',
+  //   subtitle: SUB_A,
+  // },
   {
     id: 'system',
     title: 'screens.profileNotifications.systemTitle',

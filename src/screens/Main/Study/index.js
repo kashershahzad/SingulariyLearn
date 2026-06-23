@@ -1,10 +1,11 @@
 import {
   ActivityIndicator,
+  Dimensions,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useRoute} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {useSelector} from 'react-redux';
@@ -87,6 +88,8 @@ const Study = () => {
   const [selectedOption, setSelectedOption] = useState('Study');
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
+  const scrollViewRef = useRef(null);
+  const scrollYRef = useRef(0);
   const token = useSelector(state => state.authConfig.token);
   const currentLanguage = useSelector(state => state.language.language);
   const optionValues = useMemo(
@@ -176,10 +179,38 @@ const Study = () => {
   }, [courses, currentLanguage]);
   // console.log('studyModulesData', studyModulesData);
 
+  const handleScroll = useCallback(event => {
+    scrollYRef.current = event.nativeEvent.contentOffset.y;
+  }, []);
+
+  const handleScrollCardIntoView = useCallback(cardRef => {
+    const card = cardRef?.current;
+    const scrollView = scrollViewRef?.current;
+    if (!card || !scrollView) {
+      return;
+    }
+
+    setTimeout(() => {
+      card.measureInWindow((_x, cardY, _w, cardH) => {
+        const windowHeight = Dimensions.get('window').height;
+        const bottomPadding = 130;
+        const cardBottom = cardY + cardH;
+        const visibleBottom = windowHeight - bottomPadding;
+
+        if (cardBottom > visibleBottom) {
+          const delta = cardBottom - visibleBottom + 20;
+          scrollView.scrollToPosition(0, scrollYRef.current + delta, true);
+        }
+      });
+    }, 200);
+  }, []);
+
   return (
     <ScreenWrapper
       scrollEnabled
       paddingHorizontal={0}
+      scrollViewRef={scrollViewRef}
+      onScroll={handleScroll}
       headerUnScrollable={() => <Header2 title="screens.study.header" />}>
       <View style={styles.container}>
         <CustomText
@@ -237,6 +268,7 @@ const Study = () => {
               token={token}
               currentLanguage={currentLanguage}
               selectedOption={selectedOption}
+              onRequestScrollIntoView={handleScrollCardIntoView}
             />
           ))
         )}
