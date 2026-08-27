@@ -40,7 +40,8 @@
     "paymentConfirmed": "Payment confirmed",
     "errorTitle": "Error",
     "paymentFailed": "Payment failed",
-    "unableToComplete": "Unable to complete payment"
+    "unableToComplete": "Unable to complete payment",
+    "missingAppleProduct": "This course does not have an Apple product ID."
   },
   "enrolledCourses": {
     "title": "Enrolled Courses",
@@ -188,6 +189,16 @@
     "notificationSubtitle": "Manage your notification preferences for the app.",
     "profileViewTitle": "Profile View",
     "profileViewSubtitle": "Check your profile notification"
+  },
+  "about": {
+    "header": "À propos",
+    "appName": "Singularity Learn",
+    "versionLabel": "Version",
+    "versionTitle": "Version de l'application",
+    "platformTitle": "Plateforme",
+    "platformValue": "iOS et Android",
+    "aboutTitle": "À propos de l'application",
+    "aboutBody": "Singularity Learn vous aide à préparer les tests de permis DMV avec des leçons, des examens blancs et le suivi des progrès — pour apprendre en toute confiance."
   },
   "profileNotifications": {
     "header": "Notifications",

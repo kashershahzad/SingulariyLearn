@@ -40,7 +40,8 @@
     "paymentConfirmed": "Payment confirmed",
     "errorTitle": "Error",
     "paymentFailed": "Payment failed",
-    "unableToComplete": "Unable to complete payment"
+    "unableToComplete": "Unable to complete payment",
+    "missingAppleProduct": "This course does not have an Apple product ID."
   },
   "enrolledCourses": {
     "title": "Enrolled Courses",
@@ -187,6 +188,16 @@
     "notificationSubtitle": "Manage your notification preferences for the app.",
     "profileViewTitle": "Profile View",
     "profileViewSubtitle": "Check your profile notification"
+  },
+  "about": {
+    "header": "حول التطبيق",
+    "appName": "Singularity Learn",
+    "versionLabel": "الإصدار",
+    "versionTitle": "إصدار التطبيق",
+    "platformTitle": "المنصة",
+    "platformValue": "iOS و Android",
+    "aboutTitle": "عن التطبيق",
+    "aboutBody": "يساعدك Singularity Learn على التحضير لاختبارات تصريح DMV من خلال الدروس والاختبارات التجريبية وتتبع التقدم — لتتعلم بثقة."
   },
   "profileNotifications": {
     "header": "Notifications",

@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -7,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 import {Images} from '../../../assets/images';
 import ImageFast from '../../../components/ImageFast';
@@ -56,6 +57,14 @@ const formatPrice = value => {
   return `$${amount.toFixed(2)}`;
 };
 
+const hasCourseAccess = course =>
+  course?.user_has_access === true ||
+  course?.user_has_access === 1 ||
+  course?.user_has_access === '1' ||
+  course?.user_purchased === true ||
+  course?.user_purchased === 1 ||
+  course?.user_purchased === '1';
+
 const ALL_COURSES_CHIP = {
   id: 'all',
   label: 'All Courses',
@@ -72,6 +81,42 @@ const CHIP_PALETTE = [
   {backgroundColor: '#E8F5E8', color: '#0A6B20'},
 ];
 
+const FadeInView = ({children, delay = 0, style}) => {
+  const progress = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animation = Animated.timing(progress, {
+      toValue: 1,
+      duration: 450,
+      delay,
+      useNativeDriver: true,
+    });
+
+    animation.start();
+    return () => animation.stop();
+  }, [delay, progress]);
+
+  return (
+    <Animated.View
+      style={[
+        style,
+        {
+          opacity: progress,
+          transform: [
+            {
+              translateY: progress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [14, 0],
+              }),
+            },
+          ],
+        },
+      ]}>
+      {children}
+    </Animated.View>
+  );
+};
+
 const index = ({navigation}) => {
   const [search, setSearch] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
@@ -80,6 +125,8 @@ const index = ({navigation}) => {
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const currentLanguage = useSelector(state => state.language.language);
+  const token = useSelector(state => state.authConfig.token);
+  const isLoggedIn = Boolean(token);
 
   useEffect(() => {
     let cancelled = false;
@@ -146,6 +193,11 @@ const index = ({navigation}) => {
           limit: '100',
         };
 
+        if (isLoggedIn) {
+          body.for_user = '1';
+          body.user_id = token;
+        }
+
         if (selectedCategoryId !== 'all') {
           body.category_id = String(selectedCategoryId);
         }
@@ -177,7 +229,7 @@ const index = ({navigation}) => {
     return () => {
       cancelled = true;
     };
-  }, [selectedCategoryId]);
+  }, [selectedCategoryId, isLoggedIn, token]);
 
   const mappedCourses = useMemo(() => {
     return courses.map(course => {
@@ -202,6 +254,7 @@ const index = ({navigation}) => {
         lessonCount: Number(course.total_lesson) || 0,
         appleProductId: String(course.apple_product_id || '').trim(),
         googleProductId: String(course.google_product_id || '').trim(),
+        isPurchased: hasCourseAccess(course),
         ratingValue: rating ? String(rating) : null,
         reviewsLabel: reviewCount
           ? `(${Number(reviewCount).toLocaleString()} reviews)`
@@ -236,31 +289,42 @@ const index = ({navigation}) => {
       headerUnScrollable={() => (
         <View style={styles.headerContainer}>
           <View style={styles.headerSide}>
-            {/* <ImageFast
-              source={Images.landingtoggle}
-              style={{width: 17, height: 11}}
-              resizeMode={'contain'}
-            /> */}
+            {/* {isLoggedIn ? (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => navigation.goBack()}
+                hitSlop={{top: 12, bottom: 12, left: 12, right: 12}}>
+                <ImageFast
+                  source={Images.leftarrow}
+                  style={styles.backIcon}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            ) : null} */}
           </View>
           <View style={styles.logoCenterWrap}>
-            <ImageFast
-              source={Images.landinglogo}
-              style={styles.logo}
-              resizeMode={'contain'}
-            />
+            <FadeInView>
+              <ImageFast
+                source={Images.landinglogo}
+                style={styles.logo}
+                resizeMode={'contain'}
+              />
+            </FadeInView>
           </View>
           <View style={styles.headerSideRight}>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => navigation.navigate('NewLogin')}
-              style={styles.loginBtn}>
-              <CustomText
-                label="Login"
-                fontSize={14}
-                fontFamily={fonts.jakartaSemiBold}
-                color="#0298EF"
-              />
-            </TouchableOpacity>
+            {!isLoggedIn ? (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate('NewLogin')}
+                style={styles.loginBtn}>
+                <CustomText
+                  label="screens.landing.login"
+                  fontSize={14}
+                  fontFamily={fonts.jakartaSemiBold}
+                  color="#0298EF"
+                />
+              </TouchableOpacity>
+            ) : null}
           </View>
         </View>
       )}>
@@ -272,120 +336,136 @@ const index = ({navigation}) => {
         showsVerticalScrollIndicator={false}
         bounces>
         <View style={styles.container}>
-          <CustomText
-            removeTranslation
-            label=""
-            fontSize={36}
-            fontFamily={fonts.jakartaExtraBold}
-            color="#1B1B24"
-            lineHeight={42}
-            width="80%">
-            Master your craft with{' '}
-            <Text style={{color: '#0298EF'}}>Expert</Text> precision.
-          </CustomText>
+          <FadeInView delay={80}>
+            <CustomText
+              removeTranslation
+              label=""
+              fontSize={36}
+              fontFamily={fonts.jakartaExtraBold}
+              color="#1B1B24"
+              lineHeight={42}
+              width="80%">
+              Master your craft with{' '}
+              <Text style={{color: '#0298EF'}}>Expert</Text> precision.
+            </CustomText>
 
-          <CustomText
-            label={
-              'Curated courses from industry leaders in design, technology, and creative arts.'
-            }
-            fontSize={18}
-            color={'#464555'}
-            marginTop={10}
-          />
-          <View style={styles.searchWrap}>
-            <SearchInput
-              placeholder="Search for your next skill..."
-              marginTop={20}
-              value={search}
-              onChangeText={setSearch}
-            />
-          </View>
-          <ScrollView
-            horizontal
-            nestedScrollEnabled
-            showsHorizontalScrollIndicator={false}
-            style={styles.chipsScroll}
-            contentContainerStyle={styles.chipsScrollContent}>
-            {loadingCategories ? (
-              <View style={styles.chipsLoader}>
-                <ActivityIndicator size="small" color="#0298EF" />
-              </View>
-            ) : (
-              categoryChips.map(item => {
-                const selected = item.id === selectedCategoryId;
-                return (
-                  <Pressable
-                    key={item.id}
-                    onPress={() => setSelectedCategoryId(item.id)}
-                    style={[
-                      styles.chip,
-                      {
-                        backgroundColor: selected
-                          ? '#0298EF'
-                          : item.backgroundColor,
-                      },
-                    ]}>
-                    <Text
-                      style={[
-                        styles.chipLabel,
-                        {color: selected ? '#FFFFFF' : item.color},
-                      ]}>
-                      {item.label}
-                    </Text>
-                  </Pressable>
-                );
-              })
-            )}
-          </ScrollView>
-          {!isFilteredView && <SpotlightFeatures />}
-          {!isFilteredView && (
-            <View style={styles.trendingContainer}>
-              <CustomText
-                label="Trending Courses"
-                fontFamily={fonts.semiBold}
-                fontSize={20}
-                color="#1B1B24"
-                marginTop={10}
-              />
-            </View>
-          )}
-          {loadingCourses ? (
-            <View style={styles.loaderWrap}>
-              <ActivityIndicator size="large" color="#0298EF" />
-            </View>
-          ) : displayCourses.length === 0 ? (
             <CustomText
               label={
-                searchQuery ? 'No courses found' : 'No courses available'
+                'Curated courses from industry leaders in design, technology, and creative arts.'
               }
-              fontFamily={fonts.jakartaRegular}
-              fontSize={14}
-              color="#999999"
-              marginTop={16}
-              marginRight={20}
+              fontSize={18}
+              color={'#464555'}
+              marginTop={10}
             />
-          ) : (
-            displayCourses.map(item => (
-              <TrendingCard
-                key={item.id}
-                courseId={item.courseId}
-                cover={item.cover}
-                category={item.category}
-                title={item.title}
-                subtitle={item.subtitle}
-                tag={item.tag}
-                lessonCount={item.lessonCount}
-                ratingValue={item.ratingValue}
-                reviewsLabel={item.reviewsLabel}
-                price={item.priceLabel}
-                priceRaw={item.price}
-                appleProductId={item.appleProductId}
-                googleProductId={item.googleProductId}
+          </FadeInView>
+
+          <FadeInView delay={160}>
+            <View style={styles.searchWrap}>
+              <SearchInput
+                placeholder="Search for your next skill..."
+                marginTop={20}
+                value={search}
+                onChangeText={setSearch}
               />
-            ))
-          )}
+            </View>
+            <ScrollView
+              horizontal
+              nestedScrollEnabled
+              showsHorizontalScrollIndicator={false}
+              style={styles.chipsScroll}
+              contentContainerStyle={styles.chipsScrollContent}>
+              {loadingCategories ? (
+                <View style={styles.chipsLoader}>
+                  <ActivityIndicator size="small" color="#0298EF" />
+                </View>
+              ) : (
+                categoryChips.map(item => {
+                  const selected = item.id === selectedCategoryId;
+                  return (
+                    <Pressable
+                      key={item.id}
+                      onPress={() => setSelectedCategoryId(item.id)}
+                      style={[
+                        styles.chip,
+                        {
+                          backgroundColor: selected
+                            ? '#0298EF'
+                            : item.backgroundColor,
+                        },
+                      ]}>
+                      <Text
+                        style={[
+                          styles.chipLabel,
+                          {color: selected ? '#FFFFFF' : item.color},
+                        ]}>
+                        {item.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })
+              )}
+            </ScrollView>
+          </FadeInView>
+
+          <FadeInView delay={240}>
+            {!isFilteredView && <SpotlightFeatures />}
+          </FadeInView>
+
+          <FadeInView
+            key={`courses-${selectedCategoryId}-${searchQuery}-${loadingCourses}`}
+            delay={300}>
+            {!isFilteredView && (
+              <View style={styles.trendingContainer}>
+                <CustomText
+                  label="Trending Courses"
+                  fontFamily={fonts.semiBold}
+                  fontSize={20}
+                  color="#1B1B24"
+                  marginTop={10}
+                />
+              </View>
+            )}
+            {loadingCourses ? (
+              <View style={styles.loaderWrap}>
+                <ActivityIndicator size="large" color="#0298EF" />
+              </View>
+            ) : displayCourses.length === 0 ? (
+              <CustomText
+                label={
+                  searchQuery ? 'No courses found' : 'No courses available'
+                }
+                fontFamily={fonts.jakartaRegular}
+                fontSize={14}
+                color="#999999"
+                marginTop={16}
+                marginRight={20}
+              />
+            ) : (
+              displayCourses.map(item => (
+                <TrendingCard
+                  key={item.id}
+                  courseId={item.courseId}
+                  cover={item.cover}
+                  category={item.category}
+                  title={item.title}
+                  subtitle={item.subtitle}
+                  tag={item.tag}
+                  lessonCount={item.lessonCount}
+                  ratingValue={item.ratingValue}
+                  reviewsLabel={item.reviewsLabel}
+                  price={item.priceLabel}
+                  priceRaw={item.price}
+                  appleProductId={item.appleProductId}
+                  googleProductId={item.googleProductId}
+                  isPurchased={item.isPurchased}
+                  isLoggedIn={isLoggedIn}
+                />
+              ))
+            )}
+          </FadeInView>
         </View>
-        <View style={styles.subscribeContainer}>
+        {!isLoggedIn ? (
+        <FadeInView delay={360} style={styles.subscribeContainer}>
           <CustomText
             label="Ready to redefine our creative potential?"
             fontFamily={fonts.semiBold}
@@ -425,7 +505,8 @@ const index = ({navigation}) => {
             paddingHorizontal={10}
             backgroundColor="white"
           />
-        </View>
+        </FadeInView>
+        ) : null}
       </ScrollView>
     </ScreenWrapper>
   );
@@ -460,6 +541,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 2,
     backgroundColor: '#EAF8FF',
+  },
+  backIcon: {
+    width: 24,
+    height: 24,
   },
   logoCenterWrap: {
     flex: 1,

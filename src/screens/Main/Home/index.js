@@ -357,7 +357,16 @@ const Home = () => {
       paddingHorizontal={0}
       scrollEnabled={true}
       headerUnScrollable={() => (
-        <View>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '60%', paddingHorizontal: 10}}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => navigation.goBack()}>
+            <ImageFast
+              source={Images.leftarrow}
+              style={{width: 24, height: 24, marginTop: 8}}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
           <ImageFast
             source={Images.newlogo}
             style={styles.logo}

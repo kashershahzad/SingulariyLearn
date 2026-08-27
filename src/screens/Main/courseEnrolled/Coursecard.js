@@ -37,7 +37,7 @@ const Coursecard = ({
       },
       image: {
         width: '100%',
-        height: 169,
+        height: 210,
         borderRadius: 8,
       },
       imageWrapper: {
@@ -125,7 +125,7 @@ const Coursecard = ({
       onPress={onPress}
       style={styles.container}>
       <View style={styles.imageWrapper}>
-        <ImageFast source={image} style={styles.image} resizeMode={'cover'} />
+        <ImageFast source={image} style={styles.image} resizeMode={'contain'} />
         {showBookmark ? (
           <TouchableOpacity
             activeOpacity={0.8}

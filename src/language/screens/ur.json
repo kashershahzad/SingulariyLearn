@@ -1,4 +1,8 @@
 {
+  "landing": {
+    "purchased": "خرید لیا",
+    "login": "لاگ ان"
+  },
   "courseEnroll": {
     "study": "مطالعہ",
     "practice": "مشق",
@@ -10,7 +14,8 @@
     "lessonsCount": "{{count}} اسباق",
     "noLessons": "کوئی سبق دستیاب نہیں",
     "fallbackTitle": "ڈیجیٹل میڈیمز کے لیے جدید بصری کہانی",
-    "fallbackSubtitle": "ٹیکنالوجی اور انسانی جذبات کے تقاطع میں گہرائی سے جائیں۔"
+    "fallbackSubtitle": "ٹیکنالوجی اور انسانی جذبات کے تقاطع میں گہرائی سے جائیں۔",
+    "courseHeader": "کورس"
   },
   "checkout": {
     "header": "چیک آؤٹ",
@@ -40,7 +45,8 @@
     "paymentConfirmed": "ادائیگی کی تصدیق ہو گئی",
     "errorTitle": "خرابی",
     "paymentFailed": "ادائیگی ناکام",
-    "unableToComplete": "ادائیگی مکمل نہیں ہو سکی"
+    "unableToComplete": "ادائیگی مکمل نہیں ہو سکی",
+    "missingAppleProduct": "اس کورس کے لیے ایپل پروڈکٹ آئی ڈی موجود نہیں ہے۔"
   },
   "enrolledCourses": {
     "title": "اندراج شدہ کورسز",
@@ -191,6 +197,16 @@
     "notificationSubtitle": "ایپ کے لیے اپنی نوٹیفکیشن ترجیحات منظم کریں۔",
     "profileViewTitle": "پروفائل منظر",
     "profileViewSubtitle": "اپنی پروفائل نوٹیفکیشن چیک کریں"
+  },
+  "about": {
+    "header": "کے بارے میں",
+    "appName": "Singularity Learn",
+    "versionLabel": "ورژن",
+    "versionTitle": "ایپ ورژن",
+    "platformTitle": "پلیٹ فارم",
+    "platformValue": "iOS اور Android",
+    "aboutTitle": "ایپ کے بارے میں",
+    "aboutBody": "Singularity Learn آپ کو DMV پرمٹ ٹیسٹ کی تیاری میں مدد دیتا ہے — پریکٹس لیسنز، ماک امتحانات اور پیشرفت کی ٹریکنگ کے ساتھ، تاکہ آپ اعتماد کے ساتھ سیکھ سکیں۔"
   },
   "profileNotifications": {
     "header": "نوٹیفکیشنز",

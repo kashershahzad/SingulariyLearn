@@ -156,11 +156,14 @@ const CourseEnroll = () => {
 
       const [lessonsResponse, coursesResponse] = await Promise.all(requests);
 
+      let userHasAccess = false;
+
       if (coursesResponse) {
         const courseRow = (coursesResponse?.data?.data ?? []).find(
           item => String(item.id) === String(activeCourseId),
         );
-        setHasAccess(hasCourseAccess(courseRow));
+        userHasAccess = hasCourseAccess(courseRow);
+        setHasAccess(userHasAccess);
         if (courseRow) {
           setAppleProductId(String(courseRow.apple_product_id || '').trim());
           setGoogleProductId(String(courseRow.google_product_id || '').trim());
@@ -177,8 +180,10 @@ const CourseEnroll = () => {
           subtitle: parseLocalized(item.short_desc, currentLanguage),
         }));
         setLessons(mappedLessons);
-        if (mappedLessons.length > 0) {
+        if (mappedLessons.length > 0 && !userHasAccess) {
           setExpandedLessonId(mappedLessons[0].id);
+        } else {
+          setExpandedLessonId(null);
         }
       } else {
         setLessons([]);
@@ -219,6 +224,26 @@ const CourseEnroll = () => {
 
   const handleToggleLesson = lessonId => {
     setExpandedLessonId(prev => (prev === lessonId ? null : lessonId));
+  };
+
+  const openLesson = lesson => {
+    navigation.navigate('CourseDetialNew', {
+      courseId: activeCourseId,
+      course_id: activeCourseId,
+      lessonId: lesson.id,
+      lesson_id: lesson.id,
+      coursetitle: title,
+      lessonName: lesson.title,
+    });
+  };
+
+  const handleLessonPress = lesson => {
+    if (hasAccess) {
+      openLesson(lesson);
+      return;
+    }
+
+    handleToggleLesson(lesson.id);
   };
 
   const handleLessonAction = (lesson, actionId) => {
@@ -262,9 +287,21 @@ const CourseEnroll = () => {
 
   return (
     <ScreenWrapper
-      headerUnScrollable={() => <Header />}
+      headerUnScrollable={() => (
+        <Header
+          title={
+            hasAccess
+              ? title || 'screens.courseEnroll.courseHeader'
+              : 'screens.checkout.header'
+          }
+          removeTranslation={hasAccess && Boolean(title)}
+        />
+      )}
       backgroundColor="white"
-      footerUnScrollable={() => (
+      footerUnScrollable={
+        hasAccess
+          ? undefined
+          : () => (
         <View
           style={{
             backgroundColor: 'white',
@@ -287,7 +324,8 @@ const CourseEnroll = () => {
             onPress={handleEnrollPress}
           />
         </View>
-      )}
+          )
+      }
       paddingHorizontal={0}>
       <ScrollView
         style={styles.pageScroll}
@@ -429,10 +467,10 @@ const CourseEnroll = () => {
                 return (
                   <Pressable
                     key={lesson.id}
-                    onPress={() => handleToggleLesson(lesson.id)}
+                    onPress={() => handleLessonPress(lesson)}
                     style={[
                       styles.curriculumCard,
-                      isExpanded && styles.curriculumCardActive,
+                      isExpanded && !hasAccess && styles.curriculumCardActive,
                     ]}>
                     <View style={styles.curriculumHeader}>
                       <View style={styles.curriculumLeft}>
@@ -466,13 +504,19 @@ const CourseEnroll = () => {
                       </View>
                       <Icons
                         family="Ionicons"
-                        name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                        name={
+                          hasAccess
+                            ? 'chevron-forward'
+                            : isExpanded
+                              ? 'chevron-up'
+                              : 'chevron-down'
+                        }
                         size={26}
-                        color={isExpanded ? '#08A0F7' : '#464555'}
+                        color={hasAccess || isExpanded ? '#08A0F7' : '#464555'}
                       />
                     </View>
 
-                    {isExpanded && (
+                    {isExpanded && !hasAccess && (
                       <View style={styles.lessonList}>
                         {LESSON_ACTIONS.map(action => (
                           <Pressable

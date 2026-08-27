@@ -44,8 +44,6 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Singularity Learn uses the camera so you can take a new profile photo for your account. Your photo is only used as your profile picture within the app and is not shared with third parties.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Singularity Learn uses your photo library so you can choose an existing photo as your profile picture. Only the photo you select is used for your profile within the app and is not shared with third parties.</string>
 	<key>UIAppFonts</key>

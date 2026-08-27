@@ -64,8 +64,7 @@ const DUMMY_QUESTIONS = [
 
 const GRID_GAP = 10;
 const GRID_H_PADDING = 20;
-const gridOptionWidth =
-  (SCREEN_WIDTH - GRID_H_PADDING * 2 - GRID_GAP) / 2;
+const gridOptionWidth = (SCREEN_WIDTH - GRID_H_PADDING * 2 - GRID_GAP) / 2;
 
 const SINGULARITY_IMAGE_PREFIX = 'singularity_learn/images/';
 
@@ -224,13 +223,13 @@ const parseQuestionsFromApi = (questionsArray, currentLanguage) => {
         image: parsedAnswer.image || imageFromField,
         correct: Number(answer.is_correct) === 1 ? 1 : 0,
         answerId:
-          answer.id != null && answer.id !== ''
-            ? String(answer.id)
-            : null,
+          answer.id != null && answer.id !== '' ? String(answer.id) : null,
       };
     });
 
-    const hasOptionImages = options.some(option => isValidOptionImage(option.image));
+    const hasOptionImages = options.some(option =>
+      isValidOptionImage(option.image),
+    );
 
     const correctIndex = options.findIndex(
       option => Number(option.correct) === 1,
@@ -250,59 +249,61 @@ const buildUiQuestions = (parsedList, currentLanguage) => {
   return parsedList
     .filter(parsed => parsed.options?.length > 0)
     .map(parsed => {
-    const audioUri = getAudioUrlFromQuestion(parsed, currentLanguage);
-    const imageSource = getImageSourceForQuestion(parsed);
-    const videoSource = getVideoSourceForQuestion(parsed);
+      const audioUri = getAudioUrlFromQuestion(parsed, currentLanguage);
+      const imageSource = getImageSourceForQuestion(parsed);
+      const videoSource = getVideoSourceForQuestion(parsed);
 
-    const hasAudio = !!(audioUri && String(audioUri).trim());
-    const hasVideo = !!(videoSource?.uri);
-    const hasImage = !!(imageSource?.uri);
+      const hasAudio = !!(audioUri && String(audioUri).trim());
+      const hasVideo = !!videoSource?.uri;
+      const hasImage = !!imageSource?.uri;
 
-    let mediaType;
-    let audioSource = null;
+      let mediaType;
+      let audioSource = null;
 
-    if (hasAudio) {
-      mediaType = 'audio';
-      audioSource = {uri: audioUri};
-    } else if (hasVideo) {
-      mediaType = 'image';
-    } else if (hasImage) {
-      mediaType = 'image';
-    } else {
-      mediaType = 'image';
-    }
+      if (hasAudio) {
+        mediaType = 'audio';
+        audioSource = {uri: audioUri};
+      } else if (hasVideo) {
+        mediaType = 'image';
+      } else if (hasImage) {
+        mediaType = 'image';
+      } else {
+        mediaType = 'image';
+      }
 
-    const options = parsed.options.map((opt, i) => ({
-      id: `opt-${parsed.id}-${i}`,
-      answerId: opt.answerId || null,
-      title: opt.answer,
-      subtitle: '',
-      imageUri: isValidOptionImage(opt.image) ? opt.image : null,
-    }));
+      const options = parsed.options.map((opt, i) => ({
+        id: `opt-${parsed.id}-${i}`,
+        answerId: opt.answerId || null,
+        title: opt.answer,
+        subtitle: '',
+        imageUri: isValidOptionImage(opt.image) ? opt.image : null,
+      }));
 
-    const hasOptionImages = options.some(o => !!o.imageUri);
-    const useGridForOptions = mediaType !== 'audio' && hasOptionImages;
+      const hasOptionImages = options.some(o => !!o.imageUri);
+      const useGridForOptions = mediaType !== 'audio' && hasOptionImages;
 
-    const ci = Math.min(
-      Math.max(0, parsed.correctAnswerIndex ?? 0),
-      Math.max(0, options.length - 1),
-    );
+      const ci = Math.min(
+        Math.max(0, parsed.correctAnswerIndex ?? 0),
+        Math.max(0, options.length - 1),
+      );
 
-    return {
-      id: String(parsed.id),
-      mediaType,
-      audioSource,
-      imageSource,
-      videoSource: hasVideo ? videoSource : null,
-      prompt: parsed.question,
-      subPrompt: 'Select the correct answer.',
-      options,
-      useGridForOptions,
-      correctAnswerIndex: ci,
-      isBookmarked: isBookmarkedFlag(parsed.is_bookmarked),
-    };
-  });
+      return {
+        id: String(parsed.id),
+        mediaType,
+        audioSource,
+        imageSource,
+        videoSource: hasVideo ? videoSource : null,
+        prompt: parsed.question,
+        subPrompt: 'Select the correct answer.',
+        options,
+        useGridForOptions,
+        correctAnswerIndex: ci,
+        isBookmarked: isBookmarkedFlag(parsed.is_bookmarked),
+      };
+    });
 };
+
+const QUESTIONS_PAGE_LIMIT = 10;
 
 const normalizeQuestionsArray = raw => {
   if (Array.isArray(raw)) {
@@ -314,6 +315,21 @@ const normalizeQuestionsArray = raw => {
   return [];
 };
 
+const extractTotalQuestions = response => {
+  const body = response?.data;
+  const nested =
+    body?.data && typeof body.data === 'object' && !Array.isArray(body.data)
+      ? body.data
+      : null;
+  const raw =
+    body?.total_questions ??
+    body?.totalQuestions ??
+    nested?.total_questions ??
+    nested?.totalQuestions;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+};
+
 const TestformNew = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -323,14 +339,15 @@ const TestformNew = () => {
   const styles = useThemedStyles(c =>
     StyleSheet.create({
       centered: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: 280,
       },
       container: {
-        flex: 1,
         backgroundColor: c.screenBg,
         paddingHorizontal: 20,
+        paddingBottom: 24,
       },
       optionCard: {
         borderRadius: 10,
@@ -460,8 +477,9 @@ const TestformNew = () => {
         justifyContent: 'center',
       },
       imagePreviewThumbWrap: {
-        width: 118,
-        height: 118,
+        width: '100%',
+        height: 180,
+        alignSelf: 'center',
       },
       imageZoomFabIcon: {
         width: 22,
@@ -519,11 +537,10 @@ const TestformNew = () => {
   const isMockupTest =
     is_mockup === '1' || is_mockup === 1 || is_mockup === true;
   const isBookmarkReview =
-    bookmarkReview === true ||
-    bookmarkReview === 1 ||
-    bookmarkReview === '1';
+    bookmarkReview === true || bookmarkReview === 1 || bookmarkReview === '1';
 
   const [questionsUi, setQuestionsUi] = useState([]);
+  const [totalQuestions, setTotalQuestions] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
@@ -538,8 +555,21 @@ const TestformNew = () => {
   const [imageZoomVisible, setImageZoomVisible] = useState(false);
   const audioRef = useRef(null);
   const allAnswersRef = useRef([]);
+  const questionsUiRef = useRef([]);
+  const totalQuestionsRef = useRef(0);
+  const hasMoreQuestionsRef = useRef(true);
+  const loadingMoreRef = useRef(false);
+  const lastIdRef = useRef(0);
   const [accumulatedTimeSec, setAccumulatedTimeSec] = useState(0);
   const questionStartedAtRef = useRef(Date.now());
+
+  useEffect(() => {
+    questionsUiRef.current = questionsUi;
+  }, [questionsUi]);
+
+  useEffect(() => {
+    totalQuestionsRef.current = totalQuestions;
+  }, [totalQuestions]);
 
   useEffect(() => {
     let cancelled = false;
@@ -547,6 +577,7 @@ const TestformNew = () => {
       if (isBookmarkReview && bookmarkQuestionIdParam) {
         if (!token) {
           setQuestionsUi([]);
+          setTotalQuestions(0);
           setLoading(false);
           return;
         }
@@ -558,14 +589,18 @@ const TestformNew = () => {
           if (bookmarkQuestionRaw) {
             const nested = bookmarkQuestionRaw.question || bookmarkQuestionRaw;
             const rowId = String(
-              nested.id ?? bookmarkQuestionRaw.question_id ?? bookmarkQuestionIdParam,
+              nested.id ??
+                bookmarkQuestionRaw.question_id ??
+                bookmarkQuestionIdParam,
             );
             apiData = [
               {
                 ...nested,
                 id: rowId,
                 course_id:
-                  nested.course_id ?? bookmarkQuestionRaw.course_id ?? activeCourseId,
+                  nested.course_id ??
+                  bookmarkQuestionRaw.course_id ??
+                  activeCourseId,
                 lesson_id:
                   nested.lesson_id ?? bookmarkQuestionRaw.lesson_id ?? lessonId,
               },
@@ -611,6 +646,7 @@ const TestformNew = () => {
             isBookmarked: true,
           }));
           setQuestionsUi(ui);
+          setTotalQuestions(ui.length);
           setQuestionIndex(0);
           setSelectedOption(null);
           setShowOptionFeedback(false);
@@ -618,6 +654,7 @@ const TestformNew = () => {
         } catch {
           if (!cancelled) {
             setQuestionsUi([]);
+            setTotalQuestions(0);
           }
         } finally {
           if (!cancelled) {
@@ -633,6 +670,7 @@ const TestformNew = () => {
 
       if (!canLoad) {
         setQuestionsUi([]);
+        setTotalQuestions(0);
         setLoading(false);
         return;
       }
@@ -655,11 +693,12 @@ const TestformNew = () => {
               type: 'get_data',
               table_name: 'questions',
               lesson_id: String(lessonId),
+              course_id: String(activeCourseId),
               user_id: String(token),
-              permit_id: String(activePermitId),
-              limit: '10',
+              limit: 10,
+              last_id: 0,
             };
-        // console.log('body', body);
+        console.log('body', body);
         const response = await ApiRequest(body);
         console.log('response', response);
         if (cancelled) {
@@ -667,39 +706,46 @@ const TestformNew = () => {
         }
         if (response?.status !== 200) {
           setQuestionsUi([]);
+          setTotalQuestions(0);
+          hasMoreQuestionsRef.current = false;
           return;
         }
         let apiData = normalizeQuestionsArray(response?.data?.data);
+        let apiTotalQuestions = extractTotalQuestions(response);
 
-        if (apiData.length < 2) {
-          const retryResponse = await ApiRequest(
-            isMockupTest
-              ? {
-                  type: 'get_data',
-                  table_name: 'questions',
-                  course_id: String(activeCourseId),
-                  user_id: String(token),
-                  is_mockup: '1',
-                }
-              : {
-                  type: 'get_data',
-                  table_name: 'questions',
-                  lesson_id: String(lessonId),
-                  user_id: String(token),
-                  limit: '100',
-                },
-          );
+        if (isMockupTest && apiData.length < 2) {
+          const retryResponse = await ApiRequest({
+            type: 'get_data',
+            table_name: 'questions',
+            course_id: String(activeCourseId),
+            user_id: String(token),
+            is_mockup: '1',
+          });
           if (!cancelled && retryResponse?.status === 200) {
-            const retryData = normalizeQuestionsArray(retryResponse?.data?.data);
+            const retryData = normalizeQuestionsArray(
+              retryResponse?.data?.data,
+            );
             if (retryData.length > apiData.length) {
               apiData = retryData;
+              apiTotalQuestions = extractTotalQuestions(retryResponse);
             }
           }
         }
 
         const parsed = parseQuestionsFromApi(apiData, currentLanguage);
         const ui = buildUiQuestions(parsed, currentLanguage);
+        const total = apiTotalQuestions || ui.length;
         setQuestionsUi(ui);
+        questionsUiRef.current = ui;
+        setTotalQuestions(total);
+        totalQuestionsRef.current = total;
+        // First page used last_id: 0 — next pages use 1, 2, 3, ...
+        lastIdRef.current = 0;
+        hasMoreQuestionsRef.current = isMockupTest
+          ? false
+          : apiTotalQuestions > 0
+          ? ui.length < apiTotalQuestions
+          : apiData.length >= 10;
         setQuestionIndex(0);
         setAccumulatedTimeSec(0);
         setSelectedOption(null);
@@ -709,6 +755,8 @@ const TestformNew = () => {
       } catch (e) {
         if (!cancelled) {
           setQuestionsUi([]);
+          setTotalQuestions(0);
+          hasMoreQuestionsRef.current = false;
         }
       } finally {
         if (!cancelled) {
@@ -741,6 +789,100 @@ const TestformNew = () => {
     };
   }, []);
 
+  const fetchMoreLessonQuestions = async () => {
+    if (
+      isMockupTest ||
+      isBookmarkReview ||
+      loadingMoreRef.current ||
+      !hasMoreQuestionsRef.current ||
+      !lessonId ||
+      !token
+    ) {
+      return false;
+    }
+
+    const currentList = questionsUiRef.current;
+    const total = totalQuestionsRef.current || 0;
+    if (total > 0 && currentList.length >= total) {
+      hasMoreQuestionsRef.current = false;
+      return false;
+    }
+
+    const nextLastId = Number(lastIdRef.current || 0) + 1;
+    loadingMoreRef.current = true;
+    try {
+      const body = {
+        type: 'get_data',
+        table_name: 'questions',
+        lesson_id: String(lessonId),
+        course_id: String(activeCourseId),
+        user_id: String(token),
+        limit: 10,
+        last_id: nextLastId,
+      };
+      console.log('body', body);
+      const response = await ApiRequest(body);
+      console.log('response', response);
+
+      if (response?.status !== 200) {
+        hasMoreQuestionsRef.current = false;
+        return false;
+      }
+
+      const apiData = normalizeQuestionsArray(response?.data?.data);
+      if (!apiData.length) {
+        hasMoreQuestionsRef.current = false;
+        return false;
+      }
+
+      const parsed = parseQuestionsFromApi(apiData, currentLanguage);
+      const nextUi = buildUiQuestions(parsed, currentLanguage);
+      const existingIds = new Set(currentList.map(q => String(q.id)));
+      const uniqueNext = nextUi.filter(q => !existingIds.has(String(q.id)));
+      if (!uniqueNext.length) {
+        hasMoreQuestionsRef.current = false;
+        return false;
+      }
+
+      const merged = [...currentList, ...uniqueNext];
+      const apiTotal = extractTotalQuestions(response);
+      const nextTotal = Math.max(apiTotal, total, merged.length);
+
+      lastIdRef.current = nextLastId;
+      questionsUiRef.current = merged;
+      setQuestionsUi(merged);
+      totalQuestionsRef.current = nextTotal;
+      setTotalQuestions(nextTotal);
+      hasMoreQuestionsRef.current =
+        apiTotal > 0
+          ? merged.length < nextTotal
+          : uniqueNext.length >= 10;
+      return true;
+    } catch (e) {
+      console.log('fetchMoreLessonQuestions error', e);
+      return false;
+    } finally {
+      loadingMoreRef.current = false;
+    }
+  };
+
+  const ensureQuestionAvailable = async nextIndex => {
+    if (nextIndex < questionsUiRef.current.length) {
+      return true;
+    }
+
+    while (nextIndex >= questionsUiRef.current.length) {
+      if (!hasMoreQuestionsRef.current) {
+        return false;
+      }
+      const gotMore = await fetchMoreLessonQuestions();
+      if (!gotMore) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   const currentQuestion = useMemo(
     () => questionsUi[questionIndex],
     [questionsUi, questionIndex],
@@ -751,11 +893,12 @@ const TestformNew = () => {
   const isImageQuestion = currentQuestion && !isAudioQuestion;
 
   const progressPercent = useMemo(() => {
-    if (!questionsUi.length) {
+    const total = totalQuestions || questionsUi.length;
+    if (!total) {
       return 0;
     }
-    return ((questionIndex + 1) / questionsUi.length) * 100;
-  }, [questionIndex, questionsUi.length]);
+    return ((questionIndex + 1) / total) * 100;
+  }, [questionIndex, questionsUi.length, totalQuestions]);
 
   useEffect(() => {
     if (continueHoldTimerRef.current) {
@@ -848,9 +991,7 @@ const TestformNew = () => {
         score: String(scorePercent),
         average_time: String(Math.round(averageTime)),
         questions: JSON.stringify(questionsForApi),
-        ...(isMockupTest
-          ? {is_mockup: '1'}
-          : {lesson_id: String(lessonId)}),
+        ...(isMockupTest ? {is_mockup: '1'} : {lesson_id: String(lessonId)}),
       };
       // console.log('body', body);
 
@@ -867,23 +1008,22 @@ const TestformNew = () => {
           isMockupTest,
           course_id: activeCourseId,
           courseId: activeCourseId,
+          lessonId,
+          lesson_id: lessonId,
           lessonName,
           reviewAnswers: answersPayload,
         });
         return;
       }
 
-
       Alert.alert(
         'Error',
-        response?.data?.message || 'Failed to submit answers. Please try again.',
+        response?.data?.message ||
+          'Failed to submit answers. Please try again.',
       );
     } catch (error) {
       console.error('Submit questionnaire error:', error);
-      Alert.alert(
-        'Error',
-        'Failed to submit answers. Please try again.',
-      );
+      Alert.alert('Error', 'Failed to submit answers. Please try again.');
     } finally {
       setSubmitLoading(false);
     }
@@ -939,16 +1079,20 @@ const TestformNew = () => {
     }
   };
 
-  const handleSkip = () => {
-    if (submitLoading || continueHoldActive || !currentQuestion?.id) {
+  const handleSkip = async () => {
+    if (
+      submitLoading ||
+      continueHoldActive ||
+      loadingMoreRef.current ||
+      !currentQuestion?.id
+    ) {
       return;
     }
 
     const cq = currentQuestion;
     const elapsedSec = (Date.now() - questionStartedAtRef.current) / 1000;
     const nextAccumulated = accumulatedTimeSec + elapsedSec;
-    const total = questionsUi.length;
-    const isLast = questionIndex >= total - 1;
+    const nextIndex = questionIndex + 1;
 
     const correctOpt = cq.options[cq.correctAnswerIndex];
     const answerData = {
@@ -973,7 +1117,9 @@ const TestformNew = () => {
       timeSpentSec: elapsedSec,
     });
 
-    if (isLast) {
+    const ready = await ensureQuestionAvailable(nextIndex);
+    if (!ready) {
+      const total = merged.length;
       const correctCount = merged.filter(a => a.is_correct).length;
       const averageTime = total > 0 ? nextAccumulated / total : 0;
       submitLessonQuestionnaire(merged, correctCount, averageTime);
@@ -981,15 +1127,18 @@ const TestformNew = () => {
     }
 
     setAccumulatedTimeSec(nextAccumulated);
-    setQuestionIndex(i => i + 1);
+    setQuestionIndex(nextIndex);
   };
 
   const handleContinue = async () => {
-    if (submitLoading || continueHoldActive) {
+    if (submitLoading || continueHoldActive || loadingMoreRef.current) {
       return;
     }
     if (selectedOption == null) {
-      Alert.alert('Select an answer', 'Please choose an option before continuing.');
+      Alert.alert(
+        'Select an answer',
+        'Please choose an option before continuing.',
+      );
       return;
     }
 
@@ -1017,8 +1166,7 @@ const TestformNew = () => {
 
     const elapsedSec = (Date.now() - questionStartedAtRef.current) / 1000;
     const nextAccumulated = accumulatedTimeSec + elapsedSec;
-    const total = questionsUi.length;
-    const isLast = questionIndex >= total - 1;
+    const nextIndex = questionIndex + 1;
 
     const merged = [
       ...allAnswersRef.current.filter(a => a.question_id !== cq.id),
@@ -1036,7 +1184,9 @@ const TestformNew = () => {
     });
 
     if (isMockupTest) {
-      if (isLast) {
+      const ready = await ensureQuestionAvailable(nextIndex);
+      if (!ready) {
+        const total = merged.length;
         const correctCount = merged.filter(a => a.is_correct).length;
         const averageTime = total > 0 ? nextAccumulated / total : 0;
         await submitLessonQuestionnaire(merged, correctCount, averageTime);
@@ -1044,13 +1194,15 @@ const TestformNew = () => {
       }
 
       setAccumulatedTimeSec(nextAccumulated);
-      setQuestionIndex(i => i + 1);
+      setQuestionIndex(nextIndex);
       return;
     }
 
     setShowOptionFeedback(true);
 
-    if (isLast) {
+    const ready = await ensureQuestionAvailable(nextIndex);
+    if (!ready) {
+      const total = merged.length;
       const correctCount = merged.filter(a => a.is_correct).length;
       const averageTime = total > 0 ? nextAccumulated / total : 0;
       setContinueHoldActive(true);
@@ -1067,7 +1219,7 @@ const TestformNew = () => {
     continueHoldTimerRef.current = setTimeout(() => {
       continueHoldTimerRef.current = null;
       setContinueHoldActive(false);
-      setQuestionIndex(i => i + 1);
+      setQuestionIndex(nextIndex);
     }, 2000);
   };
 
@@ -1186,7 +1338,9 @@ const TestformNew = () => {
         return isGrid ? styles.optionGridCellCorrect : styles.optionCardCorrect;
       }
       if (selectedOption === option.id) {
-        return isGrid ? styles.optionGridCellSelected : styles.selectedOptionCard;
+        return isGrid
+          ? styles.optionGridCellSelected
+          : styles.selectedOptionCard;
       }
       return null;
     }
@@ -1222,8 +1376,8 @@ const TestformNew = () => {
           ? colors.textOnAccent
           : colors.textPrimary
         : isGrid
-          ? colors.textMuted
-          : colors.textPrimary;
+        ? colors.textMuted
+        : colors.textPrimary;
     }
     if (!showOptionFeedback || isMockupTest) {
       const sel = selectedOption === option.id;
@@ -1254,10 +1408,12 @@ const TestformNew = () => {
   };
 
   const showImageCard =
-    isImageQuestion && !!(currentQuestion.imageSource || currentQuestion.videoSource);
+    isImageQuestion &&
+    !!(currentQuestion.imageSource || currentQuestion.videoSource);
 
   return (
     <ScreenWrapper
+      scrollEnabled
       paddingHorizontal={0}
       footerUnScrollable={() => (
         <View style={{backgroundColor: colors.screenBg}}>
@@ -1266,21 +1422,28 @@ const TestformNew = () => {
               styles.footerActionsRow,
               isBookmarkReview && styles.footerActionsRowBottom,
             ]}>
-            <CustomButton
-              title={isQuestionBookmarked ? 'Unsave' : 'Save'}
-              color={isQuestionBookmarked ? colors.accent : colors.textPrimary}
-              backgroundColor={'transparent'}
-              borderRadius={8}
-              height={51}
-              borderWidth={1}
-              borderColor={isQuestionBookmarked ? colors.accent : colors.border}
-              width="48%"
-              loading={bookmarkLoading}
-              disabled={
-                bookmarkLoading || submitLoading || continueHoldActive
-              }
-              onPress={handleToggleQuestionBookmark}
-            />
+            {isMockupTest ? null : (
+              <CustomButton
+                title={isQuestionBookmarked ? 'Unsave' : 'Save'}
+                color={
+                  isQuestionBookmarked ? colors.accent : colors.textPrimary
+                }
+                backgroundColor={'transparent'}
+                borderRadius={8}
+                height={51}
+                borderWidth={1}
+                borderColor={
+                  isQuestionBookmarked ? colors.accent : colors.border
+                }
+                width="48%"
+                loading={bookmarkLoading}
+                disabled={
+                  bookmarkLoading || submitLoading || continueHoldActive
+                }
+                onPress={handleToggleQuestionBookmark}
+              />
+            )}
+
             <CustomButton
               title={isBookmarkReview ? 'Back' : 'Skip'}
               color={colors.textPrimary}
@@ -1289,18 +1452,20 @@ const TestformNew = () => {
               height={51}
               borderWidth={1}
               borderColor={colors.border}
-              width="48%"
-              disabled={!isBookmarkReview && (submitLoading || continueHoldActive)}
-              onPress={isBookmarkReview ? () => navigation.goBack() : handleSkip}
+              width={isMockupTest ? '100%' : '48%'}
+              disabled={
+                !isBookmarkReview && (submitLoading || continueHoldActive)
+              }
+              onPress={
+                isBookmarkReview ? () => navigation.goBack() : handleSkip
+              }
             />
           </View>
           {!isBookmarkReview && (
             <View style={styles.footerContainer}>
               <TouchableOpacity
                 activeOpacity={
-                  selectedOption == null ||
-                  submitLoading ||
-                  continueHoldActive
+                  selectedOption == null || submitLoading || continueHoldActive
                     ? 1
                     : 0.8
                 }
@@ -1340,7 +1505,9 @@ const TestformNew = () => {
       }>
       <View style={styles.container}>
         <CustomText
-          label={`Question ${questionIndex + 1} of ${questionsUi.length}`}
+          label={`Question ${questionIndex + 1} of ${
+            totalQuestions || questionsUi.length
+          }`}
           fontSize={20}
           fontFamily={fonts.jakartaBold}
           color={colors.textPrimary}
@@ -1350,14 +1517,16 @@ const TestformNew = () => {
             isBookmarkReview
               ? 'Correct answer is highlighted in green'
               : isMockupTest
-                ? 'Select your answer and continue'
-                : 'Answer and get instant feedback'
+              ? 'Select your answer and continue'
+              : 'Answer and get instant feedback'
           }
           fontSize={14}
           fontFamily={fonts.jakartaRegular}
           color={colors.textMuted}
           lineHeight={20}
-          {...(isBookmarkReview || isMockupTest ? {removeTranslation: true} : {})}
+          {...(isBookmarkReview || isMockupTest
+            ? {removeTranslation: true}
+            : {})}
         />
         <View style={{marginTop: 5}} />
         <ProgressBar progress={progressPercent} />
@@ -1458,7 +1627,7 @@ const TestformNew = () => {
                 <ImageFast
                   source={currentQuestion.imageSource}
                   style={styles.imagePreviewThumbWrap}
-                  resizeMode="cover"
+                  resizeMode="contain"
                   onPress={() => setImageZoomVisible(true)}
                 />
               )}

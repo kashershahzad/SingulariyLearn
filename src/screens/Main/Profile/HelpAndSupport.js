@@ -73,36 +73,7 @@ const HelpAndSupport = () => {
   return (
     <ScreenWrapper
       paddingHorizontal={0}
-      headerUnScrollable={() => <Header2 title="screens.helpSupport.header" />}
-      footerUnScrollable={() => (
-        <View style={styles.footerContainer}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={handleSend}
-            disabled={loading}>
-            <LinearGradient
-              colors={['#0298EF', '#015789']}
-              start={{x: 0.5, y: 0}}
-              end={{x: 0.5, y: 1}}
-              style={[
-                styles.footerGradientButton,
-                loading && styles.footerDisabled,
-              ]}>
-              {loading ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <CustomText
-                  label="screens.helpSupport.send"
-                  fontSize={20}
-                  fontFamily={fonts.jakartaMedium}
-                  color="#FFFFFF"
-                  lineHeight={30}
-                />
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      )}>
+      headerUnScrollable={() => <Header2 title="screens.helpSupport.header" />}>
       <View style={styles.container}>
         <CustomText
           label="screens.helpSupport.name"
@@ -162,6 +133,31 @@ const HelpAndSupport = () => {
           borderRadius={10}
           marginBottom={18}
         />
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={handleSend}
+          disabled={loading}>
+          <LinearGradient
+            colors={['#0298EF', '#015789']}
+            start={{x: 0.5, y: 0}}
+            end={{x: 0.5, y: 1}}
+            style={[
+              styles.sendButton,
+              loading && styles.sendButtonDisabled,
+            ]}>
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <CustomText
+                label="screens.helpSupport.send"
+                fontSize={20}
+                fontFamily={fonts.jakartaMedium}
+                color="#FFFFFF"
+                lineHeight={30}
+              />
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     </ScreenWrapper>
   );
@@ -176,20 +172,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FCF8FF',
     flex: 1,
   },
-  footerGradientButton: {
+  sendButton: {
     height: 51,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    marginTop: 8,
   },
-  footerDisabled: {
+  sendButtonDisabled: {
     opacity: 0.7,
-  },
-  footerContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    paddingTop: 12,
-    backgroundColor: '#FCF8FF',
   },
 });

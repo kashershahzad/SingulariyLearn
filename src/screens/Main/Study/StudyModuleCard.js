@@ -251,7 +251,7 @@ const StudyModuleCard = ({
         limit: '100',
       });
       console.log('course_id', data.id);
-      console.log('response', response);
+      console.log('lesson response', response);
 
       if (response?.status !== 200) {
         setLessons([]);

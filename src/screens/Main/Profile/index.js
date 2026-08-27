@@ -124,6 +124,13 @@ const Profile = ({navigation}) => {
             icon: 'profileEnrolledCourses',
             onPress: () => navigation.navigate('CourseEnrolled'),
           },
+          // {
+          //   id: 'allCourses',
+          //   titleKey: 'profileMenu.items.allCourses',
+          //   subtitleKey: 'profileMenu.items.allCoursesSubtitle',
+          //   icon: 'profileEnrolledCourses',
+          //   onPress: () => navigation.navigate('LandingPage'),
+          // },
           {
             id: 'bookmarks',
             titleKey: 'profileMenu.items.bookmarks',
@@ -196,6 +203,7 @@ const Profile = ({navigation}) => {
             titleKey: 'profileMenu.items.about',
             subtitleKey: 'profileMenu.items.aboutSubtitle',
             icon: 'profileAbout',
+            onPress: () => navigation.navigate('About'),
           },
           {
             id: 'logout',
@@ -300,7 +308,7 @@ const Profile = ({navigation}) => {
                         fontFamily={fonts.jakartaSemiBold}
                         color={colors.textPrimary}
                         label={item.titleKey}
-                        lineHeight={16}
+                        lineHeight={20}
                       />
                       <CustomText
                         fontSize={10}

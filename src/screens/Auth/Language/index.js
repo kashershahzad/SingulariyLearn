@@ -75,6 +75,7 @@ const Language = ({ navigation, route}) => {
                         label={t('select_language')}
                         fontFamily={fonts.semiBold}
                         fontSize={28}
+                        lineHeight={38}
                         marginTop={40}
                         marginBottom={20}
                     />

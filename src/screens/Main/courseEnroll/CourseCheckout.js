@@ -1,5 +1,5 @@
 import {Alert, Platform, StyleSheet, View} from 'react-native';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {useSelector} from 'react-redux';
 import {useTranslation} from 'react-i18next';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -12,7 +12,7 @@ import CustomHorizontalLine from '../../../components/CustomHorizontalLine';
 import CustomButton from '../../../components/CustomButton';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {ApiRequest} from '../../../services/ApiRequest';
-import {payForCourse} from '../../../utils/coursePayment';
+import {payWithApple, payWithStripe} from '../../../utils/coursePayment';
 
 const formatMoney = value => {
   const amount = Number(value);
@@ -47,14 +47,49 @@ const CourseCheckout = () => {
     googleProductId,
   } = route.params ?? {};
 
-  const activeAppleProductId = String(
-    apple_product_id || appleProductId || '',
-  ).trim();
+  const [activeAppleProductId, setActiveAppleProductId] = useState(
+    String(apple_product_id || appleProductId || '').trim(),
+  );
   const activeGoogleProductId = String(
     google_product_id || googleProductId || '',
   ).trim();
 
   const activeCourseId = course_id || courseId;
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios' || activeAppleProductId || !activeCourseId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchAppleProductId = async () => {
+      try {
+        const response = await ApiRequest({
+          type: 'get_data',
+          table_name: 'courses',
+          for_user: '1',
+          user_id: token,
+          limit: '100',
+        });
+        const courseRow = (response?.data?.data ?? []).find(
+          item => String(item.id) === String(activeCourseId),
+        );
+
+        if (!cancelled && courseRow?.apple_product_id) {
+          setActiveAppleProductId(String(courseRow.apple_product_id).trim());
+        }
+      } catch (error) {
+        console.log('Apple product id fetch error:', error);
+      }
+    };
+
+    fetchAppleProductId();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeAppleProductId, activeCourseId, token]);
 
   const courseInfo = useMemo(() => {
     const coursePrice = Number(price) || 0;
@@ -78,7 +113,19 @@ const CourseCheckout = () => {
     };
   }, [title, subtitle, price, cover, tag, lessonCount]);
 
-  const completePayment = async ({paymentId, paymentMethod}) => {
+  const getIapErrorMessage = error => {
+    if (error?.code === 'MISSING_APPLE_PRODUCT_ID') {
+      return t('screens.checkout.missingAppleProduct');
+    }
+    return error?.message || t('screens.checkout.unableToComplete');
+  };
+
+  const completePayment = async ({
+    paymentId,
+    paymentMethod,
+    receipt,
+    productId,
+  }) => {
     const body = {
       type: 'add_data',
       table_name: 'purchases',
@@ -88,6 +135,13 @@ const CourseCheckout = () => {
       user_id: token,
       payment_method: paymentMethod,
     };
+
+    if (receipt) {
+      body.receipt = receipt;
+    }
+    if (productId) {
+      body.product_id = productId;
+    }
 
     const response = await ApiRequest(body);
 
@@ -128,20 +182,30 @@ const CourseCheckout = () => {
     setRefreshing(true);
 
     try {
-      const result = await payForCourse({
-        amount: courseInfo.total,
-        courseId: activeCourseId,
-        appleProductId: activeAppleProductId,
-        googleProductId: activeGoogleProductId,
-      });
+      let result;
+
+      if (Platform.OS === 'ios') {
+        if (!activeAppleProductId) {
+          Alert.alert(
+            t('screens.checkout.errorTitle'),
+            t('screens.checkout.missingAppleProduct'),
+          );
+          return;
+        }
+
+        result = await payWithApple({
+          appleProductId: activeAppleProductId,
+        });
+      } else {
+        void activeGoogleProductId;
+        result = await payWithStripe(courseInfo.total);
+      }
+
       await completePayment(result);
     } catch (error) {
       console.log('Payment error:', error);
       if (error?.code !== 'E_USER_CANCELLED') {
-        Alert.alert(
-          t('screens.checkout.errorTitle'),
-          error?.message || t('screens.checkout.unableToComplete'),
-        );
+        Alert.alert(t('screens.checkout.errorTitle'), getIapErrorMessage(error));
       }
     } finally {
       setRefreshing(false);

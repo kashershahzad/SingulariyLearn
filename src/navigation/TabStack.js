@@ -11,6 +11,7 @@ import Home from '../screens/Main/Home';
 import Profile from '../screens/Main/Profile';
 import Study from '../screens/Main/Study';
 import StatsScreen from '../screens/Main/Stats/index';
+import LandingPage from '../screens/Main/LandingPage';
 
 const Tab = createBottomTabNavigator();
 const TAB_BAR_CONTENT_HEIGHT = 57;
@@ -48,8 +49,8 @@ const TabNavigator = () => {
         headerShown: false,
       }}>
       <Tab.Screen
-        name="Home"
-        component={Home}
+        name="LandingPage"
+        component={LandingPage}
         options={{
           tabBarLabel: t('screens.tabs.home'),
           tabBarIcon: () => (

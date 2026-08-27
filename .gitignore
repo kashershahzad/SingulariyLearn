@@ -70,3 +70,6 @@ cache
 
 # testing
 /coverage
+
+# Local files
+ios/Timesheet.xlsx

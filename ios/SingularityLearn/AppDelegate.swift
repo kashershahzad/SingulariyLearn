@@ -4,7 +4,7 @@ import React_RCTAppDelegate
 // import ReactAppDependencyProvider
 import RNBootSplash
 import Firebase
-import GoogleSignIn  
+import GoogleSignIn
 
 @main
 class AppDelegate: RCTAppDelegate {

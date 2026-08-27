@@ -118,9 +118,12 @@ const MainResult = () => {
     reviewAnswers = [],
     lessonName,
     permit_id,
+    lessonId,
+    lesson_id,
   } = route.params || {};
 
   const activeCourseId = course_id || courseId || '1';
+  const activeLessonId = lessonId || lesson_id;
 
   const isMockupTest =
     paramIsMockupTest === true ||
@@ -183,6 +186,21 @@ const MainResult = () => {
       permit_id: permit_id || permitId,
       is_mockup: 1,
       lessonName: lessonName || 'Mockup Test',
+    });
+  };
+
+  const handleStartNewTest = () => {
+    if (isMockupTest) {
+      handleRetakeTest();
+      return;
+    }
+
+    navigation.replace('TestformNew', {
+      lessonId: activeLessonId,
+      lessonName: lessonName || 'Practice',
+      course_id: activeCourseId,
+      courseId: activeCourseId,
+      permit_id: permit_id || permitId,
     });
   };
 
@@ -318,12 +336,7 @@ const MainResult = () => {
               </View>
             </View>
             <CustomButton
-              onPress={() =>
-                navigation.navigate('PratiseQuestion', {
-                  roadsign: false,
-                  permitId: permitId,
-                })
-              }
+              onPress={handleStartNewTest}
               width={318}
               height={52}
               title="startNewTestButton"

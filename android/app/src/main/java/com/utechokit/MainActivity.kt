@@ -1,4 +1,4 @@
-package com.singularitylearn.app
+package com.singularity.app
 
 import android.os.Build
 import android.os.Bundle

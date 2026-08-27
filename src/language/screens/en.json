@@ -1,4 +1,8 @@
 {
+  "landing": {
+    "purchased": "Purchased",
+    "login": "Login"
+  },
   "courseEnroll": {
     "study": "Study",
     "practice": "Practice",
@@ -10,7 +14,8 @@
     "lessonsCount": "{{count}} Lessons",
     "noLessons": "No lessons available",
     "fallbackTitle": "Advanced Visual Storytelling for Digital Mediums",
-    "fallbackSubtitle": "Dive deep into the intersection of technology and human emotion."
+    "fallbackSubtitle": "Dive deep into the intersection of technology and human emotion.",
+    "courseHeader": "Course"
   },
   "checkout": {
     "header": "Checkout",
@@ -40,7 +45,9 @@
     "paymentConfirmed": "Payment confirmed",
     "errorTitle": "Error",
     "paymentFailed": "Payment failed",
-    "unableToComplete": "Unable to complete payment"
+    "unableToComplete": "Unable to complete payment",
+    "missingAppleProduct": "This course does not have an Apple product ID.",
+    "productNotFound": "This course was not found on the App Store."
   },
   "enrolledCourses": {
     "title": "Enrolled Courses",
@@ -191,6 +198,16 @@
     "notificationSubtitle": "Manage your notification preferences for the app.",
     "profileViewTitle": "Profile View",
     "profileViewSubtitle": "Check your profile notification"
+  },
+  "about": {
+    "header": "About",
+    "appName": "Singularity Learn",
+    "versionLabel": "Version",
+    "versionTitle": "App Version",
+    "platformTitle": "Platform",
+    "platformValue": "iOS & Android",
+    "aboutTitle": "About the app",
+    "aboutBody": "Singularity Learn helps you prepare for DMV permit tests with practice lessons, mock exams, and progress tracking — so you can learn with confidence."
   },
   "profileNotifications": {
     "header": "Notifications",

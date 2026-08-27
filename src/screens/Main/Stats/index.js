@@ -158,19 +158,21 @@ const StatsScreen = () => {
 
   return (
     <ScreenWrapper
-      scrollEnabled
+      scrollEnabled={!loading}
       paddingHorizontal={0}
       headerUnScrollable={() => <Header2 title="screens.stats.header" />}>
       <View style={styles.outer}>
-        <CustomText
-          label="screens.stats.title"
-          fontSize={32}
-          fontFamily={fonts.jakartaSemiBold}
-          color={colors.textPrimary}
-          lineHeight={45}
-          marginTop={8}
-          marginBottom={16}
-        />
+        {!loading && (
+          <CustomText
+            label="screens.stats.title"
+            fontSize={32}
+            fontFamily={fonts.jakartaSemiBold}
+            color={colors.textPrimary}
+            lineHeight={45}
+            marginTop={8}
+            marginBottom={16}
+          />
+        )}
 
         {loading ? (
           <View style={styles.loaderWrap}>

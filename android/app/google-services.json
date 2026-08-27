@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:555125495165:android:884f9b1a8bea3ed3646814",
+        "android_client_info": {
+          "package_name": "com.singularity.new"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzANVHY8iFe8BTz2IJH6IvjrcfRYVFDxI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:555125495165:android:82c1f34f811e3f85646814",
         "android_client_info": {
           "package_name": "com.singularitylearn.app"

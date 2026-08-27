@@ -56,16 +56,19 @@ const ScreenWrapper = ({
 
   const inset = useSafeAreaInsets();
 
+  const bottomInset =
+    paddingBottom != null
+      ? paddingBottom
+      : Platform.OS === 'android'
+        ? Math.max(inset.bottom, 12)
+        : Math.max(inset.bottom, 20);
+
   const content = () => (
     <View
       style={[
         styles.container,
         {
-          paddingBottom: paddingBottom
-            ? paddingBottom
-            : Platform.OS === 'android'
-              ? 0
-              : 20,
+          paddingBottom: bottomInset,
           backgroundColor: backgroundImage ? 'transparent' : resolvedBackground,
           paddingTop: translucent ? 0 : inset.top,
         },

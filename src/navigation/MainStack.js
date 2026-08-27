@@ -57,7 +57,9 @@ import HelpAndSupport from '../screens/Main/Profile/HelpAndSupport';
 import Settings from '../screens/Main/Profile/Settings';
 import ProfileNotifications from '../screens/Main/Profile/ProfileNotifications';
 import Payments from '../screens/Main/Profile/Payments';
+import About from '../screens/Main/Profile/About';
 import Bookmarks from '../screens/Main/Bookmarks';
+import Home from '../screens/Main/Home';
 
 const Stack = createNativeStackNavigator();
 
@@ -136,12 +138,14 @@ const MainStack = () => {
       <Stack.Screen name="Performence" component={Performence} />
       <Stack.Screen name="HelpAndSupport" component={HelpAndSupport} />
       <Stack.Screen name="Settings" component={Settings} />
+      <Stack.Screen name="About" component={About} />
       <Stack.Screen
         name="ProfileNotifications"
         component={ProfileNotifications}
       />
       <Stack.Screen name="Payments" component={Payments} />
       <Stack.Screen name="Bookmarks" component={Bookmarks} />
+      <Stack.Screen name="Home" component={Home} />
     </Stack.Navigator>
   );
 };

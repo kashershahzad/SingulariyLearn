@@ -428,7 +428,7 @@ const CourseDetails = () => {
               />
             </TouchableOpacity>
           )}
-          {completionDate ? (
+          {isCompleted && completionDate ? (
             <>
               <CustomText
                 label="screens.courseDetails.completedOn"

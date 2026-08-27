@@ -20,25 +20,34 @@ const TrendingCard = ({
   tag = '',
   appleProductId = '',
   googleProductId = '',
+  isPurchased = false,
+  isLoggedIn = false,
 }) => {
   const navigation = useNavigation();
 
-  const handleCardPress = () => {
-    navigation.navigate('CourseEnroll', {
-      courseId,
-      course_id: courseId,
-      title,
-      subtitle,
-      price: priceRaw ?? price,
-      cover,
-      tag,
-      lessonCount,
-      apple_product_id: appleProductId,
-      google_product_id: googleProductId,
-    });
-  }
+  const courseParams = {
+    courseId,
+    course_id: courseId,
+    title,
+    subtitle,
+    price: priceRaw ?? price,
+    cover,
+    tag,
+    lessonCount,
+    apple_product_id: appleProductId,
+    google_product_id: googleProductId,
+  };
 
-  const handleEnrollPress = () => {
+  const handleCardPress = () => {
+    navigation.navigate('CourseEnroll', courseParams);
+  };
+
+  const handleActionPress = () => {
+    if (isPurchased || isLoggedIn) {
+      handleCardPress();
+      return;
+    }
+
     navigation.navigate('NewLogin');
   };
 
@@ -51,13 +60,6 @@ const TrendingCard = ({
             style={styles.image}
             resizeMode="cover"
           />
-          {/* <View style={styles.savedBadge} pointerEvents="box-none">
-            <ImageFast
-              source={Images.saved}
-              style={styles.savedImage}
-              resizeMode="contain"
-            />
-          </View> */}
           {!!tag && (
             <View style={styles.tagBadge} pointerEvents="box-none">
               <CustomText
@@ -124,16 +126,31 @@ const TrendingCard = ({
             color="#1B1B24"
             removeTranslation
           />
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={handleEnrollPress}
-            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-            <ImageFast
-              source={Images.cart}
-              style={styles.cart}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
+          {isPurchased ? (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleActionPress}
+              style={styles.purchasedBtn}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+              <CustomText
+                label="screens.landing.purchased"
+                fontFamily={fonts.jakartaSemiBold}
+                fontSize={13}
+                color="#0298EF"
+              />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleActionPress}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+              <ImageFast
+                source={Images.cart}
+                style={styles.cart}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -157,15 +174,6 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-  },
-  savedBadge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-  },
-  savedImage: {
-    width: 30,
-    height: 34,
   },
   tagBadge: {
     position: 'absolute',
@@ -196,5 +204,13 @@ const styles = StyleSheet.create({
   cart: {
     width: 40,
     height: 40,
+  },
+  purchasedBtn: {
+    borderWidth: 1,
+    borderColor: '#0298EF',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: '#EAF8FF',
   },
 });

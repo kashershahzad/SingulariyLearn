@@ -15,27 +15,24 @@ $RNFirebaseAsStaticFramework = true
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_symx
+  use_frameworks! :linkage => linkage.to_sym
 end
 
 target 'SingularityLearn' do
   config = use_native_modules!
 
-  # Firebase pods
-  # pod 'Firebase', :modular_headers => true
   pod 'FirebaseCore', :modular_headers => true
   pod 'GoogleUtilities', :modular_headers => true
   pod 'FirebaseCoreInternal', :modular_headers => true
   pod 'Firebase', '~> 11.11.0', :modular_headers => true
-  
-use_react_native!(
-  :path => config[:reactNativePath],
-  :app_path => "#{Pod::Config.instance.installation_root}/..",
-  :hermes_enabled => true,
-  :fabric_enabled => false,
-  :new_arch_enabled => false
-)
 
+  use_react_native!(
+    :path => config[:reactNativePath],
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    :hermes_enabled => true,
+    :fabric_enabled => false,
+    :new_arch_enabled => false
+  )
 
   post_install do |installer|
     react_native_post_install(

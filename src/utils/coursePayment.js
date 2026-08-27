@@ -4,40 +4,19 @@ import {
   initPaymentSheet,
   presentPaymentSheet,
 } from '@stripe/stripe-react-native';
-import {
-  initConnection,
-  getProducts,
-  requestPurchase,
-  finishTransaction,
-  purchaseUpdatedListener,
-  purchaseErrorListener,
-} from 'react-native-iap';
 
-export const getAppleProductId = ({courseId, appleProductId} = {}) => {
-  const fromCourse = String(appleProductId || '').trim();
-  if (fromCourse) {
-    return fromCourse;
-  }
+export const getAppleProductId = ({appleProductId} = {}) =>
+  String(appleProductId || '').trim();
 
-  if (courseId) {
-    return `course_${courseId}`;
-  }
+export const getGoogleProductId = ({googleProductId} = {}) =>
+  String(googleProductId || '').trim();
 
-  return '';
-};
-
-export const getGoogleProductId = ({courseId, googleProductId} = {}) => {
-  const fromCourse = String(googleProductId || '').trim();
-  if (fromCourse) {
-    return fromCourse;
-  }
-
-  if (courseId) {
-    return `course_${courseId}`;
-  }
-
-  return '';
-};
+const toPurchaseResult = (purchase, paymentMethod) => ({
+  paymentId: purchase?.transactionId || purchase?.transactionReceipt || '',
+  paymentMethod,
+  receipt: purchase?.transactionReceipt || purchase?.purchaseToken || '',
+  productId: purchase?.productId || '',
+});
 
 export const payWithStripe = async amount => {
   const response = await ApiRequest({
@@ -71,69 +50,103 @@ export const payWithStripe = async amount => {
   };
 };
 
-export const payWithApple = ({courseId, appleProductId} = {}) =>
+/**
+ * iOS IAP:
+ * - productId comes from backend/admin (apple_product_id)
+ * - getProducts is NOT a backend call — react-native-iap StoreKit requires it
+ *   to cache the SKProduct before requestPurchase, otherwise "Invalid product ID"
+ * - IAP is required only when buying, so Android startup does not load it
+ */
+export const payWithApple = ({appleProductId} = {}) =>
   new Promise(async (resolve, reject) => {
-    const productId = getAppleProductId({courseId, appleProductId});
-   console.log('productId', productId);
-   console.log('appleProductId', appleProductId);
-   console.log('courseId', courseId);
+    const {
+      initConnection,
+      getProducts,
+      requestPurchase,
+      finishTransaction,
+      purchaseUpdatedListener,
+      purchaseErrorListener,
+    } = require('react-native-iap');
+
+    const productId = getAppleProductId({appleProductId});
+    console.log('IAP productId from backend:', productId);
+
     if (!productId) {
-      reject(new Error('Apple product ID is not configured for this course'));
+      const error = new Error('MISSING_APPLE_PRODUCT_ID');
+      error.code = 'MISSING_APPLE_PRODUCT_ID';
+      reject(error);
       return;
     }
 
-    const purchaseSub = purchaseUpdatedListener(async purchase => {
-      purchaseSub.remove();
-      errorSub.remove();
+    let purchaseSub;
+    let errorSub;
+    let settled = false;
 
+    const cleanup = () => {
+      purchaseSub?.remove?.();
+      errorSub?.remove?.();
+    };
+
+    const settle = (handler, value) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      handler(value);
+    };
+
+    const finishAndResolve = async purchase => {
       try {
         await finishTransaction({purchase, isConsumable: false});
-        resolve({
-          paymentId: purchase.transactionId,
-          paymentMethod: 'apple_iap',
-        });
       } catch (error) {
-        reject(error);
+        console.log('finishTransaction error:', error);
       }
-    });
 
-    const errorSub = purchaseErrorListener(error => {
-      purchaseSub.remove();
-      errorSub.remove();
-      reject(error);
-    });
+      return toPurchaseResult(purchase, 'apple_iap');
+    };
 
     try {
       await initConnection();
-      const products = await getProducts({skus: [productId]});
 
-      if (!products?.length) {
-        purchaseSub.remove();
-        errorSub.remove();
-        reject(new Error('Course not found on App Store'));
-        return;
-      }
+      purchaseSub = purchaseUpdatedListener(async purchase => {
+        if (purchase?.productId && purchase.productId !== productId) {
+          return;
+        }
 
-      await requestPurchase({sku: productId});
+        try {
+          const result = await finishAndResolve(purchase);
+          settle(resolve, result);
+        } catch (error) {
+          settle(reject, error);
+        }
+      });
+
+      errorSub = purchaseErrorListener(error => {
+        settle(reject, error);
+      });
+
+      // Required by StoreKit / react-native-iap native cache (not backend)
+      await getProducts({skus: [productId]});
+
+      await requestPurchase({
+        sku: productId,
+        andDangerouslyFinishTransactionAutomaticallyIOS: false,
+      });
     } catch (error) {
-      purchaseSub.remove();
-      errorSub.remove();
-      reject(error);
+      settle(reject, error);
     }
   });
 
 export const payForCourse = async ({
   amount,
-  courseId,
   appleProductId,
   googleProductId,
 }) => {
   if (Platform.OS === 'ios') {
-    return payWithApple({courseId, appleProductId});
+    return payWithApple({appleProductId});
   }
 
-  // Android Play Billing can use googleProductId when enabled.
   void googleProductId;
-
   return payWithStripe(amount);
 };

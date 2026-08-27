@@ -1382,6 +1382,8 @@ PODS:
     - React-Core
   - react-native-render-html (6.3.4):
     - React-Core
+  - react-native-restart (0.0.28):
+    - React-Core
   - react-native-safe-area-context (5.6.1):
     - React-Core
   - react-native-video (6.16.1):
@@ -1870,6 +1872,7 @@ DEPENDENCIES:
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-render-html (from `../node_modules/react-native-render-html`)
+  - react-native-restart (from `../node_modules/react-native-restart`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-video (from `../node_modules/react-native-video`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
@@ -2030,6 +2033,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-render-html:
     :path: "../node_modules/react-native-render-html"
+  react-native-restart:
+    :path: "../node_modules/react-native-restart"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-video:
@@ -2179,6 +2184,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: 697f7e4206386120bfdcf0c6a858e956360c734c
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
+  react-native-restart: f2a57ccec2e6481deb1f19958ac60c0813313784
   react-native-safe-area-context: 2243039f43d10cb1ea30ec5ac57fc6d1448413f4
   react-native-video: 00abc1172ef5a879f05bb10dbc3c0c52628071c0
   React-nativeconfig: cd0fbb40987a9658c24dab5812c14e5522a64929
@@ -2237,6 +2243,6 @@ SPEC CHECKSUMS:
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   Yoga: 78d74e245ed67bb94275a1316cdc170b9b7fe884
 
-PODFILE CHECKSUM: f3d19a470fbd546204549628b916a4e125dc486c
+PODFILE CHECKSUM: 519d50c90d696ca3dddfdf4512e1ae68850bfe2e
 
 COCOAPODS: 1.16.2

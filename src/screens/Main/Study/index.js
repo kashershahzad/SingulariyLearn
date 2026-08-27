@@ -42,6 +42,13 @@ const parseLocalized = (value, lang) => {
   return String(value);
 };
 
+const hasTruthyFlag = value =>
+  value === true || value === 1 || value === '1';
+
+const hasCourseAccess = course =>
+  hasTruthyFlag(course?.user_has_access) ||
+  hasTruthyFlag(course?.user_purchased);
+
 const STUDY_OPTIONS = [
   {value: 'Study', labelKey: 'screens.study.optionStudy'},
   {value: 'Practice Sets', labelKey: 'screens.study.optionPractice'},
@@ -123,7 +130,7 @@ const Study = () => {
           user_id: token,
           limit: '100',
         });
-        // console.log('response', response);
+        console.log('response', response);
 
         if (cancelled) {
           return;
@@ -153,29 +160,30 @@ const Study = () => {
   }, [token]);
 
   const studyModulesData = useMemo(() => {
-    return courses.map(course => {
-      const title = parseLocalized(course.name, currentLanguage);
-      const subtitle = parseLocalized(course.description, currentLanguage);
-      const progressPercent = Number(course.percentage);
-      const questionTotal = Number(course.questions_total) || 0;
-      const lessonCount = Number(course.total_lesson);
-      return {
-        id: String(course.id),
-        icon: course.icon ? {uri: String(course.icon)} : Images.light,
-        title,
-        coursetitle: title,
-        subtitle,
-        progressPercent,
-        user_has_access: course.user_has_access,
-        user_purchased: course.user_purchased,
-        price: course.price,
-        cover: course.cover ? String(course.cover) : '',
-        tag: parseLocalized(course.tag, currentLanguage),
-        lessonCount: lessonCount,
-        appleProductId: String(course.apple_product_id || '').trim(),
-        googleProductId: String(course.google_product_id || '').trim(),
-      };
-    });
+    return courses
+      .filter(hasCourseAccess)
+      .map(course => {
+        const title = parseLocalized(course.name, currentLanguage);
+        const subtitle = parseLocalized(course.description, currentLanguage);
+        const progressPercent = Number(course.percentage);
+        const lessonCount = Number(course.total_lesson);
+        return {
+          id: String(course.id),
+          icon: course.icon ? {uri: String(course.icon)} : Images.light,
+          title,
+          coursetitle: title,
+          subtitle,
+          progressPercent,
+          user_has_access: course.user_has_access,
+          user_purchased: course.user_purchased,
+          price: course.price,
+          cover: course.cover ? String(course.cover) : '',
+          tag: parseLocalized(course.tag, currentLanguage),
+          lessonCount: lessonCount,
+          appleProductId: String(course.apple_product_id || '').trim(),
+          googleProductId: String(course.google_product_id || '').trim(),
+        };
+      });
   }, [courses, currentLanguage]);
   // console.log('studyModulesData', studyModulesData);
 
