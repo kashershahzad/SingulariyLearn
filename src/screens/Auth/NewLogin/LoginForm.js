@@ -13,12 +13,30 @@ import {ToastMessage} from '../../../utils/ToastMessage';
 import {useDispatch} from 'react-redux';
 import {setToken} from '../../../store/reducer/AuthConfig';
 import Loading from '../../../components/Loading';
-import { getProfile } from '../../../utils/constants';
+import {getProfile} from '../../../utils/constants';
+import {getOrCreateGuestUserId} from '../../../utils/guestUser';
 
 const LoginForm = ({navigation, onSwitchToSignup, onLoginSuccess}) => {
   const {t} = useTranslation();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
+
+  const handleContinueAsGuest = async () => {
+    setLoading(true);
+    try {
+      const guestId = await getOrCreateGuestUserId();
+      dispatch(setToken(guestId));
+      ToastMessage(t('guestLoginSuccess') || 'Continuing as guest');
+      onLoginSuccess?.();
+    } catch (error) {
+      console.error('Guest login failed:', error);
+      ToastMessage(
+        error?.message || 'Unable to continue as guest. Please try again.',
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loginSchema = yup.object().shape({
     email: yup.string().email(t('invalidEmail')).required(t('emailRequired')),
@@ -139,13 +157,26 @@ const LoginForm = ({navigation, onSwitchToSignup, onLoginSuccess}) => {
                 customStyle={styles.loginButtonTransparent}
               />
             </LinearGradient>
+
+            <CustomButton
+              onPress={handleContinueAsGuest}
+              title={t('continueAsGuest') || 'Continue as Guest'}
+              height={51}
+              marginTop={12}
+              backgroundColor="#FFFFFF"
+              borderWidth={1}
+              borderColor="#0298EF"
+              color="#0298EF"
+              fontFamily={fonts.medium}
+            />
+
             <View
               style={{
                 flexDirection: 'row',
                 justifyContent: 'center',
                 alignItems: 'center',
                 gap: 5,
-                marginTop: 5,
+                marginTop: 12,
               }}>
               <CustomText
                 label="Don't have an account?"

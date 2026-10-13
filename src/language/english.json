@@ -13,6 +13,8 @@
   "emailNotFound": "Email not found",
   "otpSent": "OTP sent successfully",
   "login_button": "Login",
+  "continueAsGuest": "Continue as Guest",
+  "guestLoginSuccess": "Continuing as guest",
   "no_account": "Don't have an account?",
   "sign_up": "Sign Up",
   "select_language": "Select your preferred language",

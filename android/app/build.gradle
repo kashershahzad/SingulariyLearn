@@ -85,11 +85,15 @@ android {
         applicationId "com.singularity.new"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 4
+        versionName "1.0.3"
         vectorDrawables.useSupportLibrary = true
-        // react-native-iap has amazon/play flavors — use Google Play for Stripe builds
-        missingDimensionStrategy 'store', 'play'
+    }
+    packaging {
+        jniLibs {
+            // Required for Google Play 16 KB page-size devices (AGP 8.5.1+)
+            useLegacyPackaging = false
+        }
     }
     signingConfigs {
         debug {

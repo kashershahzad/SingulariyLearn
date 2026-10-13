@@ -1,4 +1,10 @@
-import {StyleSheet, View, ScrollView, ActivityIndicator} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {useDispatch} from 'react-redux';
 import {useTranslation} from 'react-i18next';
@@ -25,6 +31,18 @@ const mapLanguageItem = item => ({
   subtitle: item.lang_code ?? item.subtitle ?? '',
 });
 
+const formatApiPayload = payload => {
+  try {
+    return JSON.stringify(payload, null, 2);
+  } catch (error) {
+    return String(payload);
+  }
+};
+
+const showLanguageApiAlert = payload => {
+  Alert.alert('Language API Response', formatApiPayload(payload));
+};
+
 const Language = ({onContinue}) => {
   const dispatch = useDispatch();
   const {i18n} = useTranslation();
@@ -35,12 +53,34 @@ const Language = ({onContinue}) => {
 
   useEffect(() => {
     const fetchLanguages = async () => {
+      const body = {
+        type: 'get_data',
+        table_name: 'languages',
+      };
+
       try {
-        const body = {
-          type: 'get_data',
-          table_name: 'languages',
-        };
         const result = await ApiRequest(body);
+        showLanguageApiAlert({
+          ok: true,
+          status: result?.status,
+          statusText: result?.statusText,
+          headers: result?.headers,
+          data: result?.data,
+          requestBody: body,
+          fullAxiosResponse: {
+            status: result?.status,
+            statusText: result?.statusText,
+            headers: result?.headers,
+            data: result?.data,
+            config: {
+              url: result?.config?.url,
+              method: result?.config?.method,
+              data: result?.config?.data,
+              headers: result?.config?.headers,
+            },
+          },
+        });
+
         const list = (result.data?.data || []).map(mapLanguageItem);
         setLanguages(list);
         if (list.length > 0) {
@@ -48,6 +88,28 @@ const Language = ({onContinue}) => {
         }
       } catch (error) {
         console.error('Error fetching languages:', error);
+        showLanguageApiAlert({
+          ok: false,
+          message: error?.message,
+          name: error?.name,
+          code: error?.code,
+          stack: error?.stack,
+          requestBody: body,
+          response: {
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            headers: error?.response?.headers,
+            data: error?.response?.data,
+          },
+          request: {
+            url: error?.config?.url,
+            method: error?.config?.method,
+            data: error?.config?.data,
+            headers: error?.config?.headers,
+          },
+          toJSON: typeof error?.toJSON === 'function' ? error.toJSON() : undefined,
+          rawError: String(error),
+        });
       } finally {
         setLoading(false);
       }
