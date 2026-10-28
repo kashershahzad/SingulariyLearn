@@ -1955,7 +1955,6 @@ const TestformNew = () => {
       statusBarColor="#FFFFFF"
       footerUnScrollable={() => (
         <View style={{backgroundColor: '#FFFFFF'}}>
-          {/* Save / Skip buttons temporarily hidden
           {!isStudyMode ? (
             <View
               style={[
@@ -2002,7 +2001,6 @@ const TestformNew = () => {
               />
             </View>
           ) : null}
-          */}
           {isStudyMode ? (
             <View style={styles.studyFooterRow}>
               <TouchableOpacity
