@@ -374,13 +374,13 @@ const CourseEnroll = () => {
             marginTop={10}
           />
 
-          <CustomText
+          {/* <CustomText
             label="screens.courseEnroll.descriptionExtra"
             fontFamily={fonts.jakartaRegular}
             fontSize={16}
             color={'#464555'}
             marginTop={10}
-          />
+          /> */}
 
           {/* <View style={styles.metaRow}>
             {COURSE_META_CHIPS.map(item => (

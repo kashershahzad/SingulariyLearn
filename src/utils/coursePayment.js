@@ -25,6 +25,7 @@ export const payWithStripe = async amount => {
   });
 
   const result = response.data.result;
+  console.log('result', result);
   const {customer, ephemeralKey, paymentIntent, paymentIntent_id} = result;
 
   const {error: initError} = await initPaymentSheet({

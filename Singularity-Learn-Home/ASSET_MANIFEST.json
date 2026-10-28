@@ -1,0 +1,62 @@
+[
+  {
+    "file": "assets/cdl-banner.jpg",
+    "source": "output/CDL_Mobile_Course_Assets/CDL_Banner_Wide_1200x600.jpg",
+    "bytes": 222830,
+    "sha256": "161789c34668d58a88cb0ae67af3004b02e8650b8119d59e9b4443fd13d27965"
+  },
+  {
+    "file": "assets/Favicon.png",
+    "source": "sources/Favicon.png",
+    "bytes": 36422,
+    "sha256": "2032f62d30b05b25d5abcd1a42630db6876225b66f69fa60320fc4b42504c53e"
+  },
+  {
+    "file": "assets/Icon.jpeg",
+    "source": "sources/Icon.jpeg",
+    "bytes": 32191,
+    "sha256": "0365aa44c2c2a91a681a97601e638c11b19bb5589206df7b0035024d74bf1c2d"
+  },
+  {
+    "file": "assets/Logo for main header.png",
+    "source": "sources/Logo for main header.png",
+    "bytes": 73832,
+    "sha256": "bdebc86b74d09d11f0a2ef027d3b7b8068c2d1d094f8ec2d911d38d4fdc0ba1c"
+  },
+  {
+    "file": "assets/Logo for main header1.png",
+    "source": "sources/Logo for main header1.png",
+    "bytes": 31874,
+    "sha256": "0ad77108f6fd1d4d246f43ba9a0ef6531cf484297e3852c0cd4fe0d02c25ce52"
+  },
+  {
+    "file": "assets/Logo white footer.png",
+    "source": "sources/Logo white footer.png",
+    "bytes": 29186,
+    "sha256": "4d69ae48de33976f3e5d96bd09ccf0adb7aa9a97bc1d33c7ead9a1d6b9b6f5b2"
+  },
+  {
+    "file": "assets/logo-white.png",
+    "source": "sources/logo white mobile.png",
+    "bytes": 73559,
+    "sha256": "a2c2d8be1c86dfd7bda6111e37ab1f0315f2cfdcad7d0157618513e04f452161"
+  },
+  {
+    "file": "assets/Singularity Letterhead Logo.png",
+    "source": "sources/Singularity Letterhead Logo.png",
+    "bytes": 103240,
+    "sha256": "f59cd27318cf0e137657bdccba420a7e5fb62273ecc184e487031dc21be9279a"
+  },
+  {
+    "file": "assets/Singularity Logo White.png",
+    "source": "sources/Singularity Logo White.png",
+    "bytes": 748042,
+    "sha256": "1f36443522e687fe0382589b5a46dd671a7139450a4fa8bd3e20fa2468e3fbdb"
+  },
+  {
+    "file": "assets/Singularity Logo.jpg",
+    "source": "sources/Singularity Logo.jpg",
+    "bytes": 700630,
+    "sha256": "ab81b1bfab70d25ca071cc43005c91d8f9fba818833c62c9249e665e5ad44ef3"
+  }
+]

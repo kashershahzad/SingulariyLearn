@@ -147,6 +147,8 @@ export const Images = {
   enrolledcoursepic: require('./enrolledcoursepic.png'),
   certificate: require('./certificate.png'),
   herobg: require('./Herobg.png'),
+  cdlBanner: require('./cdl-banner.jpg'),
+  learnPrepareBanner: require('./learn-prepare-banner.jpg'),
   tick4: require('./tick4.png'),
   badge: require('./badge.png'),
   download: require('./download.png'),

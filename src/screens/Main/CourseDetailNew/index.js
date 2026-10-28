@@ -262,6 +262,37 @@ const CourseDetialNew = () => {
       videoWrapper: {
         marginTop: 20,
       },
+      quizActions: {
+        marginTop: 20,
+        gap: 12,
+      },
+      quizSectionTitle: {
+        marginBottom: 2,
+      },
+      quizActionCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: c.card,
+        borderRadius: 14,
+        paddingVertical: 14,
+        paddingHorizontal: 14,
+        borderWidth: 1,
+        borderColor: c.border,
+      },
+      quizActionTextWrap: {
+        flex: 1,
+        flexShrink: 1,
+        minWidth: 0,
+        paddingRight: 8,
+      },
+      quizChevronWrap: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: c.lessonItemBg,
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
     }),
   );
 
@@ -504,21 +535,44 @@ const CourseDetialNew = () => {
     }
   }, [token, activeCourseId, activeLessonId, isLessonCompleted, completing, t]);
 
-  const navigateToPractice = useCallback(() => {
-    navigation.navigate('TestformNew', {
-      lessonId: activeLessonId,
-      lessonName: lessonTitle,
-      course_id: activeCourseId,
-      courseId: activeCourseId,
-      permit_id: defaultPermitId,
-    });
-  }, [
-    navigation,
-    activeLessonId,
-    lessonTitle,
-    activeCourseId,
-    defaultPermitId,
-  ]);
+  const navigateToQuiz = useCallback(
+    mode => {
+      const base = {
+        lessonId: activeLessonId,
+        lesson_id: activeLessonId,
+        lessonName: lessonTitle,
+        course_id: activeCourseId,
+        courseId: activeCourseId,
+        permit_id: defaultPermitId,
+      };
+
+      if (mode === 'study') {
+        navigation.navigate('TestformNew', {
+          ...base,
+          is_study: '1',
+        });
+        return;
+      }
+
+      if (mode === 'mockup') {
+        navigation.navigate('TestformNew', {
+          ...base,
+          is_mockup: '1',
+        });
+        return;
+      }
+
+      // practice — existing TestformNew practice API
+      navigation.navigate('TestformNew', base);
+    },
+    [
+      navigation,
+      activeLessonId,
+      lessonTitle,
+      activeCourseId,
+      defaultPermitId,
+    ],
+  );
 
   if (loading) {
     return (
@@ -628,9 +682,7 @@ const CourseDetialNew = () => {
           />
         )}
 
-        <TouchableOpacity
-          style={styles.continueCard}
-          onPress={navigateToPractice}>
+        <View style={styles.continueCard}>
           <View style={styles.lessonRow}>
             <View style={styles.bookContainer}>
               <ImageFast
@@ -657,18 +709,9 @@ const CourseDetialNew = () => {
                 marginTop={4}
                 removeTranslation
               />
-              {/* <ProgressBar progress={lessonProgress} />
-              <CustomText
-                label={`${lessonProgress} % complete`}
-                removeTranslation
-                fontSize={12}
-                fontFamily={fonts.jakartaRegular}
-                color="#000000"
-                lineHeight={26}
-              /> */}
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
 
         {hasAudio && (
           <TouchableOpacity
@@ -763,6 +806,109 @@ const CourseDetialNew = () => {
               />
             </View>
           )}
+        </View>
+
+        <View style={styles.quizActions}>
+          <CustomText
+            label="screens.lessonDetail.quizSectionTitle"
+            fontSize={16}
+            fontFamily={fonts.jakartaBold}
+            color={colors.textPrimary}
+            containerStyle={styles.quizSectionTitle}
+          />
+
+          <TouchableOpacity
+            activeOpacity={0.88}
+            style={styles.quizActionCard}
+            onPress={() => navigateToQuiz('study')}>
+            <View style={styles.quizActionTextWrap}>
+              <CustomText
+                label="screens.lessonDetail.studyQuestion"
+                fontSize={15}
+                fontFamily={fonts.jakartaSemiBold}
+                color={colors.textPrimary}
+                lineHeight={20}
+              />
+              <CustomText
+                label="screens.lessonDetail.studyQuestionHint"
+                fontSize={12}
+                fontFamily={fonts.jakartaRegular}
+                color={colors.textMuted}
+                lineHeight={17}
+                marginTop={2}
+              />
+            </View>
+            <View style={styles.quizChevronWrap}>
+              <Icons
+                family="Ionicons"
+                name="chevron-forward"
+                size={16}
+                color={colors.accent}
+              />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.88}
+            style={styles.quizActionCard}
+            onPress={() => navigateToQuiz('practice')}>
+            <View style={styles.quizActionTextWrap}>
+              <CustomText
+                label="screens.lessonDetail.practiceQuestion"
+                fontSize={15}
+                fontFamily={fonts.jakartaSemiBold}
+                color={colors.textPrimary}
+                lineHeight={20}
+              />
+              <CustomText
+                label="screens.lessonDetail.practiceQuestionHint"
+                fontSize={12}
+                fontFamily={fonts.jakartaRegular}
+                color={colors.textMuted}
+                lineHeight={17}
+                marginTop={2}
+              />
+            </View>
+            <View style={styles.quizChevronWrap}>
+              <Icons
+                family="Ionicons"
+                name="chevron-forward"
+                size={16}
+                color={colors.accent}
+              />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.88}
+            style={styles.quizActionCard}
+            onPress={() => navigateToQuiz('mockup')}>
+            <View style={styles.quizActionTextWrap}>
+              <CustomText
+                label="screens.lessonDetail.mockupTest"
+                fontSize={15}
+                fontFamily={fonts.jakartaSemiBold}
+                color={colors.textPrimary}
+                lineHeight={20}
+              />
+              <CustomText
+                label="screens.lessonDetail.mockupTestHint"
+                fontSize={12}
+                fontFamily={fonts.jakartaRegular}
+                color={colors.textMuted}
+                lineHeight={17}
+                marginTop={2}
+              />
+            </View>
+            <View style={styles.quizChevronWrap}>
+              <Icons
+                family="Ionicons"
+                name="chevron-forward"
+                size={16}
+                color={colors.accent}
+              />
+            </View>
+          </TouchableOpacity>
         </View>
       </View>
     </ScreenWrapper>

@@ -1,6 +1,7 @@
 import {
   ActivityIndicator,
   Animated,
+  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -8,12 +9,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
+import {useTranslation} from 'react-i18next';
 import {Images} from '../../../assets/images';
 import ImageFast from '../../../components/ImageFast';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import CustomText from '../../../components/CustomText';
+import Icons from '../../../components/Icons';
+import ProgressBar from '../../../components/ProgressBar';
 import fonts from '../../../assets/fonts';
 import SearchInput from '../../../components/SearchInput';
 import SpotlightFeatures from './SpotlightFeatures';
@@ -68,17 +73,54 @@ const hasCourseAccess = course =>
 const ALL_COURSES_CHIP = {
   id: 'all',
   label: 'All Courses',
-  backgroundColor: '#E8E5F2',
-  color: '#5A5668',
+  icon: null,
 };
 
-const CHIP_PALETTE = [
-  {backgroundColor: '#D4F5EC', color: '#0A6B58'},
-  {backgroundColor: '#EBE8F5', color: '#5A5668'},
-  {backgroundColor: '#FFE8D4', color: '#8A4B0A'},
-  {backgroundColor: '#E8F4FF', color: '#0A5A8A'},
-  {backgroundColor: '#F5E8F2', color: '#6A0A58'},
-  {backgroundColor: '#E8F5E8', color: '#0A6B20'},
+const getCategoryIcon = item => {
+  const raw =
+    item?.icon ||
+    item?.icon_url ||
+    item?.thumb ||
+    item?.cat_img ||
+    item?.image ||
+    item?.logo ||
+    '';
+  return raw ? String(raw) : null;
+};
+
+const WHY_ITEMS = [
+  {
+    id: 'expert',
+    icon: 'book-outline',
+    label: 'screens.landing.whyExpert',
+    desc: 'screens.landing.whyExpertDesc',
+    tint: '#E8F4FF',
+    color: '#0298EF',
+  },
+  {
+    id: 'audio',
+    icon: 'volume-high-outline',
+    label: 'screens.landing.whyAudio',
+    desc: 'screens.landing.whyAudioDesc',
+    tint: '#E8F8EF',
+    color: '#16A34A',
+  },
+  {
+    id: 'languages',
+    icon: 'language-outline',
+    label: 'screens.landing.whyLanguages',
+    desc: 'screens.landing.whyLanguagesDesc',
+    tint: '#F3E8FF',
+    color: '#7C3AED',
+  },
+  {
+    id: 'progress',
+    icon: 'stats-chart-outline',
+    label: 'screens.landing.whyProgress',
+    desc: 'screens.landing.whyProgressDesc',
+    tint: '#FFF4E8',
+    color: '#EA580C',
+  },
 ];
 
 const FadeInView = ({children, delay = 0, style}) => {
@@ -118,15 +160,44 @@ const FadeInView = ({children, delay = 0, style}) => {
 };
 
 const index = ({navigation}) => {
+  const {t} = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [categoryChips, setCategoryChips] = useState([ALL_COURSES_CHIP]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
+  const [homeData, setHomeData] = useState(null);
   const currentLanguage = useSelector(state => state.language.language);
   const token = useSelector(state => state.authConfig.token);
   const isLoggedIn = Boolean(token);
+
+  const fetchHomeData = useCallback(async () => {
+    if (!token) {
+      setHomeData(null);
+      return;
+    }
+    try {
+      const response = await ApiRequest({
+        type: 'app_home',
+        user_id: token,
+      });
+      if (response?.data?.result) {
+        setHomeData(response.data);
+      } else {
+        setHomeData(null);
+      }
+    } catch (error) {
+      console.log('Landing app_home error:', error);
+      setHomeData(null);
+    }
+  }, [token]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchHomeData();
+    }, [fetchHomeData]),
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -139,7 +210,7 @@ const index = ({navigation}) => {
           table_name: 'categories_useful',
           limit: '10',
         });
-
+          
         if (cancelled) {
           return;
         }
@@ -148,18 +219,16 @@ const index = ({navigation}) => {
           const raw = Array.isArray(response.data?.data)
             ? response.data.data
             : [];
-          const mapped = raw.map((item, index) => {
-            const palette = CHIP_PALETTE[index % CHIP_PALETTE.length];
-            return {
-              id: String(item.id),
-              label:
-                parseLocalized(item.title, currentLanguage) ||
-                item.name ||
-                '',
-              ...palette,
-            };
-          });
+          const mapped = raw.map(item => ({
+            id: String(item.id),
+            label:
+              parseLocalized(item.title, currentLanguage) ||
+              item.name ||
+              '',
+            icon: getCategoryIcon(item),
+          }));
           setCategoryChips([ALL_COURSES_CHIP, ...mapped]);
+          console.log('mapped', mapped);
         } else {
           setCategoryChips([ALL_COURSES_CHIP]);
         }
@@ -252,13 +321,14 @@ const index = ({navigation}) => {
         price: course.price,
         priceLabel: formatPrice(course.price),
         lessonCount: Number(course.total_lesson) || 0,
+        questionCount:
+          Number(course.total_questions) ||
+          Number(course.questions_count) ||
+          Number(course.total_question) ||
+          0,
         appleProductId: String(course.apple_product_id || '').trim(),
         googleProductId: String(course.google_product_id || '').trim(),
         isPurchased: hasCourseAccess(course),
-        ratingValue: rating ? String(rating) : null,
-        reviewsLabel: reviewCount
-          ? `(${Number(reviewCount).toLocaleString()} reviews)`
-          : null,
       };
     });
   }, [courses, currentLanguage]);
@@ -282,6 +352,63 @@ const index = ({navigation}) => {
   }, [mappedCourses, searchQuery]);
 
   const displayCourses = searchQuery ? searchResults : mappedCourses;
+
+  const continueLearning = homeData?.continue_learning;
+  const continueTitle =
+    continueLearning?.lesson_title ||
+    parseLocalized(continueLearning?.lesson?.name, currentLanguage) ||
+    t('screens.home.continueLearningFallback');
+  const continueCourseTitle =
+    continueLearning?.course_name || continueTitle;
+  const continueSubtitle = continueLearning
+    ? t('screens.home.continueLessonSubtitle', {
+        number: continueLearning.lesson_number || '',
+        subtitle: continueLearning.lesson_subtitle || continueTitle,
+        duration: continueLearning.duration_label || '',
+      })
+    : '';
+  const continueProgress = Number(continueLearning?.progress_percent ?? 0);
+  const continueProgressLabel = continueLearning?.progress_label
+    ? continueLearning.progress_label
+    : t('screens.home.progressComplete', {percent: continueProgress});
+  const continueThumb =
+    continueLearning?.cover ||
+    continueLearning?.course_cover ||
+    continueLearning?.image ||
+    continueLearning?.icon_url ||
+    '';
+
+  const handleContinueLearning = () => {
+    if (!continueLearning) {
+      return;
+    }
+    navigation.navigate('CourseDetialNew', {
+      courseId: String(continueLearning.course_id),
+      course_id: String(continueLearning.course_id),
+      lessonId: String(continueLearning.lesson_id),
+      lesson_id: String(continueLearning.lesson_id),
+      coursetitle: continueCourseTitle,
+    });
+  };
+
+  const handleTakeQuickQuiz = () => {
+    if (!isLoggedIn) {
+      navigation.navigate('NewLogin');
+      return;
+    }
+    navigation.navigate('TestformNew', {
+      is_quickquiz: '1',
+      lessonName: 'Quick Quiz',
+    });
+  };
+
+  const handleReviewMistakes = () => {
+    if (!isLoggedIn) {
+      navigation.navigate('NewLogin');
+      return;
+    }
+    navigation.navigate('ReviewMistakes');
+  };
 
   return (
     <ScreenWrapper
@@ -337,32 +464,59 @@ const index = ({navigation}) => {
         bounces>
         <View style={styles.container}>
           <FadeInView delay={80}>
-            <CustomText
-              removeTranslation
-              label=""
-              fontSize={36}
-              fontFamily={fonts.jakartaExtraBold}
-              color="#1B1B24"
-              lineHeight={42}
-              width="80%">
-              Master your craft with{' '}
-              <Text style={{color: '#0298EF'}}>Expert</Text> precision.
-            </CustomText>
-
-            <CustomText
-              label={
-                'Curated courses from industry leaders in design, technology, and creative arts.'
-              }
-              fontSize={18}
-              color={'#464555'}
-              marginTop={10}
-            />
+            <View style={styles.heroBannerWrap}>
+              <ImageBackground
+                source={Images.learnPrepareBanner}
+                style={styles.heroBanner}
+                imageStyle={styles.heroBannerImage}
+                resizeMode="cover">
+                <View style={styles.heroContent}>
+                  <Text
+                    style={styles.heroTitle}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.7}
+                    allowFontScaling={false}>
+                    Learn. Prepare.{' '}
+                    <Text style={styles.heroTitleAccent}>Succeed.</Text>
+                  </Text>
+                  <CustomText
+                    label="screens.landing.heroBody"
+                    fontSize={9}
+                    fontFamily={fonts.jakartaRegular}
+                    color="#555555"
+                    lineHeight={13}
+                    marginTop={4}
+                  />
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    style={styles.exploreBtn}
+                    onPress={() => {
+                      setSelectedCategoryId('all');
+                      setSearch('');
+                    }}>
+                    <CustomText
+                      label="screens.landing.exploreCourses"
+                      fontSize={9}
+                      fontFamily={fonts.jakartaSemiBold}
+                      color="#FFFFFF"
+                    />
+                    <Icons
+                      family="Ionicons"
+                      name="chevron-forward"
+                      size={10}
+                      color="#FFFFFF"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </ImageBackground>
+            </View>
           </FadeInView>
 
           <FadeInView delay={160}>
             <View style={styles.searchWrap}>
               <SearchInput
-                placeholder="Search for your next skill..."
+                placeholder="Search courses exam or topics..."
                 marginTop={20}
                 value={search}
                 onChangeText={setSearch}
@@ -387,16 +541,24 @@ const index = ({navigation}) => {
                       onPress={() => setSelectedCategoryId(item.id)}
                       style={[
                         styles.chip,
-                        {
-                          backgroundColor: selected
-                            ? '#0298EF'
-                            : item.backgroundColor,
-                        },
+                        selected ? styles.chipSelected : styles.chipIdle,
                       ]}>
+                      {!!item.icon && (
+                        <ImageFast
+                          source={{uri: item.icon}}
+                          style={[
+                            styles.chipIcon,
+                            selected && styles.chipIconSelected,
+                          ]}
+                          resizeMode="contain"
+                        />
+                      )}
                       <Text
                         style={[
                           styles.chipLabel,
-                          {color: selected ? '#FFFFFF' : item.color},
+                          selected
+                            ? styles.chipLabelSelected
+                            : styles.chipLabelIdle,
                         ]}>
                         {item.label}
                       </Text>
@@ -407,9 +569,193 @@ const index = ({navigation}) => {
             </ScrollView>
           </FadeInView>
 
-          <FadeInView delay={240}>
+          {!isFilteredView && isLoggedIn && continueLearning ? (
+            <FadeInView delay={220}>
+              <View style={styles.continueSection}>
+                <View style={styles.continueHeader}>
+                  <CustomText
+                    label="screens.landing.continueLearning"
+                    fontFamily={fonts.jakartaBold}
+                    fontSize={18}
+                    color="#1B1B24"
+                  />
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => navigation.navigate('Study')}>
+                    <CustomText
+                      label="screens.landing.viewAll"
+                      fontFamily={fonts.jakartaSemiBold}
+                      fontSize={13}
+                      color="#0298EF"
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  activeOpacity={0.92}
+                  style={styles.continueCard}
+                  onPress={handleContinueLearning}>
+                  <ImageFast
+                    source={
+                      continueThumb
+                        ? {uri: String(continueThumb)}
+                        : Images.trendingpicture
+                    }
+                    style={styles.continueThumb}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.continueContent}>
+                    <CustomText
+                      label={continueCourseTitle}
+                      fontSize={12}
+                      fontFamily={fonts.jakartaBold}
+                      color="#2D2E32"
+                      lineHeight={15}
+                      numberOfLines={1}
+                      removeTranslation
+                    />
+                    {!!continueSubtitle && (
+                      <CustomText
+                        label={continueSubtitle}
+
+                        fontSize={10}
+                        fontFamily={fonts.jakartaRegular}
+                        color="#8E94A3"
+                        marginTop={1}
+                        lineHeight={12}
+                        numberOfLines={1}
+                        removeTranslation
+                      />
+                    )}
+                    <View style={styles.continueProgressRow}>
+                      <ProgressBar
+                        progress={continueProgress}
+                        trackStyle={styles.continueTrack}
+                        fillStyle={styles.continueFill}
+                      />
+                      <CustomText
+                        label={continueProgressLabel}
+                        fontSize={9}
+                        fontFamily={fonts.jakartaMedium}
+                        color="#8E94A3"
+                        removeTranslation
+                      />
+                    </View>
+                  </View>
+                  <View style={styles.resumeBtn}>
+                    <Icons
+                      family="Ionicons"
+                      name="play"
+                      size={11}
+                      color="#FFFFFF"
+                    />
+                    <CustomText
+                      label="screens.landing.resume"
+                      fontSize={11}
+                      fontFamily={fonts.jakartaSemiBold}
+                      color="#FFFFFF"
+                    />
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </FadeInView>
+          ) : null}
+
+          {!isFilteredView ? (
+            <FadeInView delay={230}>
+              <View style={styles.quickSection}>
+                <CustomText
+                  label="screens.landing.quickPractice"
+                  fontFamily={fonts.jakartaBold}
+                  fontSize={18}
+                  color="#1B1B24"
+                  marginBottom={12}
+                />
+                <View style={styles.quickRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    style={styles.quickCard}
+                    onPress={handleTakeQuickQuiz}>
+                    <View style={[styles.quickIconWrap, styles.quickIconBlue]}>
+                      <ImageFast
+                        source={Images.docs}
+                        style={styles.quickIcon}
+                        resizeMode="contain"
+                      />
+                    </View>
+                    <View style={styles.quickTextWrap}>
+                      <CustomText
+                        label="screens.landing.takeQuickQuiz"
+                        fontSize={11}
+                        fontFamily={fonts.jakartaBold}
+                        color="#1B3A5F"
+                        lineHeight={14}
+                        numberOfLines={2}
+                      />
+                      <CustomText
+                        label="screens.landing.takeQuickQuizHint"
+                        fontSize={9}
+                        fontFamily={fonts.jakartaRegular}
+                        color="#8E94A3"
+                        marginTop={2}
+                        lineHeight={11}
+                        numberOfLines={1}
+                      />
+                    </View>
+                    <Icons
+                      family="Ionicons"
+                      name="chevron-forward"
+                      size={14}
+                      color="#0298EF"
+                    />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    style={styles.quickCard}
+                    onPress={handleReviewMistakes}>
+                    <View style={[styles.quickIconWrap, styles.quickIconOrange]}>
+                      <Icons
+                        family="MaterialCommunityIcons"
+                        name="target"
+                        size={16}
+                        color="#E11D48"
+                      />
+                    </View>
+                    <View style={styles.quickTextWrap}>
+                      <CustomText
+                        label="screens.landing.reviewMistakes"
+                        fontSize={11}
+                        fontFamily={fonts.jakartaBold}
+                        color="#1B3A5F"
+                        lineHeight={14}
+                        numberOfLines={2}
+                      />
+                      <CustomText
+                        label="screens.landing.reviewMistakesHint"
+                        fontSize={9}
+                        fontFamily={fonts.jakartaRegular}
+                        color="#8E94A3"
+                        marginTop={2}
+                        lineHeight={11}
+                        numberOfLines={1}
+                      />
+                    </View>
+                    <Icons
+                      family="Ionicons"
+                      name="chevron-forward"
+                      size={14}
+                      color="#F59E0B"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </FadeInView>
+          ) : null}
+
+          {/* <FadeInView delay={240}>
             {!isFilteredView && <SpotlightFeatures />}
-          </FadeInView>
+          </FadeInView> */}
 
           <FadeInView
             key={`courses-${selectedCategoryId}-${searchQuery}-${loadingCourses}`}
@@ -441,28 +787,83 @@ const index = ({navigation}) => {
                 marginRight={20}
               />
             ) : (
-              displayCourses.map(item => (
-                <TrendingCard
-                  key={item.id}
-                  courseId={item.courseId}
-                  cover={item.cover}
-                  category={item.category}
-                  title={item.title}
-                  subtitle={item.subtitle}
-                  tag={item.tag}
-                  lessonCount={item.lessonCount}
-                  ratingValue={item.ratingValue}
-                  reviewsLabel={item.reviewsLabel}
-                  price={item.priceLabel}
-                  priceRaw={item.price}
-                  appleProductId={item.appleProductId}
-                  googleProductId={item.googleProductId}
-                  isPurchased={item.isPurchased}
-                  isLoggedIn={isLoggedIn}
-                />
-              ))
+              <View style={styles.coursesGrid}>
+                {displayCourses.map(item => (
+                  <TrendingCard
+                    key={item.id}
+                    courseId={item.courseId}
+                    cover={item.cover}
+                    title={item.title}
+                    subtitle={item.subtitle}
+                    tag={item.tag}
+                    lessonCount={item.lessonCount}
+                    questionCount={item.questionCount}
+                    price={item.priceLabel}
+                    priceRaw={item.price}
+                    appleProductId={item.appleProductId}
+                    googleProductId={item.googleProductId}
+                    isPurchased={item.isPurchased}
+                    isLoggedIn={isLoggedIn}
+                    compact
+                  />
+                ))}
+              </View>
             )}
           </FadeInView>
+
+          {!isFilteredView ? (
+            <FadeInView delay={340}>
+              <View style={styles.whySection}>
+                <CustomText
+                  label="screens.landing.whyLearn"
+                  fontFamily={fonts.jakartaBold}
+                  fontSize={18}
+                  color="#1B1B24"
+                  marginBottom={12}
+                />
+                <ScrollView
+                  horizontal
+                  nestedScrollEnabled
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.whyRow}>
+                  {WHY_ITEMS.map(item => (
+                    <View key={item.id} style={styles.whyCard}>
+                      <View
+                        style={[
+                          styles.whyIconWrap,
+                          {backgroundColor: item.tint},
+                        ]}>
+                        <Icons
+                          family="Ionicons"
+                          name={item.icon}
+                          size={18}
+                          color={item.color}
+                        />
+                      </View>
+                      <CustomText
+                        label={item.label}
+                        fontSize={12}
+                        fontFamily={fonts.jakartaBold}
+                        color="#1B3A5F"
+                        marginTop={10}
+                        lineHeight={15}
+                        numberOfLines={1}
+                      />
+                      <CustomText
+                        label={item.desc}
+                        fontSize={10}
+                        fontFamily={fonts.jakartaRegular}
+                        color="#8E94A3"
+                        marginTop={4}
+                        lineHeight={13}
+                        numberOfLines={2}
+                      />
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            </FadeInView>
+          ) : null}
         </View>
         {!isLoggedIn ? (
         <FadeInView delay={360} style={styles.subscribeContainer}>
@@ -570,6 +971,47 @@ const styles = StyleSheet.create({
     paddingRight: 0,
     paddingBottom: 32,
   },
+  heroBannerWrap: {
+    marginRight: 20,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+  },
+  heroBanner: {
+    width: '100%',
+    minHeight: 150,
+    justifyContent: 'center',
+  },
+  heroBannerImage: {
+    borderRadius: 16,
+  },
+  heroContent: {
+    width: '70%',
+    paddingTop: 14,
+    paddingBottom: 14,
+    paddingLeft: 12,
+    paddingRight: 6,
+  },
+  heroTitle: {
+    fontSize: 14,
+    lineHeight: 18,
+    fontFamily: fonts.jakartaExtraBold,
+    color: '#1A1A1A',
+  },
+  heroTitleAccent: {
+    color: '#0298EF',
+  },
+  exploreBtn: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 1,
+    backgroundColor: '#0298EF',
+    borderRadius: 7,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+  },
   chipsScroll: {
     marginTop: 16,
     flexGrow: 0,
@@ -582,14 +1024,40 @@ const styles = StyleSheet.create({
     flexGrow: 0,
   },
   chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 10,
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     borderRadius: 999,
     marginRight: 10,
+    gap: 8,
+  },
+  chipSelected: {
+    backgroundColor: '#0298EF',
+    borderWidth: 1,
+    borderColor: '#0298EF',
+  },
+  chipIdle: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5EAF0',
+  },
+  chipIcon: {
+    width: 18,
+    height: 18,
+  },
+  chipIconSelected: {
+    tintColor: '#FFFFFF',
   },
   chipLabel: {
-    fontSize: 15,
+    fontSize: 10,
     fontFamily: fonts.jakartaSemiBold,
+  },
+  chipLabelSelected: {
+    color: '#FFFFFF',
+  },
+  chipLabelIdle: {
+    color: '#1B3A5F',
   },
   chipsLoader: {
     paddingVertical: 10,
@@ -640,6 +1108,102 @@ const styles = StyleSheet.create({
   searchResultText: {
     flex: 1,
   },
+  continueSection: {
+    marginTop: 22,
+    marginRight: 20,
+  },
+  continueHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  continueCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#E8EEF5',
+  },
+  continueThumb: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: '#E8EEF5',
+  },
+  continueContent: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: 'center',
+  },
+  continueProgressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  continueTrack: {
+    flex: 1,
+    marginTop: 0,
+    height: 5,
+    backgroundColor: '#E8EEF5',
+  },
+  continueFill: {
+    backgroundColor: '#0298EF',
+  },
+  resumeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#0298EF',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  quickSection: {
+    marginTop: 22,
+    marginRight: 20,
+  },
+  quickRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  quickCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#E8EEF5',
+  },
+  quickIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickIconBlue: {
+    backgroundColor: '#EAF8FF',
+  },
+  quickIconOrange: {
+    backgroundColor: '#FFF1E8',
+  },
+  quickIcon: {
+    width: 18,
+    height: 18,
+  },
+  quickTextWrap: {
+    flex: 1,
+    minWidth: 0,
+  },
   trendingContainer: {
     marginTop: 10,
     flexDirection: 'row',
@@ -647,11 +1211,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 20,
   },
+  coursesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    columnGap: 10,
+    rowGap: 12,
+    marginRight: 20,
+    marginTop: 8,
+  },
   loaderWrap: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 32,
     marginRight: 20,
+  },
+  whySection: {
+    marginTop: 24,
+    marginRight: 0,
+    marginBottom: 8,
+  },
+  whyRow: {
+    paddingRight: 20,
+    gap: 10,
+  },
+  whyCard: {
+    width: 148,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E8EEF5',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+  },
+  whyIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   subscribeContainer: {
     marginTop: 10,

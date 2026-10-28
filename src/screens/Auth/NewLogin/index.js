@@ -9,10 +9,16 @@ import SelectExamCountry from './SelectExamCountry';
 import Goals from './Goals';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
+import SignupEmailNotice from './SignupEmailNotice';
+import SignupOTP from './SignupOTP';
 import {fetchGoals} from './goalsApi';
 
 const NewLogin = ({navigation}) => {
   const [activeTab, setActiveTab] = useState('login');
+  const [showSignupEmailNotice, setShowSignupEmailNotice] = useState(false);
+  const [showSignupOtp, setShowSignupOtp] = useState(false);
+  const [otpMeta, setOtpMeta] = useState({code: '', expiresIn: 300});
+  const [emailVerified, setEmailVerified] = useState(false);
   const [showLanguageAfterSignup, setShowLanguageAfterSignup] = useState(false);
   const [showSelectExamCountry, setShowSelectExamCountry] = useState(false);
   const [signupData, setSignupData] = useState(null);
@@ -46,6 +52,27 @@ const NewLogin = ({navigation}) => {
     };
   }, [showLanguageAfterSignup]);
 
+  const goBackToSignupForm = () => {
+    setShowSignupEmailNotice(false);
+    setShowSignupOtp(false);
+    setOtpMeta({code: '', expiresIn: 300});
+    setEmailVerified(false);
+    setActiveTab('signup');
+  };
+
+  const resetSignupFlow = () => {
+    setShowSignupEmailNotice(false);
+    setShowSignupOtp(false);
+    setOtpMeta({code: '', expiresIn: 300});
+    setEmailVerified(false);
+    setShowLanguageAfterSignup(false);
+    setShowSelectExamCountry(false);
+    setShowGoals(false);
+    setSignupData(null);
+    setSelectedLanguageId('');
+    setSelectedCountryId('');
+  };
+
   return (
     <ScreenWrapper
       backgroundColor="#DBF2FF"
@@ -67,6 +94,7 @@ const NewLogin = ({navigation}) => {
             languageId={selectedLanguageId}
             examCountry={selectedCountryId}
             goals={goalsRef.current}
+            emailVerified={emailVerified}
           />
         ) : showSelectExamCountry ? (
           <SelectExamCountry
@@ -84,11 +112,39 @@ const NewLogin = ({navigation}) => {
               setShowSelectExamCountry(true);
             }}
           />
+        ) : showSignupOtp ? (
+          <SignupOTP
+            email={signupData?.email}
+            initialCode={otpMeta.code}
+            initialExpiresIn={otpMeta.expiresIn}
+            onVerified={() => {
+              setEmailVerified(true);
+              setShowSignupOtp(false);
+              setShowSignupEmailNotice(false);
+              setShowLanguageAfterSignup(true);
+            }}
+            onChangeEmail={goBackToSignupForm}
+          />
+        ) : showSignupEmailNotice ? (
+          <SignupEmailNotice
+            email={signupData?.email}
+            onOtpSent={({code, expiresIn}) => {
+              setOtpMeta({code, expiresIn});
+              setShowSignupEmailNotice(false);
+              setShowSignupOtp(true);
+            }}
+            onChangeEmail={goBackToSignupForm}
+          />
         ) : (
           <>
             <SwitchbuttonComponent
               activeTab={activeTab}
-              onChangeTab={setActiveTab}
+              onChangeTab={tab => {
+                if (tab === 'login') {
+                  resetSignupFlow();
+                }
+                setActiveTab(tab);
+              }}
             />
 
             {activeTab === 'login' ? (
@@ -101,10 +157,17 @@ const NewLogin = ({navigation}) => {
               />
             ) : (
               <SignupForm
-                onSwitchToLogin={() => setActiveTab('login')}
+                initialValues={signupData}
+                onSwitchToLogin={() => {
+                  resetSignupFlow();
+                  setActiveTab('login');
+                }}
                 onNext={data => {
                   setSignupData(data);
-                  setShowLanguageAfterSignup(true);
+                  setEmailVerified(false);
+                  setOtpMeta({code: '', expiresIn: 300});
+                  setShowSignupOtp(false);
+                  setShowSignupEmailNotice(true);
                 }}
               />
             )}

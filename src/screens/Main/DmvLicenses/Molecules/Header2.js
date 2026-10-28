@@ -15,12 +15,21 @@ const Header2 = ({
   line,
   hideBack = false,
   titleRemoveTranslation = false,
+  onBackPress,
 }) => {
   const navigation = useNavigation();
   const {colors} = useTheme();
 
   const handleBack = () => {
-    navigation.goBack();
+    if (typeof onBackPress === 'function') {
+      onBackPress();
+      return;
+    }
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+    navigation.navigate('LandingPage');
   };
 
   return (

@@ -124,6 +124,7 @@ const App = () => {
           loading={null}
           persistor={persistor}
           onBeforeLift={() => setIsStoreReady(true)}>
+          {/* Must match backend Stripe mode. API currently returns pk_test_... / ek_test_... */}
           <StripeProvider publishableKey="pk_live_51Oyb4uP42C3kj5TCZALaGkrCa59dFdZdwubMNGyp209fLXbVt6oIVVyQWF2On8cNBv3zOD6ImwGtIoKgt12nbcXT00JM8g5qp9">
             <AppInner />
           </StripeProvider>

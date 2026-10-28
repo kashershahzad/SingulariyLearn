@@ -58,6 +58,16 @@ const isLessonItemCompleted = item =>
   hasTruthyFlag(item?.lesson_marked_complete) ||
   Number(item?.percentage ?? item?.progress_percent) >= 100;
 
+const isPracticeTestEnabled = item =>
+  hasTruthyFlag(item?.enable_practice_test) ||
+  hasTruthyFlag(item?.practice_test_enabled) ||
+  hasTruthyFlag(item?.has_practice_test);
+
+const isMockTestEnabled = item =>
+  hasTruthyFlag(item?.enable_mock_test) ||
+  hasTruthyFlag(item?.mock_test_enabled) ||
+  hasTruthyFlag(item?.has_mock_test);
+
 const PRACTICE_SETS_OPTION = 'Practice Sets';
 const MOCK_TEST_OPTION = 'Mock Test';
 
@@ -181,11 +191,19 @@ const StudyModuleCard = ({
         flexDirection: 'row',
         alignItems: 'center',
         flex: 1,
+        flexShrink: 1,
+        minWidth: 0,
+        marginRight: 8,
+      },
+      lessonTitleWrap: {
+        flex: 1,
+        flexShrink: 1,
+        minWidth: 0,
       },
       statusIcon: {
         width: 18,
         height: 18,
-        marginLeft: 8,
+        flexShrink: 0,
       },
       loader: {
         marginTop: 12,
@@ -217,6 +235,17 @@ const StudyModuleCard = ({
   }, [data.id, selectedOption]);
 
   const isMockTestMode = selectedOption === MOCK_TEST_OPTION;
+  const isPracticeSetsMode = selectedOption === PRACTICE_SETS_OPTION;
+
+  const visibleLessons = lessons.filter(lesson => {
+    if (isPracticeSetsMode) {
+      return lesson.practiceEnabled;
+    }
+    if (isMockTestMode) {
+      return lesson.mockEnabled;
+    }
+    return true;
+  });
 
   const scrollCardIntoView = useCallback(() => {
     onRequestScrollIntoView?.(cardRef);
@@ -229,9 +258,10 @@ const StudyModuleCard = ({
 
     const timer = setTimeout(scrollCardIntoView, 200);
     return () => clearTimeout(timer);
-  }, [isExpanded, loadingLessons, lessons.length, scrollCardIntoView]);
+  }, [isExpanded, loadingLessons, visibleLessons.length, scrollCardIntoView]);
 
-  const lessonCount = lessons.length > 0 ? lessons.length : data.lessonCount;
+  const lessonCount =
+    lessons.length > 0 ? visibleLessons.length : data.lessonCount;
   const lessonsCountLabel = t('screens.study.lessonsCount', {
     count: String(lessonCount || 0).padStart(2, '0'),
   });
@@ -268,6 +298,8 @@ const StudyModuleCard = ({
           short_desc: parseLocalized(item.short_desc, currentLanguage),
           description: parseLocalized(item.description, currentLanguage),
           completed: isLessonItemCompleted(item),
+          practiceEnabled: isPracticeTestEnabled(item),
+          mockEnabled: isMockTestEnabled(item),
         })),
       );
     } catch {
@@ -276,16 +308,6 @@ const StudyModuleCard = ({
       setLoadingLessons(false);
     }
   }, [token, data.id, currentLanguage]);
-
-  const navigateToMockTest = () => {
-    navigation.navigate('TestformNew', {
-      course_id: data.id,
-      courseId: data.id,
-      permit_id: defaultPermitId,
-      is_mockup: 1,
-      lessonName: data.title,
-    });
-  };
 
   const handleHeaderPress = () => {
     if (!isCourseUnlocked) {
@@ -304,11 +326,6 @@ const StudyModuleCard = ({
       return;
     }
 
-    if (isMockTestMode) {
-      navigateToMockTest();
-      return;
-    }
-
     const nextExpanded = !isExpanded;
     setIsExpanded(nextExpanded);
 
@@ -321,13 +338,25 @@ const StudyModuleCard = ({
   };
 
   const handleLessonPress = lesson => {
-    if (selectedOption === PRACTICE_SETS_OPTION) {
+    if (isPracticeSetsMode) {
       navigation.navigate('TestformNew', {
         lessonId: lesson.id,
         lessonName: lesson.title,
         course_id: data.id,
         courseId: data.id,
         permit_id: defaultPermitId,
+      });
+      return;
+    }
+
+    if (isMockTestMode) {
+      navigation.navigate('TestformNew', {
+        lessonId: lesson.id,
+        lessonName: lesson.title,
+        course_id: data.id,
+        courseId: data.id,
+        permit_id: defaultPermitId,
+        is_mockup: 1,
       });
       return;
     }
@@ -436,7 +465,6 @@ const StudyModuleCard = ({
         ) : null} */}
       </TouchableOpacity>
 
-      {!isMockTestMode ? (
       <View
         style={[styles.expandedSection, !isExpanded && styles.expandedHidden]}
         pointerEvents={isExpanded ? 'auto' : 'none'}>
@@ -452,7 +480,7 @@ const StudyModuleCard = ({
 
         {loadingLessons ? (
           <ActivityIndicator color={colors.accent} style={styles.loader} />
-        ) : lessons.length === 0 ? (
+        ) : visibleLessons.length === 0 ? (
           <CustomText
             fontSize={12}
             fontFamily={fonts.jakartaRegular}
@@ -462,7 +490,7 @@ const StudyModuleCard = ({
           />
         ) : (
           <View style={styles.lessonListContainer}>
-            {lessons.map(lesson => (
+            {visibleLessons.map(lesson => (
               <TouchableOpacity
                 key={`${data.id}-lesson-${lesson.id}`}
                 style={styles.lessonItem}
@@ -475,14 +503,18 @@ const StudyModuleCard = ({
                       resizeMode="contain"
                     />
                   </View>
-                  <CustomText
-                    fontSize={12}
-                    fontFamily={fonts.jakartaSemiBold}
-                    color={colors.textPrimary}
-                    label={lesson.title}
-                    marginLeft={8}
-                    removeTranslation
-                  />
+                  <View style={styles.lessonTitleWrap}>
+                    <CustomText
+                      fontSize={12}
+                      fontFamily={fonts.jakartaSemiBold}
+                      color={colors.textPrimary}
+                      label={lesson.title}
+                      marginLeft={8}
+                      lineHeight={18}
+                      containerStyle={{width: '100%'}}
+                      removeTranslation
+                    />
+                  </View>
                 </View>
                 {lesson.completed ? (
                   <Image
@@ -496,7 +528,6 @@ const StudyModuleCard = ({
           </View>
         )}
       </View>
-      ) : null}
     </View>
   );
 };

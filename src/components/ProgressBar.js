@@ -11,7 +11,6 @@ const ProgressBar = ({progress = 0, trackStyle, fillStyle}) => {
     () =>
       StyleSheet.create({
         track: {
-          marginTop: 5,
           height: 9,
           borderRadius: 999,
           backgroundColor: colors.progressTrack,

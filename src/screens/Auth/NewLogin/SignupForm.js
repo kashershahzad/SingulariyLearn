@@ -12,9 +12,17 @@ import {ToastMessage} from '../../../utils/ToastMessage';
 import {ApiRequest} from '../../../services/ApiRequest';
 import Loading from '../../../components/Loading';
 
-const SignupForm = ({onSwitchToLogin, onNext}) => {
+const SignupForm = ({onSwitchToLogin, onNext, initialValues}) => {
   const {t} = useTranslation();
   const [loading, setLoading] = useState(false);
+  const formInitialValues = {
+    firstName: initialValues?.first_name || '',
+    lastName: initialValues?.last_name || '',
+    phone: initialValues?.phone || '',
+    email: initialValues?.email || '',
+    password: initialValues?.password || '',
+    confirmPassword: initialValues?.password || '',
+  };
 
   const handleSubmit = async values => {
     if (values.password !== values.confirmPassword) {
@@ -88,14 +96,8 @@ const SignupForm = ({onSwitchToLogin, onNext}) => {
       />
 
       <Formik
-        initialValues={{
-          firstName: '',
-          lastName: '',
-          phone: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-        }}
+        enableReinitialize
+        initialValues={formInitialValues}
         onSubmit={handleSubmit}>
         {({
           handleChange,

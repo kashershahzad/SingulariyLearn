@@ -1,12 +1,13 @@
 import {
   ActivityIndicator,
+  BackHandler,
   Dimensions,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {useSelector} from 'react-redux';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -57,6 +58,7 @@ const STUDY_OPTIONS = [
 
 const Study = () => {
   const route = useRoute();
+  const navigation = useNavigation();
   const {t} = useTranslation();
   const {colors} = useTheme();
   const styles = useThemedStyles(c =>
@@ -102,6 +104,25 @@ const Study = () => {
   const optionValues = useMemo(
     () => STUDY_OPTIONS.map(option => option.value),
     [],
+  );
+
+  const handleBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return true;
+    }
+    navigation.navigate('LandingPage');
+    return true;
+  }, [navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        handleBack,
+      );
+      return () => subscription.remove();
+    }, [handleBack]),
   );
 
   useEffect(() => {
@@ -219,7 +240,9 @@ const Study = () => {
       paddingHorizontal={0}
       scrollViewRef={scrollViewRef}
       onScroll={handleScroll}
-      headerUnScrollable={() => <Header2 title="screens.study.header" />}>
+      headerUnScrollable={() => (
+        <Header2 title="screens.study.header" onBackPress={handleBack} />
+      )}>
       <View style={styles.container}>
         <CustomText
           fontSize={20}

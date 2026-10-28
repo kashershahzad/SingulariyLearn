@@ -20,6 +20,7 @@ const Goals = ({
   signupData,
   languageId,
   examCountry,
+  emailVerified = false,
 }) => {
   const dispatch = useDispatch();
   const {i18n} = useTranslation();
@@ -57,6 +58,11 @@ const Goals = ({
   }, [goalsProp, langCode]);
 
   const handleRegister = async () => {
+    if (!emailVerified) {
+      ToastMessage('Please verify your email before registering.');
+      return;
+    }
+
     if (!signupData || !selectedId || !languageId || !examCountry) {
       ToastMessage('Please complete all registration steps.');
       return;
@@ -75,6 +81,7 @@ const Goals = ({
         language_id: languageId,
         exam_country: examCountry,
         goal_id: selectedId,
+        email_verified: '1',
       };
       console.log(body);
 
@@ -160,7 +167,7 @@ const Goals = ({
         style={styles.footer}>
         <CustomButton
           onPress={handleRegister}
-          title={'Sign In'}
+          title={'Register'}
           height={51}
           customStyle={{backgroundColor: 'transparent'}}
         />

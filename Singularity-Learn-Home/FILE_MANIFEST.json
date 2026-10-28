@@ -1,0 +1,142 @@
+[
+  {
+    "file": "ASSET_MANIFEST.json",
+    "bytes": 2094,
+    "sha256": "90381b0e5c8132c661459aa4039e18e01e9fa70ce4f58d870d230926b205b282"
+  },
+  {
+    "file": "assets/cdl-banner.jpg",
+    "bytes": 222830,
+    "sha256": "161789c34668d58a88cb0ae67af3004b02e8650b8119d59e9b4443fd13d27965"
+  },
+  {
+    "file": "assets/Favicon.png",
+    "bytes": 36422,
+    "sha256": "2032f62d30b05b25d5abcd1a42630db6876225b66f69fa60320fc4b42504c53e"
+  },
+  {
+    "file": "assets/Icon.jpeg",
+    "bytes": 32191,
+    "sha256": "0365aa44c2c2a91a681a97601e638c11b19bb5589206df7b0035024d74bf1c2d"
+  },
+  {
+    "file": "assets/Logo for main header.png",
+    "bytes": 73832,
+    "sha256": "bdebc86b74d09d11f0a2ef027d3b7b8068c2d1d094f8ec2d911d38d4fdc0ba1c"
+  },
+  {
+    "file": "assets/Logo for main header1.png",
+    "bytes": 31874,
+    "sha256": "0ad77108f6fd1d4d246f43ba9a0ef6531cf484297e3852c0cd4fe0d02c25ce52"
+  },
+  {
+    "file": "assets/Logo white footer.png",
+    "bytes": 29186,
+    "sha256": "4d69ae48de33976f3e5d96bd09ccf0adb7aa9a97bc1d33c7ead9a1d6b9b6f5b2"
+  },
+  {
+    "file": "assets/logo-white.png",
+    "bytes": 73559,
+    "sha256": "a2c2d8be1c86dfd7bda6111e37ab1f0315f2cfdcad7d0157618513e04f452161"
+  },
+  {
+    "file": "assets/Singularity Letterhead Logo.png",
+    "bytes": 103240,
+    "sha256": "f59cd27318cf0e137657bdccba420a7e5fb62273ecc184e487031dc21be9279a"
+  },
+  {
+    "file": "assets/Singularity Logo White.png",
+    "bytes": 748042,
+    "sha256": "1f36443522e687fe0382589b5a46dd671a7139450a4fa8bd3e20fa2468e3fbdb"
+  },
+  {
+    "file": "assets/Singularity Logo.jpg",
+    "bytes": 700630,
+    "sha256": "ab81b1bfab70d25ca071cc43005c91d8f9fba818833c62c9249e665e5ad44ef3"
+  },
+  {
+    "file": "example/App.tsx",
+    "bytes": 1319,
+    "sha256": "9d906cecb4a0ce4e22694512c0ea706be0bd35cc584d7693da27f7ffc815a47d"
+  },
+  {
+    "file": "package.json",
+    "bytes": 474,
+    "sha256": "9dad905a7045188fb7b8ef785678a4d0c503bbbbf3bbc28499e41182b00f2020"
+  },
+  {
+    "file": "pnpm-lock.yaml",
+    "bytes": 60873,
+    "sha256": "e4196855f3a111a869e077e10d3ad004e50d8e2bf7d9ce0deb6e4b24999e3672"
+  },
+  {
+    "file": "README.md",
+    "bytes": 7163,
+    "sha256": "7ed5e97dfac86dea531ce18d6cc42f63198106ce56f6e9d860b9f8b237e37767"
+  },
+  {
+    "file": "references/landing Page.png",
+    "bytes": 197380,
+    "sha256": "b2badfceffe17c8d46626d375a1415c091d3487415fbc7833115fa362d738370"
+  },
+  {
+    "file": "src/assets.d.ts",
+    "bytes": 84,
+    "sha256": "96376252d2c7503f33538c4d05f5053af76dacbf21cc33de2b90e857a397e8df"
+  },
+  {
+    "file": "src/components/ActionButton.tsx",
+    "bytes": 633,
+    "sha256": "968f9eda37865cde75cf27cb456bcf946f2fbd9723b9d11fc634d35d308d8c87"
+  },
+  {
+    "file": "src/components/CourseCard.tsx",
+    "bytes": 985,
+    "sha256": "7010f3ba4074f51db231c82c8ed467174eefeee59fbf1e2069f88d29fe89a908"
+  },
+  {
+    "file": "src/components/ProgressBar.tsx",
+    "bytes": 489,
+    "sha256": "abe17331e3668c85cfb6a6a4e5d3a19edc5aee307b8e49d5015f10f4e50db868"
+  },
+  {
+    "file": "src/data/mockData.ts",
+    "bytes": 1109,
+    "sha256": "95c836e7a8389c49eebccd8cb11e0623101537ef52e9dc3573e03489f5c0f9bf"
+  },
+  {
+    "file": "src/HomeScreen.tsx",
+    "bytes": 7245,
+    "sha256": "e71bdd972f5af08cd81b1123e4a23ffb6872f0ff42e30e484f0935700652d06e"
+  },
+  {
+    "file": "src/index.ts",
+    "bytes": 143,
+    "sha256": "276b1e69c7fbf43b2b5d91e051d2c3ae16ce88900e4fb2e7ba4ecb11f4ed6346"
+  },
+  {
+    "file": "src/styles.ts",
+    "bytes": 2556,
+    "sha256": "a5ea3ef3ff3751066cb3ebecb3f9c41006558c8a9e5016ac782d7d26082a43aa"
+  },
+  {
+    "file": "src/theme.ts",
+    "bytes": 226,
+    "sha256": "8e2ebfaf0fb53b4a00b34143176c9e48b5d4c85c22c1bbfa462a8a39703c616a"
+  },
+  {
+    "file": "src/types.ts",
+    "bytes": 1077,
+    "sha256": "c335fa74a265cf97e2fa106a85b85b03d8b2bde517a35ed97d565576f5abe56f"
+  },
+  {
+    "file": "tsconfig.json",
+    "bytes": 265,
+    "sha256": "97b37b099b7fdc1b8536e2b9464bb4b8f88310ef163ef3ed7465a54469c29862"
+  },
+  {
+    "file": "VERIFICATION.md",
+    "bytes": 1252,
+    "sha256": "6b87d6df83dcbff1e22a90ca78d73758c0838a9469ab7a91f4e1b09374171ed5"
+  }
+]

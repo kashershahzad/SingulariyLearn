@@ -3,7 +3,6 @@ import {
   View,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {useDispatch} from 'react-redux';
@@ -17,31 +16,12 @@ import CustomButton from '../../../components/CustomButton';
 import {ApiRequest} from '../../../services/ApiRequest';
 import {setLanguage} from '../../../store/reducer/LanguageConfig';
 
-// const LANGUAGES = [
-//   {id: 'en', title: 'English', subtitle: 'Recommended'},
-//   {id: 'ar', title: 'العربية', subtitle: 'Arabic (RTL)'},
-//   {id: 'ur', title: 'اردو', subtitle: 'Urdu (RTL)'},
-//   {id: 'fr', title: 'Français', subtitle: 'French'},
-// ];
-
 const mapLanguageItem = item => ({
   id: String(item.id ?? item.language_id ?? item.lang_code ?? ''),
   langCode: String(item.lang_code ?? item.id ?? 'en'),
   title: item.language ?? item.name ?? item.title ?? '',
   subtitle: item.lang_code ?? item.subtitle ?? '',
 });
-
-const formatApiPayload = payload => {
-  try {
-    return JSON.stringify(payload, null, 2);
-  } catch (error) {
-    return String(payload);
-  }
-};
-
-const showLanguageApiAlert = payload => {
-  Alert.alert('Language API Response', formatApiPayload(payload));
-};
 
 const Language = ({onContinue}) => {
   const dispatch = useDispatch();
@@ -53,32 +33,10 @@ const Language = ({onContinue}) => {
 
   useEffect(() => {
     const fetchLanguages = async () => {
-      const body = {
-        type: 'get_data',
-        table_name: 'languages',
-      };
-
       try {
-        const result = await ApiRequest(body);
-        showLanguageApiAlert({
-          ok: true,
-          status: result?.status,
-          statusText: result?.statusText,
-          headers: result?.headers,
-          data: result?.data,
-          requestBody: body,
-          fullAxiosResponse: {
-            status: result?.status,
-            statusText: result?.statusText,
-            headers: result?.headers,
-            data: result?.data,
-            config: {
-              url: result?.config?.url,
-              method: result?.config?.method,
-              data: result?.config?.data,
-              headers: result?.config?.headers,
-            },
-          },
+        const result = await ApiRequest({
+          type: 'get_data',
+          table_name: 'languages',
         });
 
         const list = (result.data?.data || []).map(mapLanguageItem);
@@ -88,28 +46,6 @@ const Language = ({onContinue}) => {
         }
       } catch (error) {
         console.error('Error fetching languages:', error);
-        showLanguageApiAlert({
-          ok: false,
-          message: error?.message,
-          name: error?.name,
-          code: error?.code,
-          stack: error?.stack,
-          requestBody: body,
-          response: {
-            status: error?.response?.status,
-            statusText: error?.response?.statusText,
-            headers: error?.response?.headers,
-            data: error?.response?.data,
-          },
-          request: {
-            url: error?.config?.url,
-            method: error?.config?.method,
-            data: error?.config?.data,
-            headers: error?.config?.headers,
-          },
-          toJSON: typeof error?.toJSON === 'function' ? error.toJSON() : undefined,
-          rawError: String(error),
-        });
       } finally {
         setLoading(false);
       }

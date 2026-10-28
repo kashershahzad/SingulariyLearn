@@ -1,4 +1,9 @@
-import {StyleSheet, View, TouchableOpacity} from 'react-native';
+import {
+  Dimensions,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+} from 'react-native';
 import React from 'react';
 import ImageFast from '../../../components/ImageFast';
 import {Images} from '../../../assets/images';
@@ -6,22 +11,27 @@ import CustomText from '../../../components/CustomText';
 import fonts from '../../../assets/fonts';
 import {useNavigation} from '@react-navigation/native';
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const GRID_SIDE_PAD = 20;
+const GRID_GAP = 10;
+const COMPACT_CARD_WIDTH =
+  (SCREEN_WIDTH - GRID_SIDE_PAD * 2 - GRID_GAP) / 2;
+
 const TrendingCard = ({
   courseId,
   cover,
-  category = '',
   title = '',
-  ratingValue,
-  reviewsLabel,
   price = '',
   priceRaw,
   subtitle = '',
   lessonCount = 0,
+  questionCount = 0,
   tag = '',
   appleProductId = '',
   googleProductId = '',
   isPurchased = false,
   isLoggedIn = false,
+  compact = false,
 }) => {
   const navigation = useNavigation();
 
@@ -51,106 +61,81 @@ const TrendingCard = ({
     navigation.navigate('NewLogin');
   };
 
+  const countValue = Number(questionCount) || Number(lessonCount) || 0;
+  const countLabel = Number(questionCount)
+    ? `${countValue} Questions`
+    : countValue
+      ? `${countValue} Lessons`
+      : '';
+  const metaLabel = [countLabel, 'Audio Support'].filter(Boolean).join(' • ');
+
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={handleCardPress}>
-      <View style={styles.container}>
-        <View style={styles.imageClip}>
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={handleCardPress}
+      style={[styles.wrapper, compact && styles.wrapperCompact]}>
+      <View style={[styles.container, compact && styles.containerCompact]}>
+        <View style={[styles.imageClip, compact && styles.imageClipCompact]}>
           <ImageFast
             source={cover ? {uri: String(cover)} : Images.trendingpicture}
             style={styles.image}
             resizeMode="cover"
           />
-          {!!tag && (
-            <View style={styles.tagBadge} pointerEvents="box-none">
-              <CustomText
-                label={tag}
-                fontFamily={fonts.jakartaBold}
-                fontSize={12}
-                color="#0298EF"
-                removeTranslation
-              />
-            </View>
-          )}
         </View>
 
-        {!!category && (
-          <CustomText
-            label={category}
-            fontFamily={fonts.jakartaSemiBold}
-            fontSize={16}
-            color="#777587"
-            marginTop={5}
-            removeTranslation
-          />
-        )}
-
-        <CustomText
-          label={title}
-          fontFamily={fonts.jakartaBold}
-          fontSize={18}
-          color="#1B1B24"
-          removeTranslation
-        />
-
-        {!!ratingValue && (
-          <View style={styles.ratingContainer}>
-            <ImageFast
-              source={Images.ratingstar}
-              style={styles.rating}
-              resizeMode="contain"
-            />
+        <View style={styles.body}>
+          <View style={styles.titleBlock}>
             <CustomText
-              label={ratingValue}
+              label={title}
               fontFamily={fonts.jakartaBold}
-              fontSize={16}
+              fontSize={compact ? 12 : 15}
               color="#1B1B24"
+              lineHeight={compact ? 16 : 20}
+              numberOfLines={2}
               removeTranslation
             />
-            {!!reviewsLabel && (
-              <CustomText
-                label={reviewsLabel}
-                fontFamily={fonts.jakartaRegular}
-                fontSize={12}
-                color="#777587"
-                removeTranslation
-              />
-            )}
           </View>
-        )}
 
-        <View style={styles.priceContainer}>
           <CustomText
-            label={price}
-            fontFamily={fonts.jakartaBold}
-            fontSize={20}
-            color="#1B1B24"
+            label={metaLabel || ' '}
+            fontFamily={fonts.jakartaRegular}
+            fontSize={compact ? 10 : 12}
+            color="#8E94A3"
+            marginTop={4}
+            numberOfLines={1}
             removeTranslation
           />
-          {isPurchased ? (
+
+          <View style={styles.footer}>
+            <CustomText
+              label={price || '$0.00'}
+              fontFamily={fonts.jakartaBold}
+              fontSize={compact ? 13 : 16}
+              color="#1B1B24"
+              numberOfLines={1}
+              removeTranslation
+            />
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={handleActionPress}
-              style={styles.purchasedBtn}
+              style={[
+                styles.actionBtn,
+                isPurchased ? styles.purchasedBtn : styles.viewBtn,
+              ]}
               hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
               <CustomText
-                label="screens.landing.purchased"
+                label={
+                  isPurchased
+                    ? 'screens.landing.purchased'
+                    : 'screens.landing.viewCourse'
+                }
                 fontFamily={fonts.jakartaSemiBold}
-                fontSize={13}
-                color="#0298EF"
+                fontSize={10}
+                color={isPurchased ? '#0298EF' : '#FFFFFF'}
+                numberOfLines={1}
               />
             </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={handleActionPress}
-              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-              <ImageFast
-                source={Images.cart}
-                style={styles.cart}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-          )}
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -160,57 +145,67 @@ const TrendingCard = ({
 export default TrendingCard;
 
 const styles = StyleSheet.create({
-  container: {
-    marginVertical: 10,
+  wrapper: {
+    marginVertical: 8,
     marginRight: 20,
+  },
+  wrapperCompact: {
+    width: COMPACT_CARD_WIDTH,
+    marginRight: 0,
+    marginVertical: 0,
+  },
+  container: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E8EEF5',
+    overflow: 'hidden',
+  },
+  containerCompact: {
+    flex: 1,
   },
   imageClip: {
     width: '100%',
-    height: 205,
-    borderRadius: 12,
-    overflow: 'hidden',
+    height: 120,
     backgroundColor: '#E8EEF5',
+  },
+  imageClipCompact: {
+    height: 100,
   },
   image: {
     width: '100%',
     height: '100%',
   },
-  tagBadge: {
-    position: 'absolute',
-    bottom: 10,
-    left: 10,
-    backgroundColor: '#ADE1FF',
-    paddingVertical: 5,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+  body: {
+    paddingHorizontal: 10,
+    paddingTop: 8,
+    paddingBottom: 10,
   },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 4,
+  titleBlock: {
+    minHeight: 32,
+    justifyContent: 'flex-start',
   },
-  rating: {
-    width: 13,
-    height: 12,
-  },
-  priceContainer: {
+  footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 5,
-    marginTop: 4,
+    marginTop: 8,
+    gap: 6,
   },
-  cart: {
-    width: 40,
-    height: 40,
+  actionBtn: {
+    height: 30,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  viewBtn: {
+    backgroundColor: '#0298EF',
   },
   purchasedBtn: {
     borderWidth: 1,
     borderColor: '#0298EF',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
     backgroundColor: '#EAF8FF',
   },
 });

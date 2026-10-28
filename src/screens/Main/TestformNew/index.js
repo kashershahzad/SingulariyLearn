@@ -3,12 +3,14 @@ import {
   Dimensions,
   Image,
   Platform,
+  ScrollView,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
   ActivityIndicator,
 } from 'react-native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -177,69 +179,213 @@ const isValidOptionImage = uri => {
   if (value.endsWith('/images/') || value.includes('/images/""')) {
     return false;
   }
-  return /\.(jpg|jpeg|png|gif|webp)$/i.test(value);
+  return /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(value);
 };
 
-/** Same parsing rules as `Testfrom.js` `parseQuestions` */
-const parseQuestionsFromApi = (questionsArray, currentLanguage) => {
-  return questionsArray.map(q => {
-    let questionData;
-    try {
-      questionData =
-        typeof q.question === 'string' ? JSON.parse(q.question) : q.question;
-    } catch {
-      questionData = {en: {question: q.question}, ur: {question: q.question}};
+const isUrlLikeText = value => {
+  const s = String(value || '').trim();
+  if (!s) {
+    return false;
+  }
+  return (
+    /^https?:\/\//i.test(s) ||
+    s.includes(SINGULARITY_IMAGE_PREFIX) ||
+    s.includes('/images/') ||
+    /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(s)
+  );
+};
+
+const OPTION_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+const extractQuestionByLang = questionField => {
+  let questionData;
+  try {
+    questionData =
+      typeof questionField === 'string'
+        ? JSON.parse(questionField)
+        : questionField;
+  } catch {
+    questionData = {en: {question: String(questionField || '')}};
+  }
+
+  const byLang = {};
+  if (!questionData || typeof questionData !== 'object') {
+    return byLang;
+  }
+
+  Object.keys(questionData).forEach(lang => {
+    const val = questionData[lang];
+    if (typeof val === 'string' && val.trim()) {
+      byLang[lang] = val.trim();
+    } else if (val && typeof val === 'object' && val.question) {
+      byLang[lang] = String(val.question).trim();
     }
+  });
 
-    const questionText =
-      questionData[currentLanguage]?.question ||
-      questionData.en?.question ||
-      questionData.ur?.question ||
-      (typeof questionData[currentLanguage] === 'string'
-        ? questionData[currentLanguage]
-        : null) ||
-      (typeof questionData.en === 'string' ? questionData.en : null) ||
-      (typeof questionData.ur === 'string' ? questionData.ur : null) ||
-      'Question not available';
+  return byLang;
+};
 
-    const languageAnswers =
-      q.answers && Array.isArray(q.answers)
-        ? q.answers.filter(answer => answer.lang === currentLanguage)
-        : [];
+const extractExplanationByLang = explanationField => {
+  if (!explanationField) {
+    return {};
+  }
 
-    const fallbackAnswers =
-      languageAnswers.length > 0
-        ? languageAnswers
-        : q.answers && Array.isArray(q.answers)
-        ? q.answers.filter(answer => answer.lang === 'en')
-        : [];
+  let data = explanationField;
+  if (typeof explanationField === 'string') {
+    try {
+      data = JSON.parse(explanationField);
+    } catch {
+      const text = explanationField.trim();
+      return text ? {en: text} : {};
+    }
+  }
 
-    const options = fallbackAnswers.map(answer => {
-      const parsedAnswer = parseAnswerField(answer.answer);
-      const imageFromField = getCompleteImageUrl(answer.image);
+  if (!data || typeof data !== 'object') {
+    return {};
+  }
 
-      return {
-        answer: parsedAnswer.text || parsedAnswer.image || answer.answer,
-        image: parsedAnswer.image || imageFromField,
-        correct: Number(answer.is_correct) === 1 ? 1 : 0,
-        answerId:
-          answer.id != null && answer.id !== '' ? String(answer.id) : null,
-      };
+  const byLang = {};
+  Object.keys(data).forEach(lang => {
+    const val = data[lang];
+    if (typeof val === 'string' && val.trim()) {
+      byLang[lang] = val.trim();
+    } else if (val && typeof val === 'object') {
+      const text = val.explanation || val.text || val.content || '';
+      if (String(text).trim()) {
+        byLang[lang] = String(text).trim();
+      }
+    }
+  });
+
+  return byLang;
+};
+
+const extractLocalizedLabel = (value, preferredLang = 'en') => {
+  if (!value) {
+    return '';
+  }
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === 'object') {
+        return (
+          parsed[preferredLang] ||
+          parsed.en ||
+          Object.values(parsed).find(v => typeof v === 'string' && v.trim()) ||
+          ''
+        );
+      }
+    } catch {
+      return value;
+    }
+    return value;
+  }
+  if (typeof value === 'object') {
+    return (
+      value[preferredLang] ||
+      value.en ||
+      Object.values(value).find(v => typeof v === 'string' && v.trim()) ||
+      ''
+    );
+  }
+  return String(value);
+};
+
+const buildOptionsMultiLang = answers => {
+  if (!Array.isArray(answers) || !answers.length) {
+    return [];
+  }
+
+  const byLang = {};
+  answers.forEach(answer => {
+    const lang = String(answer.lang || 'en').toLowerCase();
+    if (!byLang[lang]) {
+      byLang[lang] = [];
+    }
+    byLang[lang].push(answer);
+  });
+
+  const langs = Object.keys(byLang);
+  const primaryLang = byLang.en ? 'en' : langs[0];
+  const primaryAnswers = byLang[primaryLang] || [];
+
+  return primaryAnswers.map((answer, index) => {
+    const textsByLang = {};
+    const answerIdsByLang = {};
+    let image = null;
+
+    langs.forEach(lang => {
+      const row = byLang[lang]?.[index];
+      if (!row) {
+        return;
+      }
+      const parsedAnswer = parseAnswerField(row.answer);
+      const imageFromField = getCompleteImageUrl(row.image);
+      const rowImage = parsedAnswer.image || imageFromField || null;
+      if (!image && rowImage) {
+        image = rowImage;
+      }
+      const rawText = parsedAnswer.text || '';
+      const fallbackText = isUrlLikeText(row.answer)
+        ? ''
+        : String(row.answer || '').trim();
+      const answerText = rawText || (rowImage ? '' : fallbackText);
+      textsByLang[lang] =
+        !answerText || isUrlLikeText(answerText) ? '' : answerText;
+      if (row.id != null && row.id !== '') {
+        answerIdsByLang[lang] = String(row.id);
+      }
     });
 
+    return {
+      textsByLang,
+      answerIdsByLang,
+      answer: textsByLang[primaryLang] || textsByLang.en || '',
+      image,
+      correct: Number(answer.is_correct) === 1 ? 1 : 0,
+      answerId:
+        answerIdsByLang[primaryLang] ||
+        answerIdsByLang.en ||
+        (answer.id != null && answer.id !== '' ? String(answer.id) : null),
+    };
+  });
+};
+
+/** Multi-language aware parsing for bilingual Study / Practice UI */
+const parseQuestionsFromApi = (questionsArray, currentLanguage) => {
+  return questionsArray.map(q => {
+    const questionByLang = extractQuestionByLang(q.question);
+    const fallbackQuestion =
+      questionByLang[currentLanguage] ||
+      questionByLang.en ||
+      questionByLang.ur ||
+      Object.values(questionByLang)[0] ||
+      'Question not available';
+
+    const options = buildOptionsMultiLang(q.answers);
     const hasOptionImages = options.some(option =>
       isValidOptionImage(option.image),
     );
-
     const correctIndex = options.findIndex(
       option => Number(option.correct) === 1,
     );
 
+    const category =
+      extractLocalizedLabel(
+        q.tag || q.category || q.topic || q.lesson_tag,
+        currentLanguage,
+      ) || '';
+
+    const explanationByLang = extractExplanationByLang(q.explanation);
+
     return {
       ...q,
-      question: questionText,
+      question: fallbackQuestion,
+      questionByLang,
+      explanationByLang,
       options,
       hasOptionImages,
+      category,
       correctAnswerIndex: correctIndex !== -1 ? correctIndex : 0,
     };
   });
@@ -255,7 +401,6 @@ const buildUiQuestions = (parsedList, currentLanguage) => {
 
       const hasAudio = !!(audioUri && String(audioUri).trim());
       const hasVideo = !!videoSource?.uri;
-      const hasImage = !!imageSource?.uri;
 
       let mediaType;
       let audioSource = null;
@@ -263,21 +408,24 @@ const buildUiQuestions = (parsedList, currentLanguage) => {
       if (hasAudio) {
         mediaType = 'audio';
         audioSource = {uri: audioUri};
-      } else if (hasVideo) {
-        mediaType = 'image';
-      } else if (hasImage) {
-        mediaType = 'image';
       } else {
         mediaType = 'image';
       }
 
-      const options = parsed.options.map((opt, i) => ({
-        id: `opt-${parsed.id}-${i}`,
-        answerId: opt.answerId || null,
-        title: opt.answer,
-        subtitle: '',
-        imageUri: isValidOptionImage(opt.image) ? opt.image : null,
-      }));
+      const options = parsed.options.map((opt, i) => {
+        const imageUri = isValidOptionImage(opt.image) ? opt.image : null;
+        const titleText = String(opt.answer || '').trim();
+        return {
+          id: `opt-${parsed.id}-${i}`,
+          answerId: opt.answerId || null,
+          answerIdsByLang: opt.answerIdsByLang || {},
+          textsByLang: opt.textsByLang || {},
+          title: !titleText || isUrlLikeText(titleText) ? '' : titleText,
+          subtitle: '',
+          imageUri,
+          letter: OPTION_LETTERS[i] || String(i + 1),
+        };
+      });
 
       const hasOptionImages = options.some(o => !!o.imageUri);
       const useGridForOptions = mediaType !== 'audio' && hasOptionImages;
@@ -294,13 +442,33 @@ const buildUiQuestions = (parsedList, currentLanguage) => {
         imageSource,
         videoSource: hasVideo ? videoSource : null,
         prompt: parsed.question,
+        promptByLang: parsed.questionByLang || {},
+        explanationByLang: parsed.explanationByLang || {},
+        category: parsed.category || '',
         subPrompt: 'Select the correct answer.',
         options,
         useGridForOptions,
         correctAnswerIndex: ci,
         isBookmarked: isBookmarkedFlag(parsed.is_bookmarked),
+        audioByLang: (() => {
+          try {
+            return parsed.audio ? JSON.parse(parsed.audio) : null;
+          } catch {
+            return null;
+          }
+        })(),
       };
     });
+};
+
+const LANG_FALLBACK_NAMES = {
+  en: 'English',
+  ur: 'Urdu',
+  es: 'Spanish',
+  fr: 'French',
+  ar: 'Arabic',
+  hi: 'Hindi',
+  zh: 'Chinese',
 };
 
 const QUESTIONS_PAGE_LIMIT = 10;
@@ -345,7 +513,7 @@ const TestformNew = () => {
         minHeight: 280,
       },
       container: {
-        backgroundColor: c.screenBg,
+        backgroundColor: '#FFFFFF',
         paddingHorizontal: 20,
         paddingBottom: 24,
       },
@@ -404,9 +572,9 @@ const TestformNew = () => {
         borderColor: c.wrong,
       },
       optionGridThumb: {
-        width: 48,
-        height: 48,
-        marginBottom: 6,
+        width: '100%',
+        height: 96,
+        marginBottom: 4,
       },
       imageZoomFab: {
         width: 44,
@@ -514,9 +682,252 @@ const TestformNew = () => {
       },
       footerGradientButton: {
         height: 51,
-        borderRadius: 8,
+        borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
+      },
+      studyBanner: {
+        marginHorizontal: -20,
+        marginBottom: 18,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: '#EFF6FFB2',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      },
+      studyBannerLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        marginRight: 10,
+        minWidth: 0,
+      },
+      studyBannerIconWrap: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        backgroundColor: '#DBEAFE',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 10,
+      },
+      studyBannerIcon: {
+        width: 20,
+        height: 20,
+      },
+      studyBannerTextWrap: {
+        flex: 1,
+        minWidth: 0,
+      },
+      langChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: '#D6E8F5',
+        paddingHorizontal: 10,
+        paddingVertical: 7,
+        maxWidth: 150,
+      },
+      metaRow: {
+        marginTop: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      },
+      categoryPill: {
+        backgroundColor: '#E8F4FC',
+        borderRadius: 999,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        maxWidth: '58%',
+      },
+      listenBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        paddingHorizontal: 12,
+        paddingVertical: 7,
+      },
+      bilingualOptionCard: {
+        borderRadius: 14,
+        borderWidth: 1.5,
+        borderColor: '#E5E7EB',
+        backgroundColor: '#FFFFFF',
+        paddingVertical: 14,
+        paddingHorizontal: 12,
+        marginTop: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+      },
+      bilingualOptionCardCorrect: {
+        backgroundColor: '#28A1644D',
+        borderColor: '#28A1644D',
+        borderWidth: 2,
+      },
+      bilingualOptionCardSelected: {
+        backgroundColor: '#28A1644D',
+        borderColor: '#28A1644D',
+        borderWidth: 2,
+      },
+      bilingualOptionCardWrong: {
+        backgroundColor: '#FDECEC',
+        borderColor: '#E5484D',
+      },
+      optionLetterBadge: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        borderWidth: 1.5,
+        borderColor: '#D1D5DB',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 10,
+        backgroundColor: '#FFFFFF',
+        overflow: 'hidden',
+      },
+      optionLetterBadgeActive: {
+        borderColor: '#28A164',
+        backgroundColor: '#28A164',
+      },
+      optionLetterBadgeSelected: {
+        borderColor: '#28A164',
+        backgroundColor: '#28A164',
+      },
+      optionLetterText: {
+        fontSize: 13,
+        fontFamily: fonts.jakartaBold,
+        color: '#111827',
+        textAlign: 'center',
+        includeFontPadding: false,
+        textAlignVertical: 'center',
+        lineHeight: 16,
+        marginTop: Platform.OS === 'android' ? 1 : 0,
+      },
+      optionLetterTextActive: {
+        color: '#FFFFFF',
+      },
+      optionTextCol: {
+        flex: 1,
+        minWidth: 0,
+        marginRight: 8,
+      },
+      optionRadio: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        borderWidth: 2,
+        borderColor: '#D1D5DB',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#FFFFFF',
+      },
+      optionRadioCorrect: {
+        borderColor: '#28A164',
+        backgroundColor: '#FFFFFF',
+      },
+      optionRadioSelected: {
+        borderColor: '#28A164',
+        backgroundColor: '#FFFFFF',
+      },
+      optionRadioWrong: {
+        borderColor: '#E5484D',
+        backgroundColor: '#FFFFFF',
+      },
+      optionRadioDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#28A164',
+      },
+      optionRadioDotWrong: {
+        backgroundColor: '#E5484D',
+      },
+      questionImageCard: {
+        marginTop: 14,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        overflow: 'hidden',
+        backgroundColor: '#F8FAFC',
+      },
+      questionImage: {
+        width: '100%',
+        height: 180,
+      },
+      questionImageZoom: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: 'rgba(255,255,255,0.92)',
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+      langModalCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        padding: 16,
+        maxHeight: SCREEN_HEIGHT * 0.55,
+      },
+      langModalRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F1F5F9',
+      },
+      langCheck: {
+        width: 22,
+        height: 22,
+        borderRadius: 6,
+        borderWidth: 1.5,
+        borderColor: '#CBD5E1',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
+      },
+      langCheckActive: {
+        backgroundColor: '#0298EF',
+        borderColor: '#0298EF',
+      },
+      studyFooterRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: 12,
+        paddingBottom: 20,
+        gap: 10,
+      },
+      studyPrevBtn: {
+        flex: 1,
+        height: 52,
+        borderRadius: 12,
+        borderWidth: 1.5,
+        borderColor: '#E5E7EB',
+        backgroundColor: '#FFFFFF',
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+      studyNextBtnWrap: {
+        flex: 1.2,
+      },
+      explanationCard: {
+        marginTop: 16,
+        marginBottom: 8,
+        backgroundColor: '#EFF6FFB2',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#DBEAFE',
+        paddingHorizontal: 14,
+        paddingVertical: 12,
       },
     }),
   );
@@ -528,6 +939,7 @@ const TestformNew = () => {
     course_id,
     courseId,
     is_mockup,
+    is_study,
     bookmarkReview,
     questionId: bookmarkQuestionIdParam,
     bookmarkQuestion: bookmarkQuestionRaw,
@@ -536,6 +948,8 @@ const TestformNew = () => {
   const activePermitId = permit_id || '1';
   const isMockupTest =
     is_mockup === '1' || is_mockup === 1 || is_mockup === true;
+  const isStudyMode =
+    is_study === '1' || is_study === 1 || is_study === true;
   const isBookmarkReview =
     bookmarkReview === true || bookmarkReview === 1 || bookmarkReview === '1';
 
@@ -553,6 +967,12 @@ const TestformNew = () => {
   const [audioDuration, setAudioDuration] = useState(0);
   const [audioCurrentTime, setAudioCurrentTime] = useState(0);
   const [imageZoomVisible, setImageZoomVisible] = useState(false);
+  const [availableLanguages, setAvailableLanguages] = useState([]);
+  const [selectedLangCodes, setSelectedLangCodes] = useState(() => {
+    const code = String(currentLanguage || 'en').toLowerCase();
+    return code === 'en' ? ['en'] : ['en', code];
+  });
+  const [langModalVisible, setLangModalVisible] = useState(false);
   const audioRef = useRef(null);
   const allAnswersRef = useRef([]);
   const questionsUiRef = useRef([]);
@@ -570,6 +990,145 @@ const TestformNew = () => {
   useEffect(() => {
     totalQuestionsRef.current = totalQuestions;
   }, [totalQuestions]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchLanguages = async () => {
+      try {
+        const result = await ApiRequest({
+          type: 'get_data',
+          table_name: 'languages',
+        });
+        if (cancelled) {
+          return;
+        }
+        const list = (result?.data?.data || []).map(item => {
+          const code = String(
+            item.lang_code ?? item.code ?? item.id ?? 'en',
+          ).toLowerCase();
+          return {
+            code,
+            title:
+              item.language ||
+              item.name ||
+              item.title ||
+              LANG_FALLBACK_NAMES[code] ||
+              code.toUpperCase(),
+          };
+        });
+        const unique = [];
+        const seen = new Set();
+        list.forEach(item => {
+          if (!item.code || seen.has(item.code)) {
+            return;
+          }
+          seen.add(item.code);
+          unique.push(item);
+        });
+        if (!unique.some(l => l.code === 'en')) {
+          unique.unshift({code: 'en', title: 'English'});
+        }
+        setAvailableLanguages(unique);
+        setSelectedLangCodes(prev => {
+          const valid = prev.filter(code =>
+            unique.some(l => l.code === code),
+          );
+          if (valid.length > 1) {
+            return valid;
+          }
+          const hasEn = unique.some(l => l.code === 'en');
+          const hasUr = unique.some(l => l.code === 'ur');
+          if (hasEn && hasUr) {
+            return ['en', 'ur'];
+          }
+          const appLang = String(currentLanguage || 'en').toLowerCase();
+          if (unique.some(l => l.code === appLang) && appLang !== 'en' && hasEn) {
+            return ['en', appLang];
+          }
+          if (valid.length) {
+            return valid;
+          }
+          return hasEn ? ['en'] : unique[0] ? [unique[0].code] : ['en'];
+        });
+      } catch (error) {
+        console.error('languages fetch error:', error);
+        if (!cancelled) {
+          setAvailableLanguages([
+            {code: 'en', title: 'English'},
+            {code: 'ur', title: 'Urdu'},
+          ]);
+        }
+      }
+    };
+    fetchLanguages();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentLanguage]);
+
+  const selectedLanguageLabel = useMemo(() => {
+    if (!selectedLangCodes.length) {
+      return 'Language';
+    }
+    const names = selectedLangCodes.map(code => {
+      const match = availableLanguages.find(l => l.code === code);
+      return match?.title || LANG_FALLBACK_NAMES[code] || code.toUpperCase();
+    });
+    return names.join(' + ');
+  }, [selectedLangCodes, availableLanguages]);
+
+  const primaryLangCode = selectedLangCodes[0] || 'en';
+  const secondaryLangCodes = selectedLangCodes.slice(1);
+
+  const toggleDisplayLanguage = useCallback(code => {
+    setSelectedLangCodes(prev => {
+      if (prev.includes(code)) {
+        if (prev.length === 1) {
+          return prev;
+        }
+        return prev.filter(c => c !== code);
+      }
+      return [...prev, code];
+    });
+  }, []);
+
+  const getPromptForLang = useCallback(
+    (question, lang) => {
+      if (!question) {
+        return '';
+      }
+      const byLang = question.promptByLang || {};
+      return (
+        byLang[lang] ||
+        byLang.en ||
+        question.prompt ||
+        ''
+      );
+    },
+    [],
+  );
+
+  const getOptionTextForLang = useCallback((option, lang) => {
+    if (!option) {
+      return '';
+    }
+    const byLang = option.textsByLang || {};
+    const text = byLang[lang] || (lang === primaryLangCode ? option.title : '');
+    return text && !isUrlLikeText(text) ? text : '';
+  }, [primaryLangCode]);
+
+  const getExplanationForLang = useCallback((question, lang) => {
+    if (!question) {
+      return '';
+    }
+    const byLang = question.explanationByLang || {};
+    return (
+      byLang[lang] ||
+      byLang.en ||
+      Object.values(byLang).find(v => typeof v === 'string' && v.trim()) ||
+      ''
+    );
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -888,9 +1447,7 @@ const TestformNew = () => {
     [questionsUi, questionIndex],
   );
 
-  const isAudioQuestion =
-    currentQuestion?.mediaType === 'audio' && currentQuestion?.audioSource;
-  const isImageQuestion = currentQuestion && !isAudioQuestion;
+  const isImageQuestion = !!currentQuestion?.imageSource;
 
   const progressPercent = useMemo(() => {
     const total = totalQuestions || questionsUi.length;
@@ -912,6 +1469,21 @@ const TestformNew = () => {
       setShowOptionFeedback(false);
       return;
     }
+
+    // Study mode: always reveal the correct answer; user cannot select
+    if (isStudyMode) {
+      const correctOpt =
+        currentQuestion.options[currentQuestion.correctAnswerIndex];
+      setSelectedOption(correctOpt?.id ?? null);
+      setShowOptionFeedback(true);
+      setIsPlaying(false);
+      setAudioCurrentTime(0);
+      setImageZoomVisible(false);
+      audioRef.current?.seek?.(0);
+      questionStartedAtRef.current = Date.now();
+      return;
+    }
+
     setSelectedOption(null);
     setShowOptionFeedback(false);
     setIsPlaying(false);
@@ -919,7 +1491,7 @@ const TestformNew = () => {
     setImageZoomVisible(false);
     audioRef.current?.seek?.(0);
     questionStartedAtRef.current = Date.now();
-  }, [questionIndex, currentQuestion?.id]);
+  }, [questionIndex, currentQuestion?.id, isStudyMode]);
 
   const saveQuestionAnswer = async ({
     questionId,
@@ -1134,6 +1706,19 @@ const TestformNew = () => {
     if (submitLoading || continueHoldActive || loadingMoreRef.current) {
       return;
     }
+
+    // Study mode: learn-only — no answer submission, just move next / exit
+    if (isStudyMode) {
+      const nextIndex = questionIndex + 1;
+      const ready = await ensureQuestionAvailable(nextIndex);
+      if (!ready) {
+        navigation.goBack();
+        return;
+      }
+      setQuestionIndex(nextIndex);
+      return;
+    }
+
     if (selectedOption == null) {
       Alert.alert(
         'Select an answer',
@@ -1221,6 +1806,13 @@ const TestformNew = () => {
       setContinueHoldActive(false);
       setQuestionIndex(nextIndex);
     }, 2000);
+  };
+
+  const handlePrevious = () => {
+    if (!isStudyMode || submitLoading || questionIndex <= 0) {
+      return;
+    }
+    setQuestionIndex(questionIndex - 1);
   };
 
   const handleAudioError = error => {
@@ -1322,150 +1914,144 @@ const TestformNew = () => {
   }
 
   const handleOptionPress = optionId => {
-    if (continueHoldActive || submitLoading) {
+    if (isStudyMode || continueHoldActive || submitLoading) {
       return;
     }
     setSelectedOption(optionId);
   };
 
-  const getOptionContainerStyles = (option, optIndex, isGrid) => {
+  const getBilingualOptionState = (option, optIndex) => {
     const cq = currentQuestion;
     if (!cq) {
-      return null;
+      return 'default';
     }
-    if (isBookmarkReview) {
-      if (optIndex === cq.correctAnswerIndex) {
-        return isGrid ? styles.optionGridCellCorrect : styles.optionCardCorrect;
+    const isCorrect = optIndex === cq.correctAnswerIndex;
+    const isSelected = selectedOption === option.id;
+
+    if (isBookmarkReview || isStudyMode) {
+      return isCorrect ? 'correct' : 'default';
+    }
+    if (showOptionFeedback && !isMockupTest) {
+      if (isCorrect) {
+        return 'correct';
       }
-      if (selectedOption === option.id) {
-        return isGrid
-          ? styles.optionGridCellSelected
-          : styles.selectedOptionCard;
+      if (isSelected) {
+        return 'wrong';
       }
-      return null;
+      return 'default';
     }
-    if (!showOptionFeedback || isMockupTest) {
-      if (isGrid) {
-        return selectedOption === option.id
-          ? styles.optionGridCellSelected
-          : null;
-      }
-      return selectedOption === option.id ? styles.selectedOptionCard : null;
-    }
-    const correctIdx = cq.correctAnswerIndex;
-    if (optIndex === correctIdx) {
-      return isGrid ? styles.optionGridCellCorrect : styles.optionCardCorrect;
-    }
-    if (selectedOption === option.id) {
-      return isGrid ? styles.optionGridCellWrong : styles.optionCardWrong;
-    }
-    return null;
+    return isSelected ? 'selected' : 'default';
   };
 
-  const getOptionPrimaryTextColor = (option, optIndex, isGrid) => {
-    const cq = currentQuestion;
-    if (!cq) {
-      return isGrid ? colors.textMuted : colors.textPrimary;
-    }
-    if (isBookmarkReview) {
-      if (optIndex === cq.correctAnswerIndex) {
-        return colors.textOnAccent;
-      }
-      return selectedOption === option.id
-        ? isGrid
-          ? colors.textOnAccent
-          : colors.textPrimary
-        : isGrid
-        ? colors.textMuted
-        : colors.textPrimary;
-    }
-    if (!showOptionFeedback || isMockupTest) {
-      const sel = selectedOption === option.id;
-      if (isGrid) {
-        return sel ? colors.textOnAccent : colors.textMuted;
-      }
-      return sel ? colors.textOnAccent : colors.textPrimary;
-    }
-    const correctIdx = cq.correctAnswerIndex;
-    if (optIndex === correctIdx || selectedOption === option.id) {
-      return colors.textOnAccent;
-    }
-    return isGrid ? colors.textMuted : colors.textPrimary;
-  };
-
-  const getOptionSubtitleColor = (option, optIndex) => {
-    const cq = currentQuestion;
-    if (!cq || !showOptionFeedback || isMockupTest) {
-      return selectedOption === option.id
-        ? colors.textOnAccent
-        : colors.textMuted;
-    }
-    const correctIdx = cq.correctAnswerIndex;
-    if (optIndex === correctIdx || selectedOption === option.id) {
-      return colors.textOnAccent;
-    }
-    return colors.textMuted;
-  };
-
-  const showImageCard =
-    isImageQuestion &&
-    !!(currentQuestion.imageSource || currentQuestion.videoSource);
+  const showImageCard = !!(
+    currentQuestion?.imageSource || currentQuestion?.videoSource
+  );
 
   return (
     <ScreenWrapper
       scrollEnabled
       paddingHorizontal={0}
+      backgroundColor="#FFFFFF"
+      statusBarColor="#FFFFFF"
       footerUnScrollable={() => (
-        <View style={{backgroundColor: colors.screenBg}}>
-          <View
-            style={[
-              styles.footerActionsRow,
-              isBookmarkReview && styles.footerActionsRowBottom,
-            ]}>
-            {isMockupTest ? null : (
+        <View style={{backgroundColor: '#FFFFFF'}}>
+          {/* Save / Skip buttons temporarily hidden
+          {!isStudyMode ? (
+            <View
+              style={[
+                styles.footerActionsRow,
+                isBookmarkReview && styles.footerActionsRowBottom,
+              ]}>
+              {isMockupTest ? null : (
+                <CustomButton
+                  title={isQuestionBookmarked ? 'Unsave' : 'Save'}
+                  color={
+                    isQuestionBookmarked ? colors.accent : colors.textPrimary
+                  }
+                  backgroundColor={'transparent'}
+                  borderRadius={8}
+                  height={51}
+                  borderWidth={1}
+                  borderColor={
+                    isQuestionBookmarked ? colors.accent : colors.border
+                  }
+                  width="48%"
+                  loading={bookmarkLoading}
+                  disabled={
+                    bookmarkLoading || submitLoading || continueHoldActive
+                  }
+                  onPress={handleToggleQuestionBookmark}
+                />
+              )}
+
               <CustomButton
-                title={isQuestionBookmarked ? 'Unsave' : 'Save'}
-                color={
-                  isQuestionBookmarked ? colors.accent : colors.textPrimary
-                }
+                title={isBookmarkReview ? 'Back' : 'Skip'}
+                color={colors.textPrimary}
                 backgroundColor={'transparent'}
                 borderRadius={8}
                 height={51}
                 borderWidth={1}
-                borderColor={
-                  isQuestionBookmarked ? colors.accent : colors.border
-                }
-                width="48%"
-                loading={bookmarkLoading}
+                borderColor={colors.border}
+                width={isMockupTest ? '100%' : '48%'}
                 disabled={
-                  bookmarkLoading || submitLoading || continueHoldActive
+                  !isBookmarkReview && (submitLoading || continueHoldActive)
                 }
-                onPress={handleToggleQuestionBookmark}
+                onPress={
+                  isBookmarkReview ? () => navigation.goBack() : handleSkip
+                }
               />
-            )}
-
-            <CustomButton
-              title={isBookmarkReview ? 'Back' : 'Skip'}
-              color={colors.textPrimary}
-              backgroundColor={'transparent'}
-              borderRadius={8}
-              height={51}
-              borderWidth={1}
-              borderColor={colors.border}
-              width={isMockupTest ? '100%' : '48%'}
-              disabled={
-                !isBookmarkReview && (submitLoading || continueHoldActive)
-              }
-              onPress={
-                isBookmarkReview ? () => navigation.goBack() : handleSkip
-              }
-            />
-          </View>
-          {!isBookmarkReview && (
+            </View>
+          ) : null}
+          */}
+          {isStudyMode ? (
+            <View style={styles.studyFooterRow}>
+              <TouchableOpacity
+                activeOpacity={questionIndex <= 0 ? 1 : 0.85}
+                disabled={submitLoading || questionIndex <= 0}
+                onPress={handlePrevious}
+                style={[
+                  styles.studyPrevBtn,
+                  {opacity: questionIndex <= 0 ? 0.45 : 1},
+                ]}>
+                <CustomText
+                  label="Previous"
+                  fontSize={16}
+                  fontFamily={fonts.jakartaSemiBold}
+                  color={colors.textPrimary}
+                  removeTranslation
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={submitLoading ? 1 : 0.85}
+                disabled={submitLoading}
+                onPress={handleContinue}
+                style={[
+                  styles.studyNextBtnWrap,
+                  {opacity: submitLoading ? 0.45 : 1},
+                ]}>
+                <LinearGradient
+                  colors={['#008FE6', '#006BB8']}
+                  start={{x: 0.5, y: 0}}
+                  end={{x: 0.5, y: 1}}
+                  style={styles.footerGradientButton}>
+                  <CustomText
+                    label="Next"
+                    fontSize={18}
+                    fontFamily={fonts.jakartaSemiBold}
+                    color="#FFFFFF"
+                    removeTranslation
+                  />
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+          {!isBookmarkReview && !isStudyMode && (
             <View style={styles.footerContainer}>
               <TouchableOpacity
                 activeOpacity={
-                  selectedOption == null || submitLoading || continueHoldActive
+                  selectedOption == null ||
+                  submitLoading ||
+                  continueHoldActive
                     ? 1
                     : 0.8
                 }
@@ -1480,16 +2066,17 @@ const TestformNew = () => {
                       : 1,
                 }}>
                 <LinearGradient
-                  colors={['#0298EF', '#015789']}
+                  colors={['#008FE6', '#006BB8']}
                   start={{x: 0.5, y: 0}}
                   end={{x: 0.5, y: 1}}
                   style={styles.footerGradientButton}>
                   <CustomText
-                    label="Continue"
+                    label="Next"
                     fontSize={20}
                     fontFamily={fonts.jakartaMedium}
                     color="#FFFFFF"
                     lineHeight={30}
+                    removeTranslation
                   />
                 </LinearGradient>
               </TouchableOpacity>
@@ -1499,139 +2086,237 @@ const TestformNew = () => {
       )}
       headerUnScrollable={() =>
         renderTestHeader(
-          isBookmarkReview ? 'Bookmarked Question' : lessonName || 'Practice',
+          isBookmarkReview
+            ? 'Bookmarked Question'
+            : lessonName || (isStudyMode ? 'Study Question' : 'Practice'),
           isBookmarkReview,
         )
       }>
       <View style={styles.container}>
+        <View style={styles.studyBanner}>
+          <View style={styles.studyBannerLeft}>
+            <View style={styles.studyBannerIconWrap}>
+              <Image
+                source={Images.book}
+                style={styles.studyBannerIcon}
+                resizeMode="contain"
+              />
+            </View>
+            <View style={styles.studyBannerTextWrap}>
+              <CustomText
+                label={
+                  isStudyMode
+                    ? 'Study Mode'
+                    : isMockupTest
+                    ? 'Mock Test'
+                    : 'Practice Mode'
+                }
+                fontSize={14}
+                fontFamily={fonts.jakartaBold}
+                color={colors.textPrimary}
+                removeTranslation
+              />
+              <CustomText
+                label={
+                  isStudyMode
+                    ? 'Learn at your own pace with instant feedback.'
+                    : isMockupTest
+                    ? 'Select your answer and continue'
+                    : 'Answer and get instant feedback'
+                }
+                fontSize={11}
+                fontFamily={fonts.jakartaRegular}
+                color={colors.textMuted}
+                lineHeight={15}
+                removeTranslation
+              />
+            </View>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => setLangModalVisible(true)}
+            style={styles.langChip}>
+            <Icons
+              family="Ionicons"
+              name="globe-outline"
+              size={14}
+              color="#0298EF"
+            />
+            <CustomText
+              label={selectedLanguageLabel}
+              fontSize={11}
+              fontFamily={fonts.jakartaSemiBold}
+              color={colors.textPrimary}
+              marginLeft={5}
+              numberOfLines={1}
+              removeTranslation
+            />
+            <Icons
+              family="Ionicons"
+              name="chevron-down"
+              size={14}
+              color="#64748B"
+              style={{marginLeft: 2}}
+            />
+          </TouchableOpacity>
+        </View>
+
         <CustomText
           label={`Question ${questionIndex + 1} of ${
             totalQuestions || questionsUi.length
           }`}
-          fontSize={20}
+          fontSize={24}
           fontFamily={fonts.jakartaBold}
-          color={colors.textPrimary}
+          color="#0F172A"
+          lineHeight={32}
+          removeTranslation
         />
         <CustomText
-          label={
-            isBookmarkReview
-              ? 'Correct answer is highlighted in green'
-              : isMockupTest
-              ? 'Select your answer and continue'
-              : 'Answer and get instant feedback'
-          }
+          label="Correct answer is highlighted. Tap Next to continue."
           fontSize={14}
-          fontFamily={fonts.jakartaRegular}
-          color={colors.textMuted}
+          fontFamily={fonts.jakartaMedium}
+          color="#94A3B8"
           lineHeight={20}
-          {...(isBookmarkReview || isMockupTest
-            ? {removeTranslation: true}
-            : {})}
+          marginTop={4}
+          removeTranslation
         />
-        <View style={{marginTop: 5}} />
+        <View style={{marginTop: 10}} />
         <ProgressBar progress={progressPercent} />
 
-        {isAudioQuestion ? (
-          <View style={styles.audioCard}>
-            <Video
-              key={currentQuestion.id}
-              ref={audioRef}
-              source={currentQuestion.audioSource}
-              paused={!isPlaying}
-              audioOnly
-              muted={false}
-              volume={1.0}
-              playInBackground={false}
-              playWhenInactive={true}
-              ignoreSilentSwitch="ignore"
-              onLoad={({duration}) => {
-                setAudioDuration(duration || 0);
-              }}
-              onProgress={({currentTime}) => {
-                setAudioCurrentTime(currentTime || 0);
-              }}
-              onEnd={() => {
-                audioRef.current?.seek?.(0);
-                setAudioCurrentTime(0);
-                setIsPlaying(false);
-              }}
-              onError={handleAudioError}
-              style={styles.hiddenAudio}
-            />
+        <View style={styles.metaRow}>
+          {!!currentQuestion.category ? (
+            <View style={styles.categoryPill}>
+              <CustomText
+                label={currentQuestion.category}
+                fontSize={12}
+                fontFamily={fonts.jakartaMedium}
+                color="#0298EF"
+                numberOfLines={1}
+                removeTranslation
+              />
+            </View>
+          ) : (
+            <View />
+          )}
+          {currentQuestion.audioSource || currentQuestion.audioByLang ? (
             <TouchableOpacity
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               onPress={handleToggleAudio}
-              style={styles.playButton}>
-              <ImageFast
-                source={Images.play2}
-                style={styles.playIcon}
-                resizeMode="contain"
+              style={styles.listenBtn}>
+              <Icons
+                family="Ionicons"
+                name={isPlaying ? 'pause' : 'volume-high'}
+                size={15}
+                color="#0298EF"
+              />
+              <CustomText
+                label={`Listen (${String(primaryLangCode).toUpperCase()})`}
+                fontSize={12}
+                fontFamily={fonts.jakartaSemiBold}
+                color="#0298EF"
+                marginLeft={6}
+                removeTranslation
               />
             </TouchableOpacity>
-            <View style={styles.waveformContainer}>
-              {Array.from({length: WAVE_BARS_COUNT}).map((_, index) => (
-                <View
-                  key={`wave-${index}`}
-                  style={[
-                    styles.waveLine,
-                    {
-                      height:
-                        index % 5 === 0
-                          ? 26
-                          : index % 3 === 0
-                          ? 19
-                          : index % 2 === 0
-                          ? 14
-                          : 9,
-                      backgroundColor:
-                        index < playedBars ? '#111111' : '#B0B0B0',
-                    },
-                  ]}
-                />
-              ))}
-            </View>
-          </View>
-        ) : showImageCard ? (
-          <View style={styles.imagePreviewCard}>
-            <View style={styles.imagePreviewFabRow}>
-              {currentQuestion.imageSource ? (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityLabel="Zoom image"
-                  activeOpacity={0.85}
-                  onPress={() => setImageZoomVisible(true)}
-                  style={styles.imageZoomFab}>
-                  <View pointerEvents="none">
-                    <Image
-                      source={Images.zoomicon}
-                      style={styles.imageZoomFabIcon}
-                      resizeMode="contain"
-                    />
-                  </View>
-                </TouchableOpacity>
-              ) : (
-                <View style={styles.imageZoomFab} />
-              )}
-            </View>
-            <View style={styles.imagePreviewThumbRow}>
-              {currentQuestion.videoSource ? (
-                <Video
-                  key={`vid-${currentQuestion.id}`}
-                  source={currentQuestion.videoSource}
-                  style={styles.imagePreviewThumbWrap}
+          ) : null}
+        </View>
+
+        {(currentQuestion.audioSource || currentQuestion.audioByLang) && (
+          <Video
+            key={`${currentQuestion.id}-${primaryLangCode}`}
+            ref={audioRef}
+            source={
+              currentQuestion.audioByLang?.[primaryLangCode]
+                ? {uri: String(currentQuestion.audioByLang[primaryLangCode])}
+                : currentQuestion.audioByLang?.en
+                ? {uri: String(currentQuestion.audioByLang.en)}
+                : currentQuestion.audioSource
+            }
+            paused={!isPlaying}
+            audioOnly
+            muted={false}
+            volume={1.0}
+            playInBackground={false}
+            playWhenInactive={true}
+            ignoreSilentSwitch="ignore"
+            onLoad={({duration}) => {
+              setAudioDuration(duration || 0);
+            }}
+            onProgress={({currentTime}) => {
+              setAudioCurrentTime(currentTime || 0);
+            }}
+            onEnd={() => {
+              audioRef.current?.seek?.(0);
+              setAudioCurrentTime(0);
+              setIsPlaying(false);
+            }}
+            onError={handleAudioError}
+            style={styles.hiddenAudio}
+          />
+        )}
+
+        <CustomText
+          label={getPromptForLang(currentQuestion, primaryLangCode)}
+          fontSize={16}
+          fontFamily={fonts.jakartaBold}
+          color="#0F172A"
+          lineHeight={24}
+          marginTop={14}
+          removeTranslation
+        />
+        {secondaryLangCodes.map(lang => {
+          const text = getPromptForLang(currentQuestion, lang);
+          if (!text || text === getPromptForLang(currentQuestion, primaryLangCode)) {
+            return null;
+          }
+          return (
+            <CustomText
+              key={`prompt-${lang}`}
+              label={text}
+              fontSize={14}
+              fontFamily={fonts.jakartaRegular}
+              color={colors.textMuted}
+              lineHeight={22}
+              marginTop={4}
+              textAlign={lang === 'ur' || lang === 'ar' ? 'right' : 'left'}
+              removeTranslation
+            />
+          );
+        })}
+
+        {showImageCard ? (
+          <View style={styles.questionImageCard}>
+            {currentQuestion.videoSource ? (
+              <Video
+                key={`vid-${currentQuestion.id}`}
+                source={currentQuestion.videoSource}
+                style={styles.questionImage}
+                resizeMode="contain"
+                controls
+                paused={false}
+              />
+            ) : (
+              <ImageFast
+                source={currentQuestion.imageSource}
+                style={styles.questionImage}
+                resizeMode="contain"
+                onPress={() => setImageZoomVisible(true)}
+              />
+            )}
+            {currentQuestion.imageSource ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Zoom image"
+                activeOpacity={0.85}
+                onPress={() => setImageZoomVisible(true)}
+                style={styles.questionImageZoom}>
+                <Image
+                  source={Images.zoomicon}
+                  style={styles.imageZoomFabIcon}
                   resizeMode="contain"
-                  controls
-                  paused={false}
                 />
-              ) : (
-                <ImageFast
-                  source={currentQuestion.imageSource}
-                  style={styles.imagePreviewThumbWrap}
-                  resizeMode="contain"
-                  onPress={() => setImageZoomVisible(true)}
-                />
-              )}
-            </View>
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : null}
 
@@ -1656,91 +2341,261 @@ const TestformNew = () => {
           </CustomModal>
         ) : null}
 
-        <CustomText
-          label={currentQuestion.prompt}
-          fontSize={17}
-          fontFamily={fonts.jakartaSemiBold}
-          color={colors.textPrimary}
-          lineHeight={28}
-          marginTop={20}
-          removeTranslation
-        />
-        <CustomText
-          label={currentQuestion.subPrompt}
-          fontSize={14}
-          marginTop={5}
-          fontFamily={fonts.jakartaRegular}
-          color={colors.textMuted}
-          lineHeight={20}
-          removeTranslation
-        />
-        <View style={{marginTop: 10}} />
+        <View style={{marginTop: 8}} />
         {currentQuestion.useGridForOptions ? (
           <View style={styles.optionGrid}>
-            {currentQuestion.options.map((option, optIndex) => (
-              <TouchableOpacity
-                key={option.id}
-                activeOpacity={continueHoldActive || submitLoading ? 1 : 0.9}
-                disabled={continueHoldActive || submitLoading}
-                onPress={() => handleOptionPress(option.id)}
-                style={[
-                  styles.optionGridCell,
-                  {width: gridOptionWidth},
-                  getOptionContainerStyles(option, optIndex, true),
-                ]}>
-                {option.imageUri ? (
-                  <ImageFast
-                    source={{uri: option.imageUri}}
-                    style={styles.optionGridThumb}
-                    resizeMode="contain"
-                  />
-                ) : null}
-                <CustomText
-                  label={option.title}
-                  fontSize={15}
-                  fontFamily={fonts.jakartaSemiBold}
-                  color={getOptionPrimaryTextColor(option, optIndex, true)}
-                  textAlign="center"
-                  lineHeight={22}
-                  removeTranslation
-                />
-              </TouchableOpacity>
-            ))}
+            {currentQuestion.options.map((option, optIndex) => {
+              const state = getBilingualOptionState(option, optIndex);
+              return (
+                <TouchableOpacity
+                  key={option.id}
+                  activeOpacity={
+                    isStudyMode || continueHoldActive || submitLoading
+                      ? 1
+                      : 0.9
+                  }
+                  disabled={
+                    isStudyMode || continueHoldActive || submitLoading
+                  }
+                  onPress={() => handleOptionPress(option.id)}
+                  style={[
+                    styles.optionGridCell,
+                    {width: gridOptionWidth},
+                    state === 'correct' && styles.optionGridCellCorrect,
+                    state === 'selected' && styles.optionGridCellSelected,
+                    state === 'wrong' && styles.optionGridCellWrong,
+                  ]}>
+                  {option.imageUri ? (
+                    <ImageFast
+                      source={{uri: option.imageUri}}
+                      style={styles.optionGridThumb}
+                      resizeMode="contain"
+                    />
+                  ) : null}
+                  {!!getOptionTextForLang(option, primaryLangCode) ? (
+                    <CustomText
+                      label={getOptionTextForLang(option, primaryLangCode)}
+                      fontSize={12}
+                      fontFamily={fonts.jakartaSemiBold}
+                      color={
+                        state === 'correct' || state === 'selected'
+                          ? '#FFFFFF'
+                          : '#0F172A'
+                      }
+                      textAlign="center"
+                      lineHeight={18}
+                      removeTranslation
+                    />
+                  ) : null}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         ) : (
-          currentQuestion.options.map((option, optIndex) => (
-            <TouchableOpacity
-              key={option.id}
-              activeOpacity={continueHoldActive || submitLoading ? 1 : 0.9}
-              disabled={continueHoldActive || submitLoading}
-              onPress={() => handleOptionPress(option.id)}
-              style={[
-                styles.optionCard,
-                styles.optionCardFullWidth,
-                getOptionContainerStyles(option, optIndex, false),
-              ]}>
-              <CustomText
-                label={option.title}
-                fontSize={14}
-                fontFamily={fonts.jakartaSemiBold}
-                color={getOptionPrimaryTextColor(option, optIndex, false)}
-                lineHeight={20}
-                removeTranslation
-              />
-              {option.subtitle ? (
+          currentQuestion.options.map((option, optIndex) => {
+            const state = getBilingualOptionState(option, optIndex);
+            const primaryText = getOptionTextForLang(option, primaryLangCode);
+            return (
+              <TouchableOpacity
+                key={option.id}
+                activeOpacity={
+                  isStudyMode || continueHoldActive || submitLoading ? 1 : 0.9
+                }
+                disabled={isStudyMode || continueHoldActive || submitLoading}
+                onPress={() => handleOptionPress(option.id)}
+                style={[
+                  styles.bilingualOptionCard,
+                  state === 'correct' && styles.bilingualOptionCardCorrect,
+                  state === 'selected' && styles.bilingualOptionCardSelected,
+                  state === 'wrong' && styles.bilingualOptionCardWrong,
+                ]}>
+                <View
+                  style={[
+                    styles.optionLetterBadge,
+                    (state === 'correct' || state === 'selected') &&
+                      styles.optionLetterBadgeActive,
+                  ]}>
+                  <Text
+                    style={[
+                      styles.optionLetterText,
+                      (state === 'correct' || state === 'selected') &&
+                        styles.optionLetterTextActive,
+                    ]}>
+                    {option.letter || OPTION_LETTERS[optIndex]}
+                  </Text>
+                </View>
+                <View style={styles.optionTextCol}>
+                  {!!primaryText ? (
+                    <CustomText
+                      label={primaryText}
+                      fontSize={12}
+                      fontFamily={fonts.jakartaSemiBold}
+                      color="#0F172A"
+                      lineHeight={18}
+                      removeTranslation
+                    />
+                  ) : null}
+                  {secondaryLangCodes.map(lang => {
+                    const text = getOptionTextForLang(option, lang);
+                    if (!text || text === primaryText) {
+                      return null;
+                    }
+                    return (
+                      <CustomText
+                        key={`${option.id}-${lang}`}
+                        label={text}
+                        fontSize={12}
+                        fontFamily={fonts.jakartaRegular}
+                        color={colors.textMuted}
+                        lineHeight={18}
+                        marginTop={2}
+                        textAlign={
+                          lang === 'ur' || lang === 'ar' ? 'right' : 'left'
+                        }
+                        removeTranslation
+                      />
+                    );
+                  })}
+                  {option.imageUri ? (
+                    <ImageFast
+                      source={{uri: option.imageUri}}
+                      style={[styles.optionGridThumb, {marginTop: 8}]}
+                      resizeMode="contain"
+                    />
+                  ) : null}
+                </View>
+                <View
+                  style={[
+                    styles.optionRadio,
+                    (state === 'correct' || state === 'selected') &&
+                      styles.optionRadioSelected,
+                    state === 'wrong' && styles.optionRadioWrong,
+                  ]}>
+                  {(state === 'correct' || state === 'selected') && (
+                    <View style={styles.optionRadioDot} />
+                  )}
+                  {state === 'wrong' && (
+                    <View
+                      style={[styles.optionRadioDot, styles.optionRadioDotWrong]}
+                    />
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          })
+        )}
+
+        {isStudyMode &&
+        !!getExplanationForLang(currentQuestion, primaryLangCode) ? (
+          <View style={styles.explanationCard}>
+            <CustomText
+              label="Explanation"
+              fontSize={12}
+              fontFamily={fonts.jakartaSemiBold}
+              color="#0298EF"
+              marginBottom={4}
+              removeTranslation
+            />
+            <CustomText
+              label={getExplanationForLang(currentQuestion, primaryLangCode)}
+              fontSize={13}
+              fontFamily={fonts.jakartaRegular}
+              color="#0F172A"
+              lineHeight={20}
+              removeTranslation
+            />
+            {secondaryLangCodes.map(lang => {
+              const text = getExplanationForLang(currentQuestion, lang);
+              const primaryExplanation = getExplanationForLang(
+                currentQuestion,
+                primaryLangCode,
+              );
+              if (!text || text === primaryExplanation) {
+                return null;
+              }
+              return (
                 <CustomText
-                  label={option.subtitle}
+                  key={`explanation-${lang}`}
+                  label={text}
                   fontSize={12}
                   fontFamily={fonts.jakartaRegular}
-                  color={getOptionSubtitleColor(option, optIndex)}
-                  lineHeight={20}
+                  color="#64748B"
+                  lineHeight={18}
+                  marginTop={6}
+                  textAlign={lang === 'ur' || lang === 'ar' ? 'right' : 'left'}
                   removeTranslation
                 />
-              ) : null}
-            </TouchableOpacity>
-          ))
-        )}
+              );
+            })}
+          </View>
+        ) : null}
       </View>
+
+      <CustomModal
+        isVisible={langModalVisible}
+        onDisable={() => setLangModalVisible(false)}
+        mainMargin={24}>
+        <View style={styles.langModalCard}>
+          <CustomText
+            label="Display languages"
+            fontSize={18}
+            fontFamily={fonts.jakartaBold}
+            color={colors.textPrimary}
+            marginBottom={4}
+            removeTranslation
+          />
+          <CustomText
+            label="Select one or more languages to show questions and answers."
+            fontSize={13}
+            fontFamily={fonts.jakartaRegular}
+            color={colors.textMuted}
+            marginBottom={8}
+            removeTranslation
+          />
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {availableLanguages.map(lang => {
+              const active = selectedLangCodes.includes(lang.code);
+              return (
+                <TouchableOpacity
+                  key={lang.code}
+                  activeOpacity={0.85}
+                  onPress={() => toggleDisplayLanguage(lang.code)}
+                  style={styles.langModalRow}>
+                  <View
+                    style={[
+                      styles.langCheck,
+                      active && styles.langCheckActive,
+                    ]}>
+                    {active ? (
+                      <Icons
+                        family="Ionicons"
+                        name="checkmark"
+                        size={14}
+                        color="#FFFFFF"
+                      />
+                    ) : null}
+                  </View>
+                  <CustomText
+                    label={lang.title}
+                    fontSize={15}
+                    fontFamily={fonts.jakartaMedium}
+                    color={colors.textPrimary}
+                    removeTranslation
+                  />
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+          <CustomButton
+            title="Done"
+            marginTop={12}
+            height={48}
+            borderRadius={10}
+            backgroundColor="#0298EF"
+            onPress={() => setLangModalVisible(false)}
+          />
+        </View>
+      </CustomModal>
     </ScreenWrapper>
   );
 };

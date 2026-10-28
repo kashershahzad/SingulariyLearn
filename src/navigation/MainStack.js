@@ -60,6 +60,7 @@ import Payments from '../screens/Main/Profile/Payments';
 import About from '../screens/Main/Profile/About';
 import Bookmarks from '../screens/Main/Bookmarks';
 import Home from '../screens/Main/Home';
+import ReviewMistakes from '../screens/Main/ReviewMistakes';
 
 const Stack = createNativeStackNavigator();
 
@@ -146,6 +147,7 @@ const MainStack = () => {
       <Stack.Screen name="Payments" component={Payments} />
       <Stack.Screen name="Bookmarks" component={Bookmarks} />
       <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="ReviewMistakes" component={ReviewMistakes} />
     </Stack.Navigator>
   );
 };
