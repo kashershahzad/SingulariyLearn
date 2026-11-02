@@ -402,6 +402,16 @@ const CourseDetialNew = () => {
   const hasVideo = hasMediaUrl(videoUrl);
   const hasAudio = hasMediaUrl(audioUrl);
   const hasExamTip = Boolean(lessonExamTip.trim());
+  const showPracticeButton = hasTruthyFlag(
+    lesson?.has_practice_test ??
+      lesson?.enable_practice_test ??
+      lesson?.practice_test_enabled,
+  );
+  const showMockButton = hasTruthyFlag(
+    lesson?.has_mock_test ??
+      lesson?.enable_mock_test ??
+      lesson?.mock_test_enabled,
+  );
   const isLessonBookmarked = isBookmarkedFlag(lesson?.is_bookmarked);
   const keyPointsContentWidth = windowWidth - 80;
   const examTipContentWidth = windowWidth - 100;
@@ -537,6 +547,15 @@ const CourseDetialNew = () => {
 
   const navigateToQuiz = useCallback(
     mode => {
+      const lessonTimer =
+        lesson?.question_timer ??
+        lesson?.timer ??
+        lesson?.time_limit ??
+        lesson?.mock_timer ??
+        lesson?.test_timer ??
+        lesson?.duration ??
+        null;
+
       const base = {
         lessonId: activeLessonId,
         lesson_id: activeLessonId,
@@ -558,6 +577,7 @@ const CourseDetialNew = () => {
         navigation.navigate('TestformNew', {
           ...base,
           is_mockup: '1',
+          timer: lessonTimer,
         });
         return;
       }
@@ -571,6 +591,7 @@ const CourseDetialNew = () => {
       lessonTitle,
       activeCourseId,
       defaultPermitId,
+      lesson,
     ],
   );
 
@@ -848,67 +869,71 @@ const CourseDetialNew = () => {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            activeOpacity={0.88}
-            style={styles.quizActionCard}
-            onPress={() => navigateToQuiz('practice')}>
-            <View style={styles.quizActionTextWrap}>
-              <CustomText
-                label="screens.lessonDetail.practiceQuestion"
-                fontSize={15}
-                fontFamily={fonts.jakartaSemiBold}
-                color={colors.textPrimary}
-                lineHeight={20}
-              />
-              <CustomText
-                label="screens.lessonDetail.practiceQuestionHint"
-                fontSize={12}
-                fontFamily={fonts.jakartaRegular}
-                color={colors.textMuted}
-                lineHeight={17}
-                marginTop={2}
-              />
-            </View>
-            <View style={styles.quizChevronWrap}>
-              <Icons
-                family="Ionicons"
-                name="chevron-forward"
-                size={16}
-                color={colors.accent}
-              />
-            </View>
-          </TouchableOpacity>
+          {showPracticeButton ? (
+            <TouchableOpacity
+              activeOpacity={0.88}
+              style={styles.quizActionCard}
+              onPress={() => navigateToQuiz('practice')}>
+              <View style={styles.quizActionTextWrap}>
+                <CustomText
+                  label="screens.lessonDetail.practiceQuestion"
+                  fontSize={15}
+                  fontFamily={fonts.jakartaSemiBold}
+                  color={colors.textPrimary}
+                  lineHeight={20}
+                />
+                <CustomText
+                  label="screens.lessonDetail.practiceQuestionHint"
+                  fontSize={12}
+                  fontFamily={fonts.jakartaRegular}
+                  color={colors.textMuted}
+                  lineHeight={17}
+                  marginTop={2}
+                />
+              </View>
+              <View style={styles.quizChevronWrap}>
+                <Icons
+                  family="Ionicons"
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.accent}
+                />
+              </View>
+            </TouchableOpacity>
+          ) : null}
 
-          <TouchableOpacity
-            activeOpacity={0.88}
-            style={styles.quizActionCard}
-            onPress={() => navigateToQuiz('mockup')}>
-            <View style={styles.quizActionTextWrap}>
-              <CustomText
-                label="screens.lessonDetail.mockupTest"
-                fontSize={15}
-                fontFamily={fonts.jakartaSemiBold}
-                color={colors.textPrimary}
-                lineHeight={20}
-              />
-              <CustomText
-                label="screens.lessonDetail.mockupTestHint"
-                fontSize={12}
-                fontFamily={fonts.jakartaRegular}
-                color={colors.textMuted}
-                lineHeight={17}
-                marginTop={2}
-              />
-            </View>
-            <View style={styles.quizChevronWrap}>
-              <Icons
-                family="Ionicons"
-                name="chevron-forward"
-                size={16}
-                color={colors.accent}
-              />
-            </View>
-          </TouchableOpacity>
+          {showMockButton ? (
+            <TouchableOpacity
+              activeOpacity={0.88}
+              style={styles.quizActionCard}
+              onPress={() => navigateToQuiz('mockup')}>
+              <View style={styles.quizActionTextWrap}>
+                <CustomText
+                  label="screens.lessonDetail.mockupTest"
+                  fontSize={15}
+                  fontFamily={fonts.jakartaSemiBold}
+                  color={colors.textPrimary}
+                  lineHeight={20}
+                />
+                <CustomText
+                  label="screens.lessonDetail.mockupTestHint"
+                  fontSize={12}
+                  fontFamily={fonts.jakartaRegular}
+                  color={colors.textMuted}
+                  lineHeight={17}
+                  marginTop={2}
+                />
+              </View>
+              <View style={styles.quizChevronWrap}>
+                <Icons
+                  family="Ionicons"
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.accent}
+                />
+              </View>
+            </TouchableOpacity>
+          ) : null}
         </View>
       </View>
     </ScreenWrapper>

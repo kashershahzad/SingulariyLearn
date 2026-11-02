@@ -34,9 +34,76 @@ import {
 } from '../../../utils/courseBookmark';
 import {useTheme, useThemedStyles} from '../../../theme/useTheme';
 
-const renderTestHeader = (title, hideBack = false) => (
-  <Header2 title={title} hideBack={hideBack} />
+const renderTestHeader = (title, hideBack = false, rightLabel, rightLabelColor) => (
+  <Header2
+    title={title}
+    hideBack={hideBack}
+    rightLabel={rightLabel}
+    rightLabelColor={rightLabelColor}
+  />
 );
+
+/**
+ * question_timer from courses/lessons API is per-question seconds.
+ * Also supports mm:ss strings.
+ */
+const extractQuestionTimerSeconds = source => {
+  if (source == null) {
+    return 0;
+  }
+
+  if (typeof source === 'object' && !Array.isArray(source)) {
+    if (
+      source.timer_seconds != null ||
+      source.time_limit_seconds != null
+    ) {
+      const sec = Number(source.timer_seconds ?? source.time_limit_seconds);
+      return Number.isFinite(sec) && sec > 0 ? Math.round(sec) : 0;
+    }
+    const nested =
+      source.question_timer ??
+      source.timer ??
+      source.time_limit ??
+      source.mock_timer ??
+      source.test_timer ??
+      source.duration;
+    if (nested == null) {
+      return 0;
+    }
+    return extractQuestionTimerSeconds(nested);
+  }
+
+  const raw = String(source).trim();
+  if (!raw) {
+    return 0;
+  }
+
+  if (raw.includes(':')) {
+    const parts = raw.split(':').map(Number);
+    if (parts.length === 2 && parts.every(n => Number.isFinite(n))) {
+      return Math.max(0, Math.round(parts[0] * 60 + parts[1]));
+    }
+    if (parts.length === 3 && parts.every(n => Number.isFinite(n))) {
+      return Math.max(
+        0,
+        Math.round(parts[0] * 3600 + parts[1] * 60 + parts[2]),
+      );
+    }
+  }
+
+  const num = Number(raw);
+  if (!Number.isFinite(num) || num <= 0) {
+    return 0;
+  }
+  return Math.round(num);
+};
+
+const formatCountdown = totalSeconds => {
+  const safe = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+  const mins = Math.floor(safe / 60);
+  const secs = safe % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+};
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 
@@ -130,16 +197,52 @@ const getAudioUrlFromQuestion = (question, currentLanguage) => {
   }
   try {
     const audioData = JSON.parse(question.audio);
-    return (
-      audioData[currentLanguage] || audioData.en || Object.values(audioData)[0]
-    );
+    if (!audioData || typeof audioData !== 'object') {
+      return null;
+    }
+    // Only use the requested language — no fallback to another language
+    const uri = audioData[currentLanguage];
+    return uri ? String(uri).trim() : null;
   } catch {
+    // Plain URL audio is language-agnostic
     const s = String(question.audio).trim();
     if (s.startsWith('http')) {
       return s;
     }
     return null;
   }
+};
+
+const getAvailableLangCodesFromQuestion = question => {
+  if (!question) {
+    return [];
+  }
+  const codes = new Set();
+  Object.keys(question.promptByLang || question.questionByLang || {}).forEach(
+    code => {
+      if (code) {
+        codes.add(String(code).toLowerCase());
+      }
+    },
+  );
+  Object.keys(question.explanationByLang || {}).forEach(code => {
+    if (code) {
+      codes.add(String(code).toLowerCase());
+    }
+  });
+  Object.keys(question.audioByLang || {}).forEach(code => {
+    if (code) {
+      codes.add(String(code).toLowerCase());
+    }
+  });
+  (question.options || []).forEach(option => {
+    Object.keys(option.textsByLang || {}).forEach(code => {
+      if (code) {
+        codes.add(String(code).toLowerCase());
+      }
+    });
+  });
+  return Array.from(codes);
 };
 
 const getImageSourceForQuestion = question => {
@@ -941,6 +1044,9 @@ const TestformNew = () => {
     is_mockup,
     is_study,
     bookmarkReview,
+    timer: routeTimer,
+    time_limit: routeTimeLimit,
+    question_timer: routeQuestionTimer,
     questionId: bookmarkQuestionIdParam,
     bookmarkQuestion: bookmarkQuestionRaw,
   } = route.params || {};
@@ -952,6 +1058,9 @@ const TestformNew = () => {
     is_study === '1' || is_study === 1 || is_study === true;
   const isBookmarkReview =
     bookmarkReview === true || bookmarkReview === 1 || bookmarkReview === '1';
+  const routeTimerSeconds = extractQuestionTimerSeconds(
+    routeQuestionTimer ?? routeTimer ?? routeTimeLimit,
+  );
 
   const [questionsUi, setQuestionsUi] = useState([]);
   const [totalQuestions, setTotalQuestions] = useState(0);
@@ -962,7 +1071,16 @@ const TestformNew = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [showOptionFeedback, setShowOptionFeedback] = useState(false);
   const [continueHoldActive, setContinueHoldActive] = useState(false);
+  const [mockTimeLeft, setMockTimeLeft] = useState(() =>
+    isMockupTest && routeTimerSeconds > 0 ? routeTimerSeconds : 0,
+  );
   const continueHoldTimerRef = useRef(null);
+  const mockTimerExpiredRef = useRef(false);
+  const mockQuestionDurationRef = useRef(
+    isMockupTest && routeTimerSeconds > 0 ? routeTimerSeconds : 0,
+  );
+  const handleSkipRef = useRef(null);
+  const submitLessonQuestionnaireRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioDuration, setAudioDuration] = useState(0);
   const [audioCurrentTime, setAudioCurrentTime] = useState(0);
@@ -1092,42 +1210,31 @@ const TestformNew = () => {
     });
   }, []);
 
-  const getPromptForLang = useCallback(
-    (question, lang) => {
-      if (!question) {
-        return '';
-      }
-      const byLang = question.promptByLang || {};
-      return (
-        byLang[lang] ||
-        byLang.en ||
-        question.prompt ||
-        ''
-      );
-    },
-    [],
-  );
+  const getPromptForLang = useCallback((question, lang) => {
+    if (!question || !lang) {
+      return '';
+    }
+    const byLang = question.promptByLang || {};
+    const text = byLang[lang];
+    return text && String(text).trim() ? String(text).trim() : '';
+  }, []);
 
   const getOptionTextForLang = useCallback((option, lang) => {
-    if (!option) {
+    if (!option || !lang) {
       return '';
     }
     const byLang = option.textsByLang || {};
-    const text = byLang[lang] || (lang === primaryLangCode ? option.title : '');
-    return text && !isUrlLikeText(text) ? text : '';
-  }, [primaryLangCode]);
+    const text = byLang[lang];
+    return text && !isUrlLikeText(text) ? String(text).trim() : '';
+  }, []);
 
   const getExplanationForLang = useCallback((question, lang) => {
-    if (!question) {
+    if (!question || !lang) {
       return '';
     }
     const byLang = question.explanationByLang || {};
-    return (
-      byLang[lang] ||
-      byLang.en ||
-      Object.values(byLang).find(v => typeof v === 'string' && v.trim()) ||
-      ''
-    );
+    const text = byLang[lang];
+    return text && String(text).trim() ? String(text).trim() : '';
   }, []);
 
   useEffect(() => {
@@ -1247,6 +1354,8 @@ const TestformNew = () => {
               course_id: String(activeCourseId),
               user_id: String(token),
               is_mockup: '1',
+              // Lesson mock only from Lesson Detail; course Mock Test has no lesson_id
+              ...(lessonId ? {lesson_id: String(lessonId)} : {}),
             }
           : {
               type: 'get_data',
@@ -1271,6 +1380,40 @@ const TestformNew = () => {
         }
         let apiData = normalizeQuestionsArray(response?.data?.data);
         let apiTotalQuestions = extractTotalQuestions(response);
+        const apiTimerSeconds = extractQuestionTimerSeconds(response?.data);
+        if (isMockupTest) {
+          let nextTimer = apiTimerSeconds || routeTimerSeconds;
+          // Course mock: if questions payload has no timer, load course.question_timer
+          if (nextTimer <= 0 && activeCourseId && activeCourseId !== '0') {
+            try {
+              const courseRes = await ApiRequest({
+                type: 'get_data',
+                table_name: 'courses',
+                id: String(activeCourseId),
+                user_id: String(token),
+              });
+              const courseRow = Array.isArray(courseRes?.data?.data)
+                ? courseRes.data.data[0]
+                : courseRes?.data?.data;
+              nextTimer = extractQuestionTimerSeconds(courseRow);
+            } catch {
+              // keep nextTimer as-is
+            }
+          }
+          console.log('mock question timer seconds', nextTimer, {
+            api: apiTimerSeconds,
+            route: routeTimerSeconds,
+            raw:
+              response?.data?.question_timer ??
+              response?.data?.timer ??
+              response?.data?.time_limit,
+          });
+          mockTimerExpiredRef.current = false;
+          mockQuestionDurationRef.current = nextTimer > 0 ? nextTimer : 0;
+          if (nextTimer > 0) {
+            setMockTimeLeft(nextTimer);
+          }
+        }
 
         if (isMockupTest && apiData.length < 2) {
           const retryResponse = await ApiRequest({
@@ -1279,6 +1422,7 @@ const TestformNew = () => {
             course_id: String(activeCourseId),
             user_id: String(token),
             is_mockup: '1',
+            ...(lessonId ? {lesson_id: String(lessonId)} : {}),
           });
           if (!cancelled && retryResponse?.status === 200) {
             const retryData = normalizeQuestionsArray(
@@ -1337,6 +1481,7 @@ const TestformNew = () => {
     isBookmarkReview,
     bookmarkQuestionIdParam,
     bookmarkQuestionRaw,
+    routeTimerSeconds,
   ]);
 
   useEffect(() => {
@@ -1447,6 +1592,68 @@ const TestformNew = () => {
     [questionsUi, questionIndex],
   );
 
+  const questionAvailableLangCodes = useMemo(
+    () => getAvailableLangCodesFromQuestion(currentQuestion),
+    [currentQuestion],
+  );
+
+  const languagesForPicker = useMemo(() => {
+    if (!questionAvailableLangCodes.length) {
+      return availableLanguages;
+    }
+    const filtered = availableLanguages.filter(lang =>
+      questionAvailableLangCodes.includes(String(lang.code).toLowerCase()),
+    );
+    // If languages API list is empty/missing matches, still offer codes from question
+    if (filtered.length) {
+      return filtered;
+    }
+    return questionAvailableLangCodes.map(code => ({
+      code,
+      title: LANG_FALLBACK_NAMES[code] || code.toUpperCase(),
+    }));
+  }, [availableLanguages, questionAvailableLangCodes]);
+
+  // Keep selected display langs only to those present on the current question
+  useEffect(() => {
+    if (!questionAvailableLangCodes.length) {
+      return;
+    }
+    setSelectedLangCodes(prev => {
+      const next = prev.filter(code =>
+        questionAvailableLangCodes.includes(String(code).toLowerCase()),
+      );
+      if (next.length) {
+        return next;
+      }
+      const preferred = String(currentLanguage || 'en').toLowerCase();
+      if (questionAvailableLangCodes.includes(preferred)) {
+        return [preferred];
+      }
+      if (questionAvailableLangCodes.includes('en')) {
+        return ['en'];
+      }
+      return [questionAvailableLangCodes[0]];
+    });
+  }, [currentQuestion?.id, questionAvailableLangCodes, currentLanguage]);
+
+  const primaryAudioUri = useMemo(() => {
+    if (!currentQuestion) {
+      return null;
+    }
+    if (currentQuestion.audioByLang?.[primaryLangCode]) {
+      return String(currentQuestion.audioByLang[primaryLangCode]);
+    }
+    // Plain single audio URL (not per-language JSON)
+    if (
+      !currentQuestion.audioByLang &&
+      currentQuestion.audioSource?.uri
+    ) {
+      return String(currentQuestion.audioSource.uri);
+    }
+    return null;
+  }, [currentQuestion, primaryLangCode]);
+
   const isImageQuestion = !!currentQuestion?.imageSource;
 
   const progressPercent = useMemo(() => {
@@ -1491,7 +1698,12 @@ const TestformNew = () => {
     setImageZoomVisible(false);
     audioRef.current?.seek?.(0);
     questionStartedAtRef.current = Date.now();
-  }, [questionIndex, currentQuestion?.id, isStudyMode]);
+    // Per-question mock timer: reset countdown on every question
+    if (isMockupTest && mockQuestionDurationRef.current > 0) {
+      mockTimerExpiredRef.current = false;
+      setMockTimeLeft(mockQuestionDurationRef.current);
+    }
+  }, [questionIndex, currentQuestion?.id, isStudyMode, isMockupTest]);
 
   const saveQuestionAnswer = async ({
     questionId,
@@ -1519,7 +1731,7 @@ const TestformNew = () => {
     };
     // console.log('body', body);
 
-    if (!isMockupTest && lessonId) {
+    if (lessonId) {
       body.lesson_id = String(lessonId);
     }
 
@@ -1563,7 +1775,8 @@ const TestformNew = () => {
         score: String(scorePercent),
         average_time: String(Math.round(averageTime)),
         questions: JSON.stringify(questionsForApi),
-        ...(isMockupTest ? {is_mockup: '1'} : {lesson_id: String(lessonId)}),
+        ...(isMockupTest ? {is_mockup: '1'} : {}),
+        ...(lessonId ? {lesson_id: String(lessonId)} : {}),
       };
       // console.log('body', body);
 
@@ -1600,6 +1813,49 @@ const TestformNew = () => {
       setSubmitLoading(false);
     }
   };
+
+  submitLessonQuestionnaireRef.current = submitLessonQuestionnaire;
+
+  const handleMockTimerExpired = useCallback(async () => {
+    if (!isMockupTest || mockTimerExpiredRef.current || submitLoading) {
+      return;
+    }
+    mockTimerExpiredRef.current = true;
+    ToastMessage('Time is up! Moving to next question...', 'error');
+    // Skip unanswered question and advance (submits on last question)
+    await handleSkipRef.current?.();
+  }, [isMockupTest, submitLoading]);
+
+  useEffect(() => {
+    if (!isMockupTest || loading || submitLoading || mockTimeLeft <= 0) {
+      return undefined;
+    }
+
+    const id = setInterval(() => {
+      setMockTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(id);
+          handleMockTimerExpired();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, [
+    isMockupTest,
+    loading,
+    submitLoading,
+    mockTimeLeft > 0,
+    questionIndex,
+    handleMockTimerExpired,
+  ]);
+
+  const mockTimerLabel =
+    isMockupTest && mockTimeLeft > 0 ? formatCountdown(mockTimeLeft) : null;
+  const mockTimerColor =
+    mockTimeLeft > 0 && mockTimeLeft <= 60 ? '#E5484D' : undefined;
 
   const isQuestionBookmarked = isBookmarkedFlag(currentQuestion?.isBookmarked);
 
@@ -1701,6 +1957,8 @@ const TestformNew = () => {
     setAccumulatedTimeSec(nextAccumulated);
     setQuestionIndex(nextIndex);
   };
+
+  handleSkipRef.current = handleSkip;
 
   const handleContinue = async () => {
     if (submitLoading || continueHoldActive || loadingMoreRef.current) {
@@ -1843,6 +2101,8 @@ const TestformNew = () => {
           renderTestHeader(
             isBookmarkReview ? 'Bookmarked Question' : lessonName || 'Practice',
             isBookmarkReview,
+            mockTimerLabel,
+            mockTimerColor,
           )
         }>
         <View style={[styles.container, styles.centered]}>
@@ -1867,6 +2127,8 @@ const TestformNew = () => {
           renderTestHeader(
             isBookmarkReview ? 'Bookmarked Question' : lessonName || 'Practice',
             isBookmarkReview,
+            mockTimerLabel,
+            mockTimerColor,
           )
         }>
         <View style={[styles.container, styles.centered]}>
@@ -1897,7 +2159,12 @@ const TestformNew = () => {
       <ScreenWrapper
         paddingHorizontal={0}
         headerUnScrollable={() =>
-          renderTestHeader(lessonName || 'Practice', isBookmarkReview)
+          renderTestHeader(
+            lessonName || 'Practice',
+            isBookmarkReview,
+            mockTimerLabel,
+            mockTimerColor,
+          )
         }>
         <View style={[styles.container, styles.centered]}>
           <ActivityIndicator size="large" color={COLORS.primaryColor4} />
@@ -2086,8 +2353,15 @@ const TestformNew = () => {
         renderTestHeader(
           isBookmarkReview
             ? 'Bookmarked Question'
-            : lessonName || (isStudyMode ? 'Study Question' : 'Practice'),
+            : lessonName ||
+              (isStudyMode
+                ? 'Study Question'
+                : isMockupTest
+                ? 'Mock Test'
+                : 'Practice'),
           isBookmarkReview,
+          mockTimerLabel,
+          mockTimerColor,
         )
       }>
       <View style={styles.container}>
@@ -2196,7 +2470,7 @@ const TestformNew = () => {
           ) : (
             <View />
           )}
-          {currentQuestion.audioSource || currentQuestion.audioByLang ? (
+          {primaryAudioUri ? (
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={handleToggleAudio}
@@ -2219,17 +2493,11 @@ const TestformNew = () => {
           ) : null}
         </View>
 
-        {(currentQuestion.audioSource || currentQuestion.audioByLang) && (
+        {primaryAudioUri ? (
           <Video
             key={`${currentQuestion.id}-${primaryLangCode}`}
             ref={audioRef}
-            source={
-              currentQuestion.audioByLang?.[primaryLangCode]
-                ? {uri: String(currentQuestion.audioByLang[primaryLangCode])}
-                : currentQuestion.audioByLang?.en
-                ? {uri: String(currentQuestion.audioByLang.en)}
-                : currentQuestion.audioSource
-            }
+            source={{uri: primaryAudioUri}}
             paused={!isPlaying}
             audioOnly
             muted={false}
@@ -2251,20 +2519,22 @@ const TestformNew = () => {
             onError={handleAudioError}
             style={styles.hiddenAudio}
           />
-        )}
+        ) : null}
 
-        <CustomText
-          label={getPromptForLang(currentQuestion, primaryLangCode)}
-          fontSize={16}
-          fontFamily={fonts.jakartaBold}
-          color="#0F172A"
-          lineHeight={24}
-          marginTop={14}
-          removeTranslation
-        />
+        {!!getPromptForLang(currentQuestion, primaryLangCode) ? (
+          <CustomText
+            label={getPromptForLang(currentQuestion, primaryLangCode)}
+            fontSize={16}
+            fontFamily={fonts.jakartaBold}
+            color="#0F172A"
+            lineHeight={24}
+            marginTop={14}
+            removeTranslation
+          />
+        ) : null}
         {secondaryLangCodes.map(lang => {
           const text = getPromptForLang(currentQuestion, lang);
-          if (!text || text === getPromptForLang(currentQuestion, primaryLangCode)) {
+          if (!text) {
             return null;
           }
           return (
@@ -2484,7 +2754,9 @@ const TestformNew = () => {
         )}
 
         {isStudyMode &&
-        !!getExplanationForLang(currentQuestion, primaryLangCode) ? (
+        selectedLangCodes.some(lang =>
+          getExplanationForLang(currentQuestion, lang),
+        ) ? (
           <View style={styles.explanationCard}>
             <CustomText
               label="Explanation"
@@ -2494,32 +2766,21 @@ const TestformNew = () => {
               marginBottom={4}
               removeTranslation
             />
-            <CustomText
-              label={getExplanationForLang(currentQuestion, primaryLangCode)}
-              fontSize={13}
-              fontFamily={fonts.jakartaRegular}
-              color="#0F172A"
-              lineHeight={20}
-              removeTranslation
-            />
-            {secondaryLangCodes.map(lang => {
+            {selectedLangCodes.map((lang, index) => {
               const text = getExplanationForLang(currentQuestion, lang);
-              const primaryExplanation = getExplanationForLang(
-                currentQuestion,
-                primaryLangCode,
-              );
-              if (!text || text === primaryExplanation) {
+              if (!text) {
                 return null;
               }
+              const isPrimary = index === 0;
               return (
                 <CustomText
                   key={`explanation-${lang}`}
                   label={text}
-                  fontSize={12}
+                  fontSize={isPrimary ? 13 : 12}
                   fontFamily={fonts.jakartaRegular}
-                  color="#64748B"
-                  lineHeight={18}
-                  marginTop={6}
+                  color={isPrimary ? '#0F172A' : '#64748B'}
+                  lineHeight={isPrimary ? 20 : 18}
+                  marginTop={isPrimary ? 0 : 6}
                   textAlign={lang === 'ur' || lang === 'ar' ? 'right' : 'left'}
                   removeTranslation
                 />
@@ -2551,7 +2812,7 @@ const TestformNew = () => {
             removeTranslation
           />
           <ScrollView showsVerticalScrollIndicator={false}>
-            {availableLanguages.map(lang => {
+            {languagesForPicker.map(lang => {
               const active = selectedLangCodes.includes(lang.code);
               return (
                 <TouchableOpacity

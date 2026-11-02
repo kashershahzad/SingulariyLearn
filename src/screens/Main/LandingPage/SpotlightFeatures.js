@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
+import {pushStackScreen} from '../../../navigation/pushStackScreen';
 import {useSelector} from 'react-redux';
 import CustomText from '../../../components/CustomText';
 import fonts from '../../../assets/fonts';
@@ -132,7 +133,7 @@ const SpotlightFeatures = () => {
   }, [courses, currentLanguage]);
 
   const handleCoursePress = course => {
-    navigation.navigate('CourseEnroll', {
+    pushStackScreen(navigation, 'CourseEnroll', {
       courseId: course.courseId,
       course_id: course.courseId,
       title: course.title,

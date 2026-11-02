@@ -5,11 +5,13 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import React from 'react';
+import {useTranslation} from 'react-i18next';
 import ImageFast from '../../../components/ImageFast';
 import {Images} from '../../../assets/images';
 import CustomText from '../../../components/CustomText';
 import fonts from '../../../assets/fonts';
 import {useNavigation} from '@react-navigation/native';
+import {pushStackScreen} from '../../../navigation/pushStackScreen';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const GRID_SIDE_PAD = 20;
@@ -34,6 +36,7 @@ const TrendingCard = ({
   compact = false,
 }) => {
   const navigation = useNavigation();
+  const {t} = useTranslation();
 
   const courseParams = {
     courseId,
@@ -49,7 +52,7 @@ const TrendingCard = ({
   };
 
   const handleCardPress = () => {
-    navigation.navigate('CourseEnroll', courseParams);
+    pushStackScreen(navigation, 'CourseEnroll', courseParams);
   };
 
   const handleActionPress = () => {
@@ -63,11 +66,13 @@ const TrendingCard = ({
 
   const countValue = Number(questionCount) || Number(lessonCount) || 0;
   const countLabel = Number(questionCount)
-    ? `${countValue} Questions`
+    ? t('screens.landing.questionsCount', {count: countValue})
     : countValue
-      ? `${countValue} Lessons`
+      ? t('screens.landing.lessonsCountMeta', {count: countValue})
       : '';
-  const metaLabel = [countLabel, 'Audio Support'].filter(Boolean).join(' • ');
+  const metaLabel = [countLabel, t('screens.landing.audioSupport')]
+    .filter(Boolean)
+    .join(' • ');
 
   return (
     <TouchableOpacity

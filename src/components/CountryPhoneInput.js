@@ -9,7 +9,7 @@ import fonts from "../assets/fonts";
 import { useTranslation } from "react-i18next";
 
 const CountryPhoneInput = ({
-  value = "+1869",
+  value = "",
   setValue,
   withLabel,
   onEndEditing,
@@ -44,7 +44,7 @@ const CountryPhoneInput = ({
           fontFamily: fonts.regular,
         }}
         defaultValue={value}
-        defaultCode="PK"
+        defaultCode="US"
         layout="first"
         textInputProps={{
           placeholder: t('phoneInput.placeholder'), // Translated placeholder

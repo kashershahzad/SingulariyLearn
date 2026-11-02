@@ -18,6 +18,7 @@ const NewLogin = ({navigation}) => {
   const [showSignupEmailNotice, setShowSignupEmailNotice] = useState(false);
   const [showSignupOtp, setShowSignupOtp] = useState(false);
   const [otpMeta, setOtpMeta] = useState({code: '', expiresIn: 300});
+  const [verifiedOtpCode, setVerifiedOtpCode] = useState('');
   const [emailVerified, setEmailVerified] = useState(false);
   const [showLanguageAfterSignup, setShowLanguageAfterSignup] = useState(false);
   const [showSelectExamCountry, setShowSelectExamCountry] = useState(false);
@@ -56,6 +57,7 @@ const NewLogin = ({navigation}) => {
     setShowSignupEmailNotice(false);
     setShowSignupOtp(false);
     setOtpMeta({code: '', expiresIn: 300});
+    setVerifiedOtpCode('');
     setEmailVerified(false);
     setActiveTab('signup');
   };
@@ -64,6 +66,7 @@ const NewLogin = ({navigation}) => {
     setShowSignupEmailNotice(false);
     setShowSignupOtp(false);
     setOtpMeta({code: '', expiresIn: 300});
+    setVerifiedOtpCode('');
     setEmailVerified(false);
     setShowLanguageAfterSignup(false);
     setShowSelectExamCountry(false);
@@ -95,6 +98,7 @@ const NewLogin = ({navigation}) => {
             examCountry={selectedCountryId}
             goals={goalsRef.current}
             emailVerified={emailVerified}
+            verificationCode={verifiedOtpCode}
           />
         ) : showSelectExamCountry ? (
           <SelectExamCountry
@@ -117,7 +121,8 @@ const NewLogin = ({navigation}) => {
             email={signupData?.email}
             initialCode={otpMeta.code}
             initialExpiresIn={otpMeta.expiresIn}
-            onVerified={() => {
+            onVerified={code => {
+              setVerifiedOtpCode(String(code || '').trim());
               setEmailVerified(true);
               setShowSignupOtp(false);
               setShowSignupEmailNotice(false);
@@ -165,6 +170,7 @@ const NewLogin = ({navigation}) => {
                 onNext={data => {
                   setSignupData(data);
                   setEmailVerified(false);
+                  setVerifiedOtpCode('');
                   setOtpMeta({code: '', expiresIn: 300});
                   setShowSignupOtp(false);
                   setShowSignupEmailNotice(true);

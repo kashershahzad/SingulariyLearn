@@ -98,7 +98,14 @@
     "lessonBookmarked": "Lesson bookmarked",
     "bookmarkFailed": "Failed to update bookmark",
     "markedComplete": "Lesson marked as complete",
-    "markCompleteFailed": "Failed to mark lesson complete"
+    "markCompleteFailed": "Failed to mark lesson complete",
+    "studyQuestion": "Question d'étude",
+    "practiceQuestion": "Question d'exercice",
+    "mockupTest": "Test blanc",
+    "quizSectionTitle": "Testez vos connaissances",
+    "studyQuestionHint": "Voyez les bonnes réponses et apprenez au fur et à mesure",
+    "practiceQuestionHint": "Répondez aux questions et obtenez un retour immédiat",
+    "mockupTestHint": "Passez un examen blanc chronométré pour cette leçon"
   },
   "test": {
     "practice": "Practice",

@@ -98,7 +98,14 @@
     "lessonBookmarked": "Lesson bookmarked",
     "bookmarkFailed": "Failed to update bookmark",
     "markedComplete": "Lesson marked as complete",
-    "markCompleteFailed": "Failed to mark lesson complete"
+    "markCompleteFailed": "Failed to mark lesson complete",
+    "studyQuestion": "سؤال الدراسة",
+    "practiceQuestion": "سؤال التدريب",
+    "mockupTest": "اختبار تجريبي",
+    "quizSectionTitle": "اختبر معلوماتك",
+    "studyQuestionHint": "شاهد الإجابات الصحيحة وتعلّم أثناء التقدم",
+    "practiceQuestionHint": "أجب عن الأسئلة واحصل على ملاحظات فورية",
+    "mockupTestHint": "قدّم امتحانًا تجريبيًا بمؤقت لهذا الدرس"
   },
   "test": {
     "practice": "Practice",

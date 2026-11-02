@@ -21,6 +21,7 @@ const Goals = ({
   languageId,
   examCountry,
   emailVerified = false,
+  verificationCode = '',
 }) => {
   const dispatch = useDispatch();
   const {i18n} = useTranslation();
@@ -58,7 +59,7 @@ const Goals = ({
   }, [goalsProp, langCode]);
 
   const handleRegister = async () => {
-    if (!emailVerified) {
+    if (!emailVerified || !verificationCode) {
       ToastMessage('Please verify your email before registering.');
       return;
     }
@@ -82,6 +83,8 @@ const Goals = ({
         exam_country: examCountry,
         goal_id: selectedId,
         email_verified: '1',
+        verification_code: String(verificationCode),
+        code: String(verificationCode),
       };
       console.log(body);
 

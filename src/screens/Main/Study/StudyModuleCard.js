@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {pushStackScreen} from '../../../navigation/pushStackScreen';
 import {useTranslation} from 'react-i18next';
 import {useSelector} from 'react-redux';
 import CustomText from '../../../components/CustomText';
@@ -241,9 +242,6 @@ const StudyModuleCard = ({
     if (isPracticeSetsMode) {
       return lesson.practiceEnabled;
     }
-    if (isMockTestMode) {
-      return lesson.mockEnabled;
-    }
     return true;
   });
 
@@ -252,13 +250,19 @@ const StudyModuleCard = ({
   }, [onRequestScrollIntoView]);
 
   useEffect(() => {
-    if (!isExpanded) {
+    if (!isExpanded || isMockTestMode) {
       return;
     }
 
     const timer = setTimeout(scrollCardIntoView, 200);
     return () => clearTimeout(timer);
-  }, [isExpanded, loadingLessons, visibleLessons.length, scrollCardIntoView]);
+  }, [
+    isExpanded,
+    isMockTestMode,
+    loadingLessons,
+    visibleLessons.length,
+    scrollCardIntoView,
+  ]);
 
   const lessonCount =
     lessons.length > 0 ? visibleLessons.length : data.lessonCount;
@@ -290,7 +294,41 @@ const StudyModuleCard = ({
       console.log('response', response);
 
       const rawData = response.data?.data ?? [];
-      console.log('rawData', rawData);
+      const lessonLangDebug = rawData.map(item => {
+        let nameObj = item.name;
+        if (typeof nameObj === 'string') {
+          try {
+            nameObj = JSON.parse(nameObj);
+          } catch {
+            nameObj = {en: nameObj};
+          }
+        }
+        const en = nameObj?.en || '';
+        const ur = nameObj?.ur || '';
+        return {
+          id: item.id,
+          en,
+          ur,
+          urEmpty: !String(ur).trim(),
+          parsedTitle: parseLocalized(item.name, currentLanguage),
+          rawName: item.name,
+          rawShortDesc: item.short_desc,
+        };
+      });
+      console.log(
+        'lesson API translation check (StudyModuleCard)',
+        JSON.stringify(
+          {
+            currentLanguage,
+            courseId: data.id,
+            count: rawData.length,
+            missingUrduCount: lessonLangDebug.filter(l => l.urEmpty).length,
+            lessons: lessonLangDebug,
+          },
+          null,
+          2,
+        ),
+      );
       setLessons(
         rawData.map(item => ({
           id: String(item.id),
@@ -300,6 +338,14 @@ const StudyModuleCard = ({
           completed: isLessonItemCompleted(item),
           practiceEnabled: isPracticeTestEnabled(item),
           mockEnabled: isMockTestEnabled(item),
+          timer:
+            item.question_timer ??
+            item.timer ??
+            item.time_limit ??
+            item.mock_timer ??
+            item.test_timer ??
+            item.duration ??
+            null,
         })),
       );
     } catch {
@@ -309,9 +355,21 @@ const StudyModuleCard = ({
     }
   }, [token, data.id, currentLanguage]);
 
+  const navigateToCourseMockTest = () => {
+    pushStackScreen(navigation, 'TestformNew', {
+      course_id: data.id,
+      courseId: data.id,
+      permit_id: defaultPermitId,
+      is_mockup: 1,
+      lessonName: data.title,
+      timer: data.timer,
+      question_timer: data.timer,
+    });
+  };
+
   const handleHeaderPress = () => {
     if (!isCourseUnlocked) {
-      navigation.navigate('CourseEnroll', {
+      pushStackScreen(navigation, 'CourseEnroll', {
         courseId: data.id,
         course_id: data.id,
         title: data.title,
@@ -323,6 +381,12 @@ const StudyModuleCard = ({
         apple_product_id: data.appleProductId,
         google_product_id: data.googleProductId,
       });
+      return;
+    }
+
+    // Mock Test tab = full course mock (no lesson list)
+    if (isMockTestMode) {
+      navigateToCourseMockTest();
       return;
     }
 
@@ -339,7 +403,7 @@ const StudyModuleCard = ({
 
   const handleLessonPress = lesson => {
     if (isPracticeSetsMode) {
-      navigation.navigate('TestformNew', {
+      pushStackScreen(navigation, 'TestformNew', {
         lessonId: lesson.id,
         lessonName: lesson.title,
         course_id: data.id,
@@ -349,19 +413,7 @@ const StudyModuleCard = ({
       return;
     }
 
-    if (isMockTestMode) {
-      navigation.navigate('TestformNew', {
-        lessonId: lesson.id,
-        lessonName: lesson.title,
-        course_id: data.id,
-        courseId: data.id,
-        permit_id: defaultPermitId,
-        is_mockup: 1,
-      });
-      return;
-    }
-
-    navigation.navigate('CourseDetialNew', {
+    pushStackScreen(navigation, 'CourseDetialNew', {
       courseId: data.id,
       course_id: data.id,
       lessonId: lesson.id,
@@ -422,36 +474,24 @@ const StudyModuleCard = ({
               ]}
             />
           </View>
-          <View style={styles.lessonMetaRow}>
-            <View style={styles.lessonMetaItem}>
-              <Image
-                source={Images.lesson2}
-                style={styles.lessonMetaIcon}
-                resizeMode="contain"
-              />
-              <CustomText
-                label={lessonsCountLabel}
-                removeTranslation
-                fontSize={8}
-                fontFamily={fonts.jakartaMedium}
-                color={colors.textPrimary}
-              />
+          {!isMockTestMode && !isPracticeSetsMode ? (
+            <View style={styles.lessonMetaRow}>
+              <View style={styles.lessonMetaItem}>
+                <Image
+                  source={Images.lesson2}
+                  style={styles.lessonMetaIcon}
+                  resizeMode="contain"
+                />
+                <CustomText
+                  label={lessonsCountLabel}
+                  removeTranslation
+                  fontSize={8}
+                  fontFamily={fonts.jakartaMedium}
+                  color={colors.textPrimary}
+                />
+              </View>
             </View>
-            {/* <View style={styles.lessonMetaItem}>
-              <Image
-                source={Images.time2}
-                style={styles.lessonMetaIcon}
-                resizeMode="contain"
-              />
-              <CustomText
-                label={data.duration}
-                removeTranslation
-                fontSize={8}
-                fontFamily={fonts.jakartaMedium}
-                color={colors.textPrimary}
-              />
-            </View> */}
-          </View>
+          ) : null}
         </View>
         {/* {!isMockTestMode ? (
           <Image
@@ -465,69 +505,73 @@ const StudyModuleCard = ({
         ) : null} */}
       </TouchableOpacity>
 
-      <View
-        style={[styles.expandedSection, !isExpanded && styles.expandedHidden]}
-        pointerEvents={isExpanded ? 'auto' : 'none'}>
-        <View style={styles.divider} />
+      {!isMockTestMode ? (
+        <View
+          style={[styles.expandedSection, !isExpanded && styles.expandedHidden]}
+          pointerEvents={isExpanded ? 'auto' : 'none'}>
+          <View style={styles.divider} />
 
-        <CustomText
-          fontSize={10}
-          fontFamily={fonts.jakartaMedium}
-          color={colors.textPrimary}
-          label={lessonsCountLabel}
-          removeTranslation
-        />
+          {!isPracticeSetsMode ? (
+            <CustomText
+              fontSize={10}
+              fontFamily={fonts.jakartaMedium}
+              color={colors.textPrimary}
+              label={lessonsCountLabel}
+              removeTranslation
+            />
+          ) : null}
 
-        {loadingLessons ? (
-          <ActivityIndicator color={colors.accent} style={styles.loader} />
-        ) : visibleLessons.length === 0 ? (
-          <CustomText
-            fontSize={12}
-            fontFamily={fonts.jakartaRegular}
-            color={colors.textMuted}
-            label="screens.study.noLessons"
-            marginTop={8}
-          />
-        ) : (
-          <View style={styles.lessonListContainer}>
-            {visibleLessons.map(lesson => (
-              <TouchableOpacity
-                key={`${data.id}-lesson-${lesson.id}`}
-                style={styles.lessonItem}
-                onPress={() => handleLessonPress(lesson)}>
-                <View style={styles.lessonLeftContent}>
-                  <View style={styles.bookContainer}>
+          {loadingLessons ? (
+            <ActivityIndicator color={colors.accent} style={styles.loader} />
+          ) : visibleLessons.length === 0 ? (
+            <CustomText
+              fontSize={12}
+              fontFamily={fonts.jakartaRegular}
+              color={colors.textMuted}
+              label="screens.study.noLessons"
+              marginTop={8}
+            />
+          ) : (
+            <View style={styles.lessonListContainer}>
+              {visibleLessons.map(lesson => (
+                <TouchableOpacity
+                  key={`${data.id}-lesson-${lesson.id}`}
+                  style={styles.lessonItem}
+                  onPress={() => handleLessonPress(lesson)}>
+                  <View style={styles.lessonLeftContent}>
+                    <View style={styles.bookContainer}>
+                      <Image
+                        source={data.icon}
+                        style={styles.moduleHeaderIcon}
+                        resizeMode="contain"
+                      />
+                    </View>
+                    <View style={styles.lessonTitleWrap}>
+                      <CustomText
+                        fontSize={12}
+                        fontFamily={fonts.jakartaSemiBold}
+                        color={colors.textPrimary}
+                        label={lesson.title}
+                        marginLeft={8}
+                        lineHeight={18}
+                        containerStyle={{width: '100%'}}
+                        removeTranslation
+                      />
+                    </View>
+                  </View>
+                  {lesson.completed ? (
                     <Image
-                      source={data.icon}
-                      style={styles.moduleHeaderIcon}
+                      source={Images.marked}
+                      style={styles.statusIcon}
                       resizeMode="contain"
                     />
-                  </View>
-                  <View style={styles.lessonTitleWrap}>
-                    <CustomText
-                      fontSize={12}
-                      fontFamily={fonts.jakartaSemiBold}
-                      color={colors.textPrimary}
-                      label={lesson.title}
-                      marginLeft={8}
-                      lineHeight={18}
-                      containerStyle={{width: '100%'}}
-                      removeTranslation
-                    />
-                  </View>
-                </View>
-                {lesson.completed ? (
-                  <Image
-                    source={Images.marked}
-                    style={styles.statusIcon}
-                    resizeMode="contain"
-                  />
-                ) : null}
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </View>
+                  ) : null}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+      ) : null}
     </View>
   );
 };

@@ -13,6 +13,8 @@ import { StripeProvider } from '@stripe/stripe-react-native';
 import { store, persistor } from './src/store';
 import i18n from './src/language/i18n';
 import Navigation from './src/navigation';
+import { navigationRef } from './src/navigation/navigationRef';
+import { useAndroidBackHandler } from './src/navigation/useAndroidBackHandler';
 import SocketProvider from './src/components/SocketProvider';
 import BrainBox from './src/components/BrainBox';
 import AppSplash from './src/components/AppSplash';
@@ -23,6 +25,7 @@ const SPLASH_MIN_MS = 3000;
 const AppInner = () => {
   const currentLanguage = useSelector(state => state.language.language);
   const { isDarkMode, colors } = useTheme();
+  useAndroidBackHandler();
 
   const navigationTheme = useMemo(() => {
     const base = isDarkMode ? DarkTheme : DefaultTheme;
@@ -94,7 +97,7 @@ const AppInner = () => {
         barStyle={colors.statusBarStyle}
         backgroundColor={colors.screenBg}
       />
-      <NavigationContainer theme={navigationTheme}>
+      <NavigationContainer ref={navigationRef} theme={navigationTheme}>
         <SocketProvider>
           <BrainBox>
             <Navigation />

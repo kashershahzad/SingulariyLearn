@@ -26,6 +26,7 @@ import TrendingCard from './TrendingCard';
 import CustomInput from '../../../components/CustomInput';
 import CustomButton from '../../../components/CustomButton';
 import {ApiRequest} from '../../../services/ApiRequest';
+import {pushStackScreen} from '../../../navigation/pushStackScreen';
 
 const parseLocalized = (value, lang) => {
   if (!value) {
@@ -70,11 +71,7 @@ const hasCourseAccess = course =>
   course?.user_purchased === 1 ||
   course?.user_purchased === '1';
 
-const ALL_COURSES_CHIP = {
-  id: 'all',
-  label: 'All Courses',
-  icon: null,
-};
+const ALL_COURSES_CHIP_ID = 'all';
 
 const getCategoryIcon = item => {
   const raw =
@@ -163,7 +160,9 @@ const index = ({navigation}) => {
   const {t} = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
-  const [categoryChips, setCategoryChips] = useState([ALL_COURSES_CHIP]);
+  const [categoryChips, setCategoryChips] = useState([
+    {id: ALL_COURSES_CHIP_ID, labelKey: 'screens.landing.allCourses', icon: null},
+  ]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
@@ -223,18 +222,36 @@ const index = ({navigation}) => {
             id: String(item.id),
             label:
               parseLocalized(item.title, currentLanguage) ||
-              item.name ||
+              parseLocalized(item.name, currentLanguage) ||
               '',
             icon: getCategoryIcon(item),
           }));
-          setCategoryChips([ALL_COURSES_CHIP, ...mapped]);
-          console.log('mapped', mapped);
+          setCategoryChips([
+            {
+              id: ALL_COURSES_CHIP_ID,
+              labelKey: 'screens.landing.allCourses',
+              icon: null,
+            },
+            ...mapped,
+          ]);
         } else {
-          setCategoryChips([ALL_COURSES_CHIP]);
+          setCategoryChips([
+            {
+              id: ALL_COURSES_CHIP_ID,
+              labelKey: 'screens.landing.allCourses',
+              icon: null,
+            },
+          ]);
         }
       } catch {
         if (!cancelled) {
-          setCategoryChips([ALL_COURSES_CHIP]);
+          setCategoryChips([
+            {
+              id: ALL_COURSES_CHIP_ID,
+              labelKey: 'screens.landing.allCourses',
+              icon: null,
+            },
+          ]);
         }
       } finally {
         if (!cancelled) {
@@ -355,21 +372,27 @@ const index = ({navigation}) => {
 
   const continueLearning = homeData?.continue_learning;
   const continueTitle =
-    continueLearning?.lesson_title ||
+    parseLocalized(continueLearning?.lesson_title, currentLanguage) ||
     parseLocalized(continueLearning?.lesson?.name, currentLanguage) ||
     t('screens.home.continueLearningFallback');
   const continueCourseTitle =
-    continueLearning?.course_name || continueTitle;
+    parseLocalized(continueLearning?.course_name, currentLanguage) ||
+    continueTitle;
   const continueSubtitle = continueLearning
     ? t('screens.home.continueLessonSubtitle', {
         number: continueLearning.lesson_number || '',
-        subtitle: continueLearning.lesson_subtitle || continueTitle,
-        duration: continueLearning.duration_label || '',
+        subtitle:
+          parseLocalized(continueLearning.lesson_subtitle, currentLanguage) ||
+          continueTitle,
+        duration:
+          parseLocalized(continueLearning.duration_label, currentLanguage) ||
+          '',
       })
     : '';
   const continueProgress = Number(continueLearning?.progress_percent ?? 0);
   const continueProgressLabel = continueLearning?.progress_label
-    ? continueLearning.progress_label
+    ? parseLocalized(continueLearning.progress_label, currentLanguage) ||
+      t('screens.home.progressComplete', {percent: continueProgress})
     : t('screens.home.progressComplete', {percent: continueProgress});
   const continueThumb =
     continueLearning?.cover ||
@@ -382,7 +405,7 @@ const index = ({navigation}) => {
     if (!continueLearning) {
       return;
     }
-    navigation.navigate('CourseDetialNew', {
+    pushStackScreen(navigation, 'CourseDetialNew', {
       courseId: String(continueLearning.course_id),
       course_id: String(continueLearning.course_id),
       lessonId: String(continueLearning.lesson_id),
@@ -393,10 +416,10 @@ const index = ({navigation}) => {
 
   const handleTakeQuickQuiz = () => {
     if (!isLoggedIn) {
-      navigation.navigate('NewLogin');
+      pushStackScreen(navigation, 'NewLogin');
       return;
     }
-    navigation.navigate('TestformNew', {
+    pushStackScreen(navigation, 'TestformNew', {
       is_quickquiz: '1',
       lessonName: 'Quick Quiz',
     });
@@ -404,10 +427,10 @@ const index = ({navigation}) => {
 
   const handleReviewMistakes = () => {
     if (!isLoggedIn) {
-      navigation.navigate('NewLogin');
+      pushStackScreen(navigation, 'NewLogin');
       return;
     }
-    navigation.navigate('ReviewMistakes');
+    pushStackScreen(navigation, 'ReviewMistakes');
   };
 
   return (
@@ -477,8 +500,10 @@ const index = ({navigation}) => {
                     adjustsFontSizeToFit
                     minimumFontScale={0.7}
                     allowFontScaling={false}>
-                    Learn. Prepare.{' '}
-                    <Text style={styles.heroTitleAccent}>Succeed.</Text>
+                    {t('screens.landing.heroTitle')}{' '}
+                    <Text style={styles.heroTitleAccent}>
+                      {t('screens.landing.heroTitleAccent')}
+                    </Text>
                   </Text>
                   <CustomText
                     label="screens.landing.heroBody"
@@ -516,7 +541,7 @@ const index = ({navigation}) => {
           <FadeInView delay={160}>
             <View style={styles.searchWrap}>
               <SearchInput
-                placeholder="Search courses exam or topics..."
+                placeholder={t('screens.landing.searchPlaceholder')}
                 marginTop={20}
                 value={search}
                 onChangeText={setSearch}
@@ -535,6 +560,9 @@ const index = ({navigation}) => {
               ) : (
                 categoryChips.map(item => {
                   const selected = item.id === selectedCategoryId;
+                  const chipLabel = item.labelKey
+                    ? t(item.labelKey)
+                    : item.label;
                   return (
                     <Pressable
                       key={item.id}
@@ -560,7 +588,7 @@ const index = ({navigation}) => {
                             ? styles.chipLabelSelected
                             : styles.chipLabelIdle,
                         ]}>
-                        {item.label}
+                        {chipLabel}
                       </Text>
                     </Pressable>
                   );
@@ -763,7 +791,7 @@ const index = ({navigation}) => {
             {!isFilteredView && (
               <View style={styles.trendingContainer}>
                 <CustomText
-                  label="Trending Courses"
+                  label="screens.landing.trendingCourses"
                   fontFamily={fonts.semiBold}
                   fontSize={20}
                   color="#1B1B24"
@@ -778,7 +806,9 @@ const index = ({navigation}) => {
             ) : displayCourses.length === 0 ? (
               <CustomText
                 label={
-                  searchQuery ? 'No courses found' : 'No courses available'
+                  searchQuery
+                    ? 'screens.landing.noCoursesFound'
+                    : 'screens.landing.noCoursesAvailable'
                 }
                 fontFamily={fonts.jakartaRegular}
                 fontSize={14}
@@ -868,7 +898,7 @@ const index = ({navigation}) => {
         {!isLoggedIn ? (
         <FadeInView delay={360} style={styles.subscribeContainer}>
           <CustomText
-            label="Ready to redefine our creative potential?"
+            label="screens.landing.subscribeTitle"
             fontFamily={fonts.semiBold}
             fontSize={30}
             color="white"
@@ -877,7 +907,7 @@ const index = ({navigation}) => {
             textAlign="center"
           />
           <CustomText
-            label="Join 50,000+ creative professionals and get the latest workshops, assets, and insights delivered weekly."
+            label="screens.landing.subscribeBody"
             fontFamily={fonts.regular}
             fontSize={18}
             color="#E2DFFF"
@@ -886,7 +916,7 @@ const index = ({navigation}) => {
             textAlign="center"
           />
           <CustomInput
-            placeholder="Enter your email"
+            placeholder={t('screens.landing.subscribeEmailPlaceholder')}
             placeholderTextColor="#FFFFFF99"
             marginTop={10}
             marginBottom={10}
@@ -897,7 +927,7 @@ const index = ({navigation}) => {
             backgroundColor="#239BDE"
           />
           <CustomButton
-            title="Subscribe"
+            title="screens.landing.subscribe"
             onPress={() => {}}
             marginTop={10}
             color={"#0298EF"}

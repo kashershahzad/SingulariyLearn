@@ -203,6 +203,14 @@ const Study = () => {
           lessonCount: lessonCount,
           appleProductId: String(course.apple_product_id || '').trim(),
           googleProductId: String(course.google_product_id || '').trim(),
+          timer:
+            course.question_timer ??
+            course.timer ??
+            course.time_limit ??
+            course.mock_timer ??
+            course.test_timer ??
+            course.duration ??
+            null,
         };
       });
   }, [courses, currentLanguage]);

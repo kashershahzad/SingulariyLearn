@@ -68,7 +68,7 @@ const SignupOTP = ({
 
       verifiedRef.current = true;
       ToastMessage('OTP verified successfully!', 'success');
-      onVerified?.();
+      onVerified?.(String(value));
       verifyingRef.current = false;
     },
     [onVerified],

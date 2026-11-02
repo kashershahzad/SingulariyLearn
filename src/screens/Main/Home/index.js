@@ -94,15 +94,27 @@ const parseLocalized = (value, lang) => {
     return '';
   }
 
+  const preferred = String(lang || 'en').toLowerCase();
+
   if (typeof value === 'object') {
-    return value[lang] || value.en || '';
+    return (
+      value[preferred] ||
+      value.en ||
+      Object.values(value).find(v => typeof v === 'string' && v.trim()) ||
+      ''
+    );
   }
 
   if (typeof value === 'string') {
     try {
       const parsed = JSON.parse(value);
       if (typeof parsed === 'object' && parsed !== null) {
-        return parsed[lang] || parsed.en || '';
+        return (
+          parsed[preferred] ||
+          parsed.en ||
+          Object.values(parsed).find(v => typeof v === 'string' && v.trim()) ||
+          ''
+        );
       }
       return value;
     } catch {
@@ -269,39 +281,53 @@ const Home = () => {
 
   const streakCount = streak?.learning_days_total ?? 0;
   const streakLabel =
-    streak?.streak_label || t('screens.home.learningDaysFallback');
+    parseLocalized(streak?.streak_label, currentLanguage) ||
+    t('screens.home.learningDaysFallback');
   const examPercent =
     examReadiness?.percentage ?? homeData?.overall_percentage ?? 0;
   const todayStudyLabel = examReadiness?.today_study_time_label
     ? t('screens.home.todayStudy', {
-        time: examReadiness.today_study_time_label,
+        time: parseLocalized(
+          examReadiness.today_study_time_label,
+          currentLanguage,
+        ),
       })
     : t('screens.home.todayStudyFallback');
   const dailyGoalLabel = examReadiness?.daily_question_label
-    ? t('screens.home.dailyGoal', {goal: examReadiness.daily_question_label})
+    ? t('screens.home.dailyGoal', {
+        goal: parseLocalized(
+          examReadiness.daily_question_label,
+          currentLanguage,
+        ),
+      })
     : t('screens.home.dailyGoalFallback');
 
   const continueTitle =
-    continueLearning?.lesson_title ||
+    parseLocalized(continueLearning?.lesson_title, currentLanguage) ||
     parseLocalized(continueLearning?.lesson?.name, currentLanguage) ||
+    parseLocalized(continueLearning?.course_name, currentLanguage) ||
     t('screens.home.continueLearningFallback');
   const continueSubtitle = continueLearning
     ? t('screens.home.continueLessonSubtitle', {
         number: continueLearning.lesson_number || '',
         subtitle:
-          continueLearning.lesson_subtitle || continueTitle,
-        duration: continueLearning.duration_label || '',
+          parseLocalized(continueLearning.lesson_subtitle, currentLanguage) ||
+          continueTitle,
+        duration:
+          parseLocalized(continueLearning.duration_label, currentLanguage) ||
+          '',
       })
     : '';
   const continueProgress = continueLearning?.progress_percent ?? 0;
   const continueProgressLabel = continueLearning?.progress_label
-    ? continueLearning.progress_label
+    ? parseLocalized(continueLearning.progress_label, currentLanguage) ||
+      t('screens.home.progressComplete', {percent: continueProgress})
     : t('screens.home.progressComplete', {percent: continueProgress});
 
   const getFocusAreaDetail = focusItem =>
     t('screens.home.focusAreaDetail', {
       accuracy:
-        focusItem.accuracy_label ||
+        parseLocalized(focusItem.accuracy_label, currentLanguage) ||
         `${focusItem.accuracy_percent ?? 0}%`,
       count: focusItem.recommended_questions || 0,
     });

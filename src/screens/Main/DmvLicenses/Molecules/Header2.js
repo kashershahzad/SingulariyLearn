@@ -16,6 +16,8 @@ const Header2 = ({
   hideBack = false,
   titleRemoveTranslation = false,
   onBackPress,
+  rightLabel,
+  rightLabelColor,
 }) => {
   const navigation = useNavigation();
   const {colors} = useTheme();
@@ -45,7 +47,9 @@ const Header2 = ({
               style={styles.icon}
             />
           </View>
-        ) : null}
+        ) : (
+          <View style={styles.headerSide} />
+        )}
         <View style={styles.titleContainer}>
           <CustomText
             fontSize={16}
@@ -58,7 +62,18 @@ const Header2 = ({
             numberOfLines={2}
           />
         </View>
-        {!hideBack ? <View style={styles.headerSide} /> : null}
+        <View style={[styles.headerSide, styles.headerSideRight]}>
+          {rightLabel ? (
+            <CustomText
+              fontSize={15}
+              fontFamily={fonts.jakartaSemiBold}
+              color={rightLabelColor || colors.accent}
+              label={rightLabel}
+              removeTranslation
+              numberOfLines={1}
+            />
+          ) : null}
+        </View>
       </View>
       {line ? <CustomHorizontalLine height={1} /> : null}
     </>
@@ -77,9 +92,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   headerSide: {
-    width: SIDE_WIDTH,
+    minWidth: SIDE_WIDTH,
     alignItems: 'flex-start',
     justifyContent: 'center',
+  },
+  headerSideRight: {
+    alignItems: 'flex-end',
+    minWidth: 64,
   },
   icon: {
     height: 24,

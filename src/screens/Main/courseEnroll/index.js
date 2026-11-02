@@ -47,6 +47,28 @@ const LESSON_ACTIONS = [
   {id: 'mockup', label: 'screens.courseEnroll.mockup'},
 ];
 
+const hasTruthyFlag = value =>
+  value === true || value === 1 || value === '1';
+
+const getLessonActions = lesson =>
+  LESSON_ACTIONS.filter(action => {
+    if (action.id === 'practice') {
+      return hasTruthyFlag(
+        lesson?.has_practice_test ??
+          lesson?.enable_practice_test ??
+          lesson?.practice_test_enabled,
+      );
+    }
+    if (action.id === 'mockup') {
+      return hasTruthyFlag(
+        lesson?.has_mock_test ??
+          lesson?.enable_mock_test ??
+          lesson?.mock_test_enabled,
+      );
+    }
+    return true;
+  });
+
 const parseLocalized = (value, lang) => {
   if (!value) {
     return '';
@@ -174,10 +196,59 @@ const CourseEnroll = () => {
 
       if (lessonsResponse?.status === 200) {
         const rawLessons = lessonsResponse.data?.data ?? [];
+        const lessonLangDebug = rawLessons.map(item => {
+          let nameObj = item.name;
+          if (typeof nameObj === 'string') {
+            try {
+              nameObj = JSON.parse(nameObj);
+            } catch {
+              nameObj = {en: nameObj};
+            }
+          }
+          const en = nameObj?.en || '';
+          const ur = nameObj?.ur || '';
+          return {
+            id: item.id,
+            en,
+            ur,
+            urEmpty: !String(ur).trim(),
+            parsedTitle: parseLocalized(item.name, currentLanguage),
+            rawName: item.name,
+            rawShortDesc: item.short_desc,
+          };
+        });
+        console.log(
+          'lesson API translation check (courseEnroll)',
+          JSON.stringify(
+            {
+              currentLanguage,
+              courseId: activeCourseId,
+              count: rawLessons.length,
+              missingUrduCount: lessonLangDebug.filter(l => l.urEmpty).length,
+              lessons: lessonLangDebug,
+            },
+            null,
+            2,
+          ),
+        );
         const mappedLessons = rawLessons.map(item => ({
           id: String(item.id),
           title: parseLocalized(item.name, currentLanguage),
           subtitle: parseLocalized(item.short_desc, currentLanguage),
+          has_practice_test: item.has_practice_test,
+          enable_practice_test: item.enable_practice_test,
+          practice_test_enabled: item.practice_test_enabled,
+          has_mock_test: item.has_mock_test,
+          enable_mock_test: item.enable_mock_test,
+          mock_test_enabled: item.mock_test_enabled,
+          timer:
+            item.question_timer ??
+            item.timer ??
+            item.time_limit ??
+            item.mock_timer ??
+            item.test_timer ??
+            item.duration ??
+            null,
         }));
         setLessons(mappedLessons);
         if (mappedLessons.length > 0 && !userHasAccess) {
@@ -280,7 +351,9 @@ const CourseEnroll = () => {
         courseId: activeCourseId,
         permit_id: defaultPermitId,
         is_mockup: 1,
+        lessonId: lesson.id,
         lessonName: lesson.title,
+        timer: lesson.timer,
       });
     }
   };
@@ -518,7 +591,7 @@ const CourseEnroll = () => {
 
                     {isExpanded && !hasAccess && (
                       <View style={styles.lessonList}>
-                        {LESSON_ACTIONS.map(action => (
+                        {getLessonActions(lesson).map(action => (
                           <Pressable
                             key={`${lesson.id}-${action.id}`}
                             style={styles.lessonRow}
