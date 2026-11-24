@@ -13,6 +13,7 @@ import {
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
+import {useTranslation} from 'react-i18next';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Header2 from '../DmvLicenses/Molecules/Header2';
 import {COLORS} from '../../../utils/COLORS';
@@ -33,13 +34,21 @@ import {
   toggleQuestionBookmarkApi,
 } from '../../../utils/courseBookmark';
 import {useTheme, useThemedStyles} from '../../../theme/useTheme';
+import {toApiLanguageCode} from '../../../language/normalizeLanguageCode';
 
-const renderTestHeader = (title, hideBack = false, rightLabel, rightLabelColor) => (
+const renderTestHeader = (
+  title,
+  hideBack = false,
+  rightLabel,
+  rightLabelColor,
+  titleRemoveTranslation = false,
+) => (
   <Header2
     title={title}
     hideBack={hideBack}
     rightLabel={rightLabel}
     rightLabelColor={rightLabelColor}
+    titleRemoveTranslation={titleRemoveTranslation}
   />
 );
 
@@ -211,38 +220,6 @@ const getAudioUrlFromQuestion = (question, currentLanguage) => {
     }
     return null;
   }
-};
-
-const getAvailableLangCodesFromQuestion = question => {
-  if (!question) {
-    return [];
-  }
-  const codes = new Set();
-  Object.keys(question.promptByLang || question.questionByLang || {}).forEach(
-    code => {
-      if (code) {
-        codes.add(String(code).toLowerCase());
-      }
-    },
-  );
-  Object.keys(question.explanationByLang || {}).forEach(code => {
-    if (code) {
-      codes.add(String(code).toLowerCase());
-    }
-  });
-  Object.keys(question.audioByLang || {}).forEach(code => {
-    if (code) {
-      codes.add(String(code).toLowerCase());
-    }
-  });
-  (question.options || []).forEach(option => {
-    Object.keys(option.textsByLang || {}).forEach(code => {
-      if (code) {
-        codes.add(String(code).toLowerCase());
-      }
-    });
-  });
-  return Array.from(codes);
 };
 
 const getImageSourceForQuestion = question => {
@@ -480,12 +457,16 @@ const parseQuestionsFromApi = (questionsArray, currentLanguage) => {
       ) || '';
 
     const explanationByLang = extractExplanationByLang(q.explanation);
+    const wrongExplanationByLang = extractExplanationByLang(
+      q.wrong_answer_explanation,
+    );
 
     return {
       ...q,
       question: fallbackQuestion,
       questionByLang,
       explanationByLang,
+      wrongExplanationByLang,
       options,
       hasOptionImages,
       category,
@@ -547,6 +528,7 @@ const buildUiQuestions = (parsedList, currentLanguage) => {
         prompt: parsed.question,
         promptByLang: parsed.questionByLang || {},
         explanationByLang: parsed.explanationByLang || {},
+        wrongExplanationByLang: parsed.wrongExplanationByLang || {},
         category: parsed.category || '',
         subPrompt: 'Select the correct answer.',
         options,
@@ -568,10 +550,65 @@ const LANG_FALLBACK_NAMES = {
   en: 'English',
   ur: 'Urdu',
   es: 'Spanish',
+  spanish: 'Spanish',
   fr: 'French',
   ar: 'Arabic',
+  arabic: 'Arabic',
   hi: 'Hindi',
+  hindi: 'Hindi',
+  fa: 'Farsi',
+  farsi: 'Farsi',
+  persian: 'Farsi',
+  ps: 'Pashto',
+  pashto: 'Pashto',
+  pa: 'Punjabi',
+  punjabi: 'Punjabi',
+  'pa-arab': 'Punjabi',
+  'pa-guru': 'Punjabi (Gurmukhi)',
+  punjabi_gu: 'Punjabi (Gurmukhi)',
+  punjabi_gurmukhi: 'Punjabi (Gurmukhi)',
+  gurmukhi: 'Punjabi (Gurmukhi)',
   zh: 'Chinese',
+};
+
+/** Resolve text from a byLang map using case/alias-tolerant keys */
+const pickLocalizedText = (byLang, lang) => {
+  if (!byLang || !lang) {
+    return '';
+  }
+  const want = String(lang).toLowerCase();
+  const aliases = new Set(
+    [
+      want,
+      ...(want === 'ar' || want === 'arabic' ? ['ar', 'arabic'] : []),
+      ...(want === 'es' || want === 'spanish' ? ['es', 'spanish'] : []),
+      ...(want === 'hi' || want === 'hindi' ? ['hi', 'hindi'] : []),
+      ...(want === 'fa' || want === 'farsi' || want === 'persian'
+        ? ['fa', 'farsi', 'persian']
+        : []),
+      ...(want === 'ps' || want === 'pashto' ? ['ps', 'pashto'] : []),
+      ...(want === 'pa' || want === 'punjabi' || want === 'pa-arab'
+        ? ['pa', 'punjabi', 'pa-arab']
+        : []),
+      ...(want.startsWith('punjabi_gu') ||
+      want === 'gurmukhi' ||
+      want === 'pa-guru' ||
+      want === 'punjabi_gurmukhi'
+        ? ['punjabi_gu', 'punjabi_gurmukhi', 'punjabi_gur', 'pa-guru', 'gurmukhi']
+        : []),
+    ].map(k => String(k).toLowerCase()),
+  );
+
+  for (const key of Object.keys(byLang)) {
+    if (!aliases.has(String(key).toLowerCase())) {
+      continue;
+    }
+    const text = byLang[key];
+    if (text && String(text).trim()) {
+      return String(text).trim();
+    }
+  }
+  return '';
 };
 
 const QUESTIONS_PAGE_LIMIT = 10;
@@ -604,6 +641,7 @@ const extractTotalQuestions = response => {
 const TestformNew = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const {t} = useTranslation();
   const token = useSelector(state => state.authConfig.token);
   const currentLanguage = useSelector(state => state.language.language);
   const {colors} = useTheme();
@@ -826,13 +864,21 @@ const TestformNew = () => {
       langChip: {
         flexDirection: 'row',
         alignItems: 'center',
+        flexShrink: 1,
+        maxWidth: 148,
+        minWidth: 0,
         backgroundColor: '#FFFFFF',
         borderRadius: 999,
         borderWidth: 1,
         borderColor: '#D6E8F5',
         paddingHorizontal: 10,
         paddingVertical: 7,
-        maxWidth: 150,
+      },
+      langChipLabelWrap: {
+        flexShrink: 1,
+        minWidth: 0,
+        marginLeft: 5,
+        marginRight: 2,
       },
       metaRow: {
         marginTop: 16,
@@ -1061,6 +1107,7 @@ const TestformNew = () => {
   const routeTimerSeconds = extractQuestionTimerSeconds(
     routeQuestionTimer ?? routeTimer ?? routeTimeLimit,
   );
+  const questionsLangCode = toApiLanguageCode(currentLanguage);
 
   const [questionsUi, setQuestionsUi] = useState([]);
   const [totalQuestions, setTotalQuestions] = useState(0);
@@ -1192,7 +1239,14 @@ const TestformNew = () => {
       const match = availableLanguages.find(l => l.code === code);
       return match?.title || LANG_FALLBACK_NAMES[code] || code.toUpperCase();
     });
-    return names.join(' + ');
+    // Keep chip compact — avoid overflow when 3+ languages selected
+    if (names.length === 1) {
+      return names[0];
+    }
+    if (names.length === 2) {
+      return `${names[0]} + ${names[1]}`;
+    }
+    return `${names[0]} +${names.length - 1}`;
   }, [selectedLangCodes, availableLanguages]);
 
   const primaryLangCode = selectedLangCodes[0] || 'en';
@@ -1214,27 +1268,35 @@ const TestformNew = () => {
     if (!question || !lang) {
       return '';
     }
-    const byLang = question.promptByLang || {};
-    const text = byLang[lang];
-    return text && String(text).trim() ? String(text).trim() : '';
+    return pickLocalizedText(question.promptByLang || {}, lang);
   }, []);
 
   const getOptionTextForLang = useCallback((option, lang) => {
     if (!option || !lang) {
       return '';
     }
-    const byLang = option.textsByLang || {};
-    const text = byLang[lang];
-    return text && !isUrlLikeText(text) ? String(text).trim() : '';
+    const text = pickLocalizedText(option.textsByLang || {}, lang);
+    return text && !isUrlLikeText(text) ? text : '';
   }, []);
 
   const getExplanationForLang = useCallback((question, lang) => {
     if (!question || !lang) {
       return '';
     }
-    const byLang = question.explanationByLang || {};
-    const text = byLang[lang];
-    return text && String(text).trim() ? String(text).trim() : '';
+    return (
+      pickLocalizedText(question.explanationByLang || {}, lang) ||
+      pickLocalizedText(question.explanationByLang || {}, 'en')
+    );
+  }, []);
+
+  const getWrongExplanationForLang = useCallback((question, lang) => {
+    if (!question || !lang) {
+      return '';
+    }
+    return (
+      pickLocalizedText(question.wrongExplanationByLang || {}, lang) ||
+      pickLocalizedText(question.wrongExplanationByLang || {}, 'en')
+    );
   }, []);
 
   useEffect(() => {
@@ -1288,12 +1350,14 @@ const TestformNew = () => {
                 table_name: 'questions',
                 id: String(bookmarkQuestionIdParam),
                 user_id: String(token),
+                lang_code: questionsLangCode,
               })) ||
               (await tryFetch({
                 type: 'get_data',
                 table_name: 'questions',
                 question_id: String(bookmarkQuestionIdParam),
                 user_id: String(token),
+                lang_code: questionsLangCode,
               }));
 
             const match = rows.find(
@@ -1354,15 +1418,28 @@ const TestformNew = () => {
               course_id: String(activeCourseId),
               user_id: String(token),
               is_mockup: '1',
+              lang_code: questionsLangCode,
               // Lesson mock only from Lesson Detail; course Mock Test has no lesson_id
               ...(lessonId ? {lesson_id: String(lessonId)} : {}),
             }
-          : {
+          : isStudyMode
+          ? {
               type: 'get_data',
               table_name: 'questions',
               lesson_id: String(lessonId),
               course_id: String(activeCourseId),
               user_id: String(token),
+              is_study: '1',
+              lang_code: questionsLangCode,
+            }
+          : {
+              // Practice
+              type: 'get_data',
+              table_name: 'questions',
+              lesson_id: String(lessonId),
+              course_id: String(activeCourseId),
+              user_id: String(token),
+              lang_code: questionsLangCode,
               limit: 10,
               last_id: 0,
             };
@@ -1422,6 +1499,7 @@ const TestformNew = () => {
             course_id: String(activeCourseId),
             user_id: String(token),
             is_mockup: '1',
+            lang_code: questionsLangCode,
             ...(lessonId ? {lesson_id: String(lessonId)} : {}),
           });
           if (!cancelled && retryResponse?.status === 200) {
@@ -1444,11 +1522,12 @@ const TestformNew = () => {
         totalQuestionsRef.current = total;
         // First page used last_id: 0 — next pages use 1, 2, 3, ...
         lastIdRef.current = 0;
-        hasMoreQuestionsRef.current = isMockupTest
-          ? false
-          : apiTotalQuestions > 0
-          ? ui.length < apiTotalQuestions
-          : apiData.length >= 10;
+        hasMoreQuestionsRef.current =
+          isMockupTest || isStudyMode
+            ? false
+            : apiTotalQuestions > 0
+            ? ui.length < apiTotalQuestions
+            : apiData.length >= 10;
         setQuestionIndex(0);
         setAccumulatedTimeSec(0);
         setSelectedOption(null);
@@ -1478,10 +1557,12 @@ const TestformNew = () => {
     token,
     currentLanguage,
     isMockupTest,
+    isStudyMode,
     isBookmarkReview,
     bookmarkQuestionIdParam,
     bookmarkQuestionRaw,
     routeTimerSeconds,
+    questionsLangCode,
   ]);
 
   useEffect(() => {
@@ -1496,6 +1577,7 @@ const TestformNew = () => {
   const fetchMoreLessonQuestions = async () => {
     if (
       isMockupTest ||
+      isStudyMode ||
       isBookmarkReview ||
       loadingMoreRef.current ||
       !hasMoreQuestionsRef.current ||
@@ -1521,6 +1603,7 @@ const TestformNew = () => {
         lesson_id: String(lessonId),
         course_id: String(activeCourseId),
         user_id: String(token),
+        lang_code: questionsLangCode,
         limit: 10,
         last_id: nextLastId,
       };
@@ -1592,50 +1675,11 @@ const TestformNew = () => {
     [questionsUi, questionIndex],
   );
 
-  const questionAvailableLangCodes = useMemo(
-    () => getAvailableLangCodesFromQuestion(currentQuestion),
-    [currentQuestion],
+  // Always show full languages API list (not filtered by current question keys)
+  const languagesForPicker = useMemo(
+    () => availableLanguages,
+    [availableLanguages],
   );
-
-  const languagesForPicker = useMemo(() => {
-    if (!questionAvailableLangCodes.length) {
-      return availableLanguages;
-    }
-    const filtered = availableLanguages.filter(lang =>
-      questionAvailableLangCodes.includes(String(lang.code).toLowerCase()),
-    );
-    // If languages API list is empty/missing matches, still offer codes from question
-    if (filtered.length) {
-      return filtered;
-    }
-    return questionAvailableLangCodes.map(code => ({
-      code,
-      title: LANG_FALLBACK_NAMES[code] || code.toUpperCase(),
-    }));
-  }, [availableLanguages, questionAvailableLangCodes]);
-
-  // Keep selected display langs only to those present on the current question
-  useEffect(() => {
-    if (!questionAvailableLangCodes.length) {
-      return;
-    }
-    setSelectedLangCodes(prev => {
-      const next = prev.filter(code =>
-        questionAvailableLangCodes.includes(String(code).toLowerCase()),
-      );
-      if (next.length) {
-        return next;
-      }
-      const preferred = String(currentLanguage || 'en').toLowerCase();
-      if (questionAvailableLangCodes.includes(preferred)) {
-        return [preferred];
-      }
-      if (questionAvailableLangCodes.includes('en')) {
-        return ['en'];
-      }
-      return [questionAvailableLangCodes[0]];
-    });
-  }, [currentQuestion?.id, questionAvailableLangCodes, currentLanguage]);
 
   const primaryAudioUri = useMemo(() => {
     if (!currentQuestion) {
@@ -1742,8 +1786,8 @@ const TestformNew = () => {
         return;
       }
       Alert.alert(
-        'Error',
-        response?.data?.message || 'Failed to save answer. Please try again.',
+        t('screens.test.errorTitle'),
+        response?.data?.message || t('screens.test.saveAnswerFailed'),
       );
     } catch (error) {
       console.error('save_question_answer error:', error);
@@ -1802,13 +1846,15 @@ const TestformNew = () => {
       }
 
       Alert.alert(
-        'Error',
-        response?.data?.message ||
-          'Failed to submit answers. Please try again.',
+        t('screens.test.errorTitle'),
+        response?.data?.message || t('screens.test.submitFailed'),
       );
     } catch (error) {
       console.error('Submit questionnaire error:', error);
-      Alert.alert('Error', 'Failed to submit answers. Please try again.');
+      Alert.alert(
+        t('screens.test.errorTitle'),
+        t('screens.test.submitFailed'),
+      );
     } finally {
       setSubmitLoading(false);
     }
@@ -1821,7 +1867,7 @@ const TestformNew = () => {
       return;
     }
     mockTimerExpiredRef.current = true;
-    ToastMessage('Time is up! Moving to next question...', 'error');
+    ToastMessage(t('screens.test.timeUp'), 'error');
     // Skip unanswered question and advance (submits on last question)
     await handleSkipRef.current?.();
   }, [isMockupTest, submitLoading]);
@@ -1889,19 +1935,19 @@ const TestformNew = () => {
         );
         ToastMessage(
           isQuestionBookmarked
-            ? response?.data?.message || 'Bookmark removed'
-            : response?.data?.message || 'Question saved',
+            ? response?.data?.message || t('screens.test.bookmarkRemoved')
+            : response?.data?.message || t('screens.test.questionSaved'),
           'success',
         );
         return;
       }
 
       ToastMessage(
-        response?.data?.message || 'Failed to update bookmark',
+        response?.data?.message || t('screens.test.bookmarkFailed'),
         'error',
       );
     } catch {
-      ToastMessage('Failed to update bookmark', 'error');
+      ToastMessage(t('screens.test.bookmarkFailed'), 'error');
     } finally {
       setBookmarkLoading(false);
     }
@@ -1979,8 +2025,8 @@ const TestformNew = () => {
 
     if (selectedOption == null) {
       Alert.alert(
-        'Select an answer',
-        'Please choose an option before continuing.',
+        t('screens.test.selectAnswerTitle'),
+        t('screens.test.selectAnswerBody'),
       );
       return;
     }
@@ -2076,7 +2122,10 @@ const TestformNew = () => {
   const handleAudioError = error => {
     console.log('Audio playback error:', error);
     setIsPlaying(false);
-    Alert.alert('Audio Error', 'Audio play nahi ho saka. Dobara try karein.');
+    Alert.alert(
+      t('screens.test.audioErrorTitle'),
+      t('screens.test.audioErrorBody'),
+    );
   };
 
   const handleToggleAudio = () => {
@@ -2099,16 +2148,19 @@ const TestformNew = () => {
         paddingHorizontal={0}
         headerUnScrollable={() =>
           renderTestHeader(
-            isBookmarkReview ? 'Bookmarked Question' : lessonName || 'Practice',
+            isBookmarkReview
+              ? 'screens.test.bookmarkedQuestion'
+              : lessonName || 'screens.test.practice',
             isBookmarkReview,
             mockTimerLabel,
             mockTimerColor,
+            Boolean(lessonName) && !isBookmarkReview,
           )
         }>
         <View style={[styles.container, styles.centered]}>
           <ActivityIndicator size="large" color={COLORS.primaryColor4} />
           <CustomText
-            label="Loading questions..."
+            label="screens.test.loadingQuestions"
             fontSize={14}
             fontFamily={fonts.jakartaRegular}
             color={colors.textMuted}
@@ -2125,15 +2177,18 @@ const TestformNew = () => {
         paddingHorizontal={0}
         headerUnScrollable={() =>
           renderTestHeader(
-            isBookmarkReview ? 'Bookmarked Question' : lessonName || 'Practice',
+            isBookmarkReview
+              ? 'screens.test.bookmarkedQuestion'
+              : lessonName || 'screens.test.practice',
             isBookmarkReview,
             mockTimerLabel,
             mockTimerColor,
+            Boolean(lessonName) && !isBookmarkReview,
           )
         }>
         <View style={[styles.container, styles.centered]}>
           <CustomText
-            label="No questions for this lesson."
+            label="screens.test.noQuestions"
             fontSize={16}
             fontFamily={fonts.jakartaSemiBold}
             color={colors.textPrimary}
@@ -2143,7 +2198,7 @@ const TestformNew = () => {
             style={{marginTop: 20}}
             onPress={() => navigation.goBack()}>
             <CustomText
-              label="Go back"
+              label="screens.test.goBack"
               fontSize={14}
               fontFamily={fonts.jakartaMedium}
               color={colors.accent}
@@ -2160,16 +2215,17 @@ const TestformNew = () => {
         paddingHorizontal={0}
         headerUnScrollable={() =>
           renderTestHeader(
-            lessonName || 'Practice',
+            lessonName || 'screens.test.practice',
             isBookmarkReview,
             mockTimerLabel,
             mockTimerColor,
+            Boolean(lessonName),
           )
         }>
         <View style={[styles.container, styles.centered]}>
           <ActivityIndicator size="large" color={COLORS.primaryColor4} />
           <CustomText
-            label="Submitting answers..."
+            label="screens.test.submittingAnswers"
             fontSize={14}
             fontFamily={fonts.jakartaRegular}
             color={colors.textMuted}
@@ -2230,7 +2286,11 @@ const TestformNew = () => {
               ]}>
               {isMockupTest ? null : (
                 <CustomButton
-                  title={isQuestionBookmarked ? 'Unsave' : 'Save'}
+                  title={
+                    isQuestionBookmarked
+                      ? 'screens.test.unsave'
+                      : 'screens.test.save'
+                  }
                   color={
                     isQuestionBookmarked ? colors.accent : colors.textPrimary
                   }
@@ -2251,7 +2311,9 @@ const TestformNew = () => {
               )}
 
               <CustomButton
-                title={isBookmarkReview ? 'Back' : 'Skip'}
+                title={
+                  isBookmarkReview ? 'screens.test.back' : 'screens.test.skip'
+                }
                 color={colors.textPrimary}
                 backgroundColor={'transparent'}
                 borderRadius={8}
@@ -2279,11 +2341,10 @@ const TestformNew = () => {
                   {opacity: questionIndex <= 0 ? 0.45 : 1},
                 ]}>
                 <CustomText
-                  label="Previous"
+                  label="screens.test.previous"
                   fontSize={16}
                   fontFamily={fonts.jakartaSemiBold}
                   color={colors.textPrimary}
-                  removeTranslation
                 />
               </TouchableOpacity>
               <TouchableOpacity
@@ -2300,11 +2361,10 @@ const TestformNew = () => {
                   end={{x: 0.5, y: 1}}
                   style={styles.footerGradientButton}>
                   <CustomText
-                    label="Next"
+                    label="screens.test.next"
                     fontSize={18}
                     fontFamily={fonts.jakartaSemiBold}
                     color="#FFFFFF"
-                    removeTranslation
                   />
                 </LinearGradient>
               </TouchableOpacity>
@@ -2336,12 +2396,11 @@ const TestformNew = () => {
                   end={{x: 0.5, y: 1}}
                   style={styles.footerGradientButton}>
                   <CustomText
-                    label="Next"
+                    label="screens.test.next"
                     fontSize={20}
                     fontFamily={fonts.jakartaMedium}
                     color="#FFFFFF"
                     lineHeight={30}
-                    removeTranslation
                   />
                 </LinearGradient>
               </TouchableOpacity>
@@ -2352,16 +2411,18 @@ const TestformNew = () => {
       headerUnScrollable={() =>
         renderTestHeader(
           isBookmarkReview
-            ? 'Bookmarked Question'
-            : lessonName ||
-              (isStudyMode
-                ? 'Study Question'
-                : isMockupTest
-                ? 'Mock Test'
-                : 'Practice'),
+            ? 'screens.test.bookmarkedQuestion'
+            : lessonName
+            ? lessonName
+            : isStudyMode
+            ? 'screens.test.studyQuestion'
+            : isMockupTest
+            ? 'screens.test.mockMode'
+            : 'screens.test.practice',
           isBookmarkReview,
           mockTimerLabel,
           mockTimerColor,
+          Boolean(lessonName) && !isBookmarkReview,
         )
       }>
       <View style={styles.container}>
@@ -2378,29 +2439,27 @@ const TestformNew = () => {
               <CustomText
                 label={
                   isStudyMode
-                    ? 'Study Mode'
+                    ? 'screens.test.studyMode'
                     : isMockupTest
-                    ? 'Mock Test'
-                    : 'Practice Mode'
+                    ? 'screens.test.mockMode'
+                    : 'screens.test.practiceMode'
                 }
                 fontSize={14}
                 fontFamily={fonts.jakartaBold}
                 color={colors.textPrimary}
-                removeTranslation
               />
               <CustomText
                 label={
                   isStudyMode
-                    ? 'Learn at your own pace with instant feedback.'
+                    ? 'screens.test.studyModeSubtitle'
                     : isMockupTest
-                    ? 'Select your answer and continue'
-                    : 'Answer and get instant feedback'
+                    ? 'screens.test.instructionMockup'
+                    : 'screens.test.instructionPractice'
                 }
                 fontSize={11}
                 fontFamily={fonts.jakartaRegular}
                 color={colors.textMuted}
                 lineHeight={15}
-                removeTranslation
               />
             </View>
           </View>
@@ -2414,29 +2473,30 @@ const TestformNew = () => {
               size={14}
               color="#0298EF"
             />
-            <CustomText
-              label={selectedLanguageLabel}
-              fontSize={11}
-              fontFamily={fonts.jakartaSemiBold}
-              color={colors.textPrimary}
-              marginLeft={5}
-              numberOfLines={1}
-              removeTranslation
-            />
+            <View style={styles.langChipLabelWrap}>
+              <CustomText
+                label={selectedLanguageLabel}
+                fontSize={11}
+                fontFamily={fonts.jakartaSemiBold}
+                color={colors.textPrimary}
+                numberOfLines={1}
+                removeTranslation
+              />
+            </View>
             <Icons
               family="Ionicons"
               name="chevron-down"
               size={14}
               color="#64748B"
-              style={{marginLeft: 2}}
             />
           </TouchableOpacity>
         </View>
 
         <CustomText
-          label={`Question ${questionIndex + 1} of ${
-            totalQuestions || questionsUi.length
-          }`}
+          label={t('screens.test.questionProgress', {
+            current: questionIndex + 1,
+            total: totalQuestions || questionsUi.length,
+          })}
           fontSize={24}
           fontFamily={fonts.jakartaBold}
           color="#0F172A"
@@ -2444,13 +2504,20 @@ const TestformNew = () => {
           removeTranslation
         />
         <CustomText
-          label="Correct answer is highlighted. Tap Next to continue."
+          label={
+            isBookmarkReview
+              ? 'screens.test.instructionBookmarkReview'
+              : isStudyMode
+              ? 'screens.test.instructionStudy'
+              : isMockupTest
+              ? 'screens.test.instructionMockup'
+              : 'screens.test.instructionStudy'
+          }
           fontSize={14}
           fontFamily={fonts.jakartaMedium}
           color="#94A3B8"
           lineHeight={20}
           marginTop={4}
-          removeTranslation
         />
         <View style={{marginTop: 10}} />
         <ProgressBar progress={progressPercent} />
@@ -2482,7 +2549,9 @@ const TestformNew = () => {
                 color="#0298EF"
               />
               <CustomText
-                label={`Listen (${String(primaryLangCode).toUpperCase()})`}
+                label={t('screens.test.listen', {
+                  lang: String(primaryLangCode).toUpperCase(),
+                })}
                 fontSize={12}
                 fontFamily={fonts.jakartaSemiBold}
                 color="#0298EF"
@@ -2759,12 +2828,11 @@ const TestformNew = () => {
         ) ? (
           <View style={styles.explanationCard}>
             <CustomText
-              label="Explanation"
+              label="screens.test.explanation"
               fontSize={12}
               fontFamily={fonts.jakartaSemiBold}
               color="#0298EF"
               marginBottom={4}
-              removeTranslation
             />
             {selectedLangCodes.map((lang, index) => {
               const text = getExplanationForLang(currentQuestion, lang);
@@ -2788,6 +2856,49 @@ const TestformNew = () => {
             })}
           </View>
         ) : null}
+
+        {isStudyMode &&
+        selectedLangCodes.some(lang =>
+          getWrongExplanationForLang(currentQuestion, lang),
+        ) ? (
+          <View style={[styles.explanationCard, {marginTop: 10}]}>
+            <CustomText
+              label="screens.test.wrongAnswerExplanation"
+              fontSize={12}
+              fontFamily={fonts.jakartaSemiBold}
+              color="#DC2626"
+              marginBottom={4}
+            />
+            {(() => {
+              const seen = new Set();
+              return selectedLangCodes.map((lang, index) => {
+                const text = getWrongExplanationForLang(currentQuestion, lang);
+                if (!text || seen.has(text)) {
+                  return null;
+                }
+                seen.add(text);
+                const isPrimary = index === 0 || seen.size === 1;
+                return (
+                  <CustomText
+                    key={`wrong-explanation-${lang}`}
+                    label={text}
+                    fontSize={isPrimary ? 13 : 12}
+                    fontFamily={fonts.jakartaRegular}
+                    color={isPrimary ? '#0F172A' : '#64748B'}
+                    lineHeight={isPrimary ? 20 : 18}
+                    marginTop={seen.size === 1 ? 0 : 6}
+                    textAlign={
+                      lang === 'ur' || lang === 'ar' || lang === 'pashto'
+                        ? 'right'
+                        : 'left'
+                    }
+                    removeTranslation
+                  />
+                );
+              });
+            })()}
+          </View>
+        ) : null}
       </View>
 
       <CustomModal
@@ -2796,20 +2907,18 @@ const TestformNew = () => {
         mainMargin={24}>
         <View style={styles.langModalCard}>
           <CustomText
-            label="Display languages"
+            label="screens.test.displayLanguages"
             fontSize={18}
             fontFamily={fonts.jakartaBold}
             color={colors.textPrimary}
             marginBottom={4}
-            removeTranslation
           />
           <CustomText
-            label="Select one or more languages to show questions and answers."
+            label="screens.test.displayLanguagesSubtitle"
             fontSize={13}
             fontFamily={fonts.jakartaRegular}
             color={colors.textMuted}
             marginBottom={8}
-            removeTranslation
           />
           <ScrollView showsVerticalScrollIndicator={false}>
             {languagesForPicker.map(lang => {
@@ -2846,7 +2955,7 @@ const TestformNew = () => {
             })}
           </ScrollView>
           <CustomButton
-            title="Done"
+            title="screens.test.done"
             marginTop={12}
             height={48}
             borderRadius={10}

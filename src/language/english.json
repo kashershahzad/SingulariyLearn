@@ -533,5 +533,11 @@
       "logout": "Logout",
       "logoutSubtitle": "Logout of your account"
     }
-  }
+  },
+  "spanish": "Spanish",
+  "hindi": "Hindi",
+  "farsi": "Farsi",
+  "pashto": "Pashto",
+  "punjabi": "Punjabi",
+  "english": "English"
 }

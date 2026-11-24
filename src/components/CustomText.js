@@ -43,7 +43,18 @@ const CustomText = ({
   const { colors } = useTheme();
   const { t } = useTranslation();
   // iOS: Poppins/Jakarta don't support Urdu/Arabic script — use system font so text renders
-  const isRTLScript = (i18n.language === 'ur' || i18n.language === 'ar');
+  const lang = String(i18n.language || '').toLowerCase();
+  const isRTLScript =
+    lang === 'ur' ||
+    lang === 'ar' ||
+    lang === 'arabic' ||
+    lang === 'farsi' ||
+    lang === 'fa' ||
+    lang === 'pashto' ||
+    lang === 'ps' ||
+    lang === 'punjabi' ||
+    lang === 'pa' ||
+    lang.startsWith('punjabi');
   const resolvedFontFamily = (Platform.OS === 'ios' && isRTLScript)
     ? undefined
     : (fontFamily || fonts.regular);

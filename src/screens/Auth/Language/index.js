@@ -12,9 +12,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { setLanguage } from '../../../store/reducer/LanguageConfig';
 import Loading from '../../../components/Loading';
+import { normalizeLanguageCode } from '../../../language/normalizeLanguageCode';
 
 const Language = ({ navigation, route}) => {
-    const { t, i18n } = useTranslation();
+    const { i18n } = useTranslation();
     const dispatch = useDispatch();
     const [languages, setLanguages] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -30,7 +31,9 @@ const Language = ({ navigation, route}) => {
                     type: 'get_data',
                     table_name: 'languages',
                 }
+                console.log('languages api body', body);
                 const result = await ApiRequest(body);
+                console.log('languages api response', result?.data);
                 setLanguages(result.data.data);
             } catch (error) {
                 console.error('Error fetching languages:', error);
@@ -43,24 +46,40 @@ const Language = ({ navigation, route}) => {
     }, []);
 
     const handlePress = (languageCode) => {
-        dispatch(setLanguage(languageCode));
-        i18n.changeLanguage(languageCode);
-        if(ProfileScreen === true){
+        const normalized = normalizeLanguageCode(languageCode);
+        dispatch(setLanguage(normalized));
+        i18n.changeLanguage(normalized);
+
+        // Opened from Profile / Main stack — just go back
+        if (ProfileScreen === true) {
             navigation.goBack();
-        }else{
-            navigation.navigate("LoginScreen");
+            return;
         }
-        
+
+        // Auth flow: prefer NewLogin, fallback to LoginScreen / goBack
+        if (navigation.getState?.()?.routeNames?.includes('NewLogin')) {
+            navigation.navigate('NewLogin');
+            return;
+        }
+        if (navigation.getState?.()?.routeNames?.includes('LoginScreen')) {
+            navigation.navigate('LoginScreen');
+            return;
+        }
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+        }
     };
 
     const getButtonStyle = (languageCode) => {
-        return currentLanguage === languageCode
+        const selected = normalizeLanguageCode(currentLanguage);
+        const option = normalizeLanguageCode(languageCode);
+        return selected === option
             ? { backgroundColor: COLORS.btn, color: COLORS.white }
             : { backgroundColor: COLORS.bggray, color: COLORS.black };
     };
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper scrollEnabled paddingBottom={24}>
             {loading ? (
                 <Loading/>
             ) : (
@@ -72,7 +91,7 @@ const Language = ({ navigation, route}) => {
                         onPress={() => navigation.goBack()}
                     />
                     <CustomText
-                        label={t('select_language')}
+                        label="select_language"
                         fontFamily={fonts.semiBold}
                         fontSize={28}
                         lineHeight={38}

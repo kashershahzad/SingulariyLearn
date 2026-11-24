@@ -28,20 +28,41 @@ import CustomButton from '../../../components/CustomButton';
 import {ApiRequest} from '../../../services/ApiRequest';
 import {pushStackScreen} from '../../../navigation/pushStackScreen';
 
-const parseLocalized = (value, lang) => {
+const BANNER_LANG_KEYS = {
+  en: ['en'],
+  ur: ['ur', 'urdu'],
+  ar: ['arabic', 'ar'],
+  arabic: ['arabic', 'ar'],
+  spanish: ['spanish', 'es'],
+  hindi: ['hindi', 'hi'],
+  farsi: ['farsi', 'fa', 'persian'],
+  pashto: ['pashto', 'ps'],
+  punjabi: ['punjabi', 'pa'],
+  punjabi_gurmukhi: ['Punjabi_Gu', 'punjabi_gurmukhi', 'punjabi_gu'],
+};
+
+const resolveLocalized = (value, lang) => {
   if (!value) {
     return '';
   }
 
   if (typeof value === 'object') {
-    return value[lang] || value.en || '';
+    const keys = BANNER_LANG_KEYS[String(lang || 'en').toLowerCase()] || [
+      String(lang || 'en'),
+    ];
+    for (const key of keys) {
+      if (value[key]) {
+        return value[key];
+      }
+    }
+    return value.en || value[Object.keys(value)[0]] || '';
   }
 
   if (typeof value === 'string') {
     try {
       const parsed = JSON.parse(value);
       if (typeof parsed === 'object' && parsed !== null) {
-        return parsed[lang] || parsed.en || '';
+        return resolveLocalized(parsed, lang);
       }
       return value;
     } catch {
@@ -51,6 +72,8 @@ const parseLocalized = (value, lang) => {
 
   return String(value);
 };
+
+const parseLocalized = (value, lang) => resolveLocalized(value, lang);
 
 const formatPrice = value => {
   if (value === undefined || value === null || value === '') {
@@ -167,9 +190,25 @@ const index = ({navigation}) => {
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [homeData, setHomeData] = useState(null);
+  const [heroBanner, setHeroBanner] = useState(null);
   const currentLanguage = useSelector(state => state.language.language);
   const token = useSelector(state => state.authConfig.token);
   const isLoggedIn = Boolean(token);
+
+  const heroBannerUri =
+    heroBanner?.image_url || heroBanner?.image || heroBanner?.banner_image || null;
+  const heroTitleText = useMemo(
+    () => resolveLocalized(heroBanner?.title, currentLanguage),
+    [heroBanner, currentLanguage],
+  );
+  const heroSubtitleText = useMemo(
+    () => resolveLocalized(heroBanner?.subtitle, currentLanguage),
+    [heroBanner, currentLanguage],
+  );
+  const heroButtonText = useMemo(
+    () => resolveLocalized(heroBanner?.button_text, currentLanguage),
+    [heroBanner, currentLanguage],
+  );
 
   const fetchHomeData = useCallback(async () => {
     if (!token) {
@@ -197,6 +236,34 @@ const index = ({navigation}) => {
       fetchHomeData();
     }, [fetchHomeData]),
   );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchBanners = async () => {
+      try {
+        const response = await ApiRequest({type: 'banners'});
+        if (cancelled) {
+          return;
+        }
+        const list = Array.isArray(response?.data?.data)
+          ? response.data.data
+          : [];
+        setHeroBanner(list[0] || null);
+      } catch (error) {
+        console.log('Landing banners error:', error);
+        if (!cancelled) {
+          setHeroBanner(null);
+        }
+      }
+    };
+
+    fetchBanners();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -489,12 +556,15 @@ const index = ({navigation}) => {
           <FadeInView delay={80}>
             <View style={styles.heroBannerWrap}>
               <ImageBackground
-                source={Images.learnPrepareBanner}
+                // source={Images.learnPrepareBanner}
+                source={
+                  heroBannerUri ? {uri: heroBannerUri} : undefined
+                }
                 style={styles.heroBanner}
                 imageStyle={styles.heroBannerImage}
                 resizeMode="cover">
                 <View style={styles.heroContent}>
-                  <Text
+                  {/* <Text
                     style={styles.heroTitle}
                     numberOfLines={1}
                     adjustsFontSizeToFit
@@ -513,6 +583,29 @@ const index = ({navigation}) => {
                     lineHeight={13}
                     marginTop={4}
                   />
+                  <CustomText
+                    label="screens.landing.exploreCourses"
+                    fontSize={9}
+                    fontFamily={fonts.jakartaSemiBold}
+                    color="#FFFFFF"
+                  /> */}
+                  <Text
+                    style={styles.heroTitle}
+                    numberOfLines={2}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.7}
+                    allowFontScaling={false}>
+                    {heroTitleText}
+                  </Text>
+                  <CustomText
+                    label={heroSubtitleText}
+                    removeTranslation
+                    fontSize={9}
+                    fontFamily={fonts.jakartaRegular}
+                    color="#555555"
+                    lineHeight={13}
+                    marginTop={4}
+                  />
                   <TouchableOpacity
                     activeOpacity={0.9}
                     style={styles.exploreBtn}
@@ -521,7 +614,8 @@ const index = ({navigation}) => {
                       setSearch('');
                     }}>
                     <CustomText
-                      label="screens.landing.exploreCourses"
+                      label={heroButtonText}
+                      removeTranslation
                       fontSize={9}
                       fontFamily={fonts.jakartaSemiBold}
                       color="#FFFFFF"

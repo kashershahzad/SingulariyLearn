@@ -12,6 +12,7 @@ import { StripeProvider } from '@stripe/stripe-react-native';
 
 import { store, persistor } from './src/store';
 import i18n from './src/language/i18n';
+import { normalizeLanguageCode } from './src/language/normalizeLanguageCode';
 import Navigation from './src/navigation';
 import { navigationRef } from './src/navigation/navigationRef';
 import { useAndroidBackHandler } from './src/navigation/useAndroidBackHandler';
@@ -45,7 +46,7 @@ const AppInner = () => {
 
   useEffect(() => {
     if (currentLanguage) {
-      i18n.changeLanguage(currentLanguage);
+      i18n.changeLanguage(normalizeLanguageCode(currentLanguage));
     }
   }, [currentLanguage]);
 

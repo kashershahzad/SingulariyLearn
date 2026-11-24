@@ -13,6 +13,20 @@ import CustomText from '../../../components/CustomText';
 import CustomToggle from '../../../components/CustomToggle';
 import fonts from '../../../assets/fonts';
 import {useTheme, useThemedStyles} from '../../../theme/useTheme';
+import {normalizeLanguageCode} from '../../../language/normalizeLanguageCode';
+
+const LANGUAGE_LABEL_KEYS = {
+  en: 'English',
+  ur: 'urdu',
+  ar: 'arabic',
+  fr: 'french',
+  spanish: 'spanish',
+  hindi: 'hindi',
+  farsi: 'farsi',
+  pashto: 'pashto',
+  punjabi: 'punjabi',
+  punjabi_gurmukhi: 'punjabi',
+};
 
 const Profile = ({navigation}) => {
   const isFocused = useIsFocused();
@@ -181,9 +195,12 @@ const Profile = ({navigation}) => {
           {
             id: 'language',
             titleKey: 'profileMenu.items.language',
-            subtitleKey: currentLanguage === 'ur' ? 'urdu' : 'English',
+            subtitleKey:
+              LANGUAGE_LABEL_KEYS[normalizeLanguageCode(currentLanguage)] ||
+              'english',
             icon: 'profileLanguage',
-            onPress: () => navigation.navigate('Language'),
+            onPress: () =>
+              navigation.navigate('Language', {ProfileScreen: true}),
           },
         ],
       },

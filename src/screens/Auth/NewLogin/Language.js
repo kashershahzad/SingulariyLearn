@@ -15,6 +15,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import CustomButton from '../../../components/CustomButton';
 import {ApiRequest} from '../../../services/ApiRequest';
 import {setLanguage} from '../../../store/reducer/LanguageConfig';
+import {normalizeLanguageCode} from '../../../language/normalizeLanguageCode';
 
 const mapLanguageItem = item => ({
   id: String(item.id ?? item.language_id ?? item.lang_code ?? ''),
@@ -34,12 +35,16 @@ const Language = ({onContinue}) => {
   useEffect(() => {
     const fetchLanguages = async () => {
       try {
-        const result = await ApiRequest({
+        const body = {
           type: 'get_data',
           table_name: 'languages',
-        });
+        };
+        console.log('languages api body', body);
+        const result = await ApiRequest(body);
+        console.log('languages api response', result?.data);
 
         const list = (result.data?.data || []).map(mapLanguageItem);
+        console.log('languages mapped list', list);
         setLanguages(list);
         if (list.length > 0) {
           setSelectedId(list[0].id);
@@ -70,7 +75,7 @@ const Language = ({onContinue}) => {
       return;
     }
     const selected = languages.find(item => item.id === selectedId);
-    const langCode = selected?.langCode || 'en';
+    const langCode = normalizeLanguageCode(selected?.langCode || 'en');
     dispatch(setLanguage(langCode));
     i18n.changeLanguage(langCode);
     onContinue?.(selectedId);
