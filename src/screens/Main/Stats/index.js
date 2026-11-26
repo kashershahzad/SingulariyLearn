@@ -12,6 +12,7 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Header2 from '../DmvLicenses/Molecules/Header2';
+import TabMoreMenu from '../../../components/TabMoreMenu';
 import CustomText from '../../../components/CustomText';
 import Icons from '../../../components/Icons';
 import fonts from '../../../assets/fonts';
@@ -160,7 +161,13 @@ const StatsScreen = () => {
     <ScreenWrapper
       scrollEnabled={!loading}
       paddingHorizontal={0}
-      headerUnScrollable={() => <Header2 title="screens.stats.header" />}>
+      headerUnScrollable={() => (
+        <Header2
+          title="screens.stats.header"
+          hideBack
+          leftElement={<TabMoreMenu />}
+        />
+      )}>
       <View style={styles.outer}>
         {!loading && (
           <CustomText

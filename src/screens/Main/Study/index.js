@@ -1,17 +1,17 @@
 import {
   ActivityIndicator,
-  BackHandler,
   Dimensions,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {useSelector} from 'react-redux';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Header2 from '../DmvLicenses/Molecules/Header2';
+import TabMoreMenu from '../../../components/TabMoreMenu';
 import CustomText from '../../../components/CustomText';
 import fonts from '../../../assets/fonts';
 import {Images} from '../../../assets/images';
@@ -106,24 +106,8 @@ const Study = () => {
     [],
   );
 
-  const handleBack = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return true;
-    }
-    navigation.navigate('LandingPage');
-    return true;
-  }, [navigation]);
-
-  useFocusEffect(
-    useCallback(() => {
-      const subscription = BackHandler.addEventListener(
-        'hardwareBackPress',
-        handleBack,
-      );
-      return () => subscription.remove();
-    }, [handleBack]),
-  );
+  // Hardware back is handled globally by useAndroidBackHandler
+  // (avoids double-handlers finishing the Android activity).
 
   useEffect(() => {
     const nextOption = route.params?.selectedOption;
@@ -249,7 +233,11 @@ const Study = () => {
       scrollViewRef={scrollViewRef}
       onScroll={handleScroll}
       headerUnScrollable={() => (
-        <Header2 title="screens.study.header" onBackPress={handleBack} />
+        <Header2
+          title="screens.study.header"
+          hideBack
+          leftElement={<TabMoreMenu />}
+        />
       )}>
       <View style={styles.container}>
         <CustomText

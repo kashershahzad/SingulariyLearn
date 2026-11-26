@@ -7,6 +7,7 @@ import {logout} from '../../../store/reducer/AuthConfig';
 import {logoutUser} from '../../../store/reducer/usersSlice';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Header2 from '../DmvLicenses/Molecules/Header2';
+import TabMoreMenu from '../../../components/TabMoreMenu';
 import ImageFast from '../../../components/ImageFast';
 import {Images} from '../../../assets/images';
 import CustomText from '../../../components/CustomText';
@@ -242,7 +243,13 @@ const Profile = ({navigation}) => {
     <ScreenWrapper
       paddingHorizontal={0}
       scrollEnabled={true}
-      headerUnScrollable={() => <Header2 title="profileMenu.title" />}>
+      headerUnScrollable={() => (
+        <Header2
+          title="profileMenu.title"
+          hideBack
+          leftElement={<TabMoreMenu />}
+        />
+      )}>
       <View style={styles.container}>
         <View style={styles.iconContainer}>
           <ImageFast

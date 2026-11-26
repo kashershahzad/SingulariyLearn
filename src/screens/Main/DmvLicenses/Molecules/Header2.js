@@ -7,6 +7,7 @@ import fonts from '../../../../assets/fonts';
 import CustomHorizontalLine from '../../../../components/CustomHorizontalLine';
 import {useNavigation} from '@react-navigation/native';
 import {useTheme} from '../../../../theme/useTheme';
+import {safeGoBack} from '../../../../navigation/useAndroidBackHandler';
 
 const SIDE_WIDTH = 44;
 
@@ -18,6 +19,8 @@ const Header2 = ({
   onBackPress,
   rightLabel,
   rightLabelColor,
+  rightElement,
+  leftElement,
 }) => {
   const navigation = useNavigation();
   const {colors} = useTheme();
@@ -27,17 +30,15 @@ const Header2 = ({
       onBackPress();
       return;
     }
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-    navigation.navigate('LandingPage');
+    safeGoBack(navigation);
   };
 
   return (
     <>
       <View style={styles.container}>
-        {!hideBack ? (
+        {leftElement ? (
+          <View style={styles.headerSide}>{leftElement}</View>
+        ) : !hideBack ? (
           <View style={styles.headerSide}>
             <ImageFast
               onPress={handleBack}
@@ -63,7 +64,9 @@ const Header2 = ({
           />
         </View>
         <View style={[styles.headerSide, styles.headerSideRight]}>
-          {rightLabel ? (
+          {rightElement ? (
+            rightElement
+          ) : rightLabel ? (
             <CustomText
               fontSize={15}
               fontFamily={fonts.jakartaSemiBold}

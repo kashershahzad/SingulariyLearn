@@ -27,6 +27,7 @@ import CustomInput from '../../../components/CustomInput';
 import CustomButton from '../../../components/CustomButton';
 import {ApiRequest} from '../../../services/ApiRequest';
 import {pushStackScreen} from '../../../navigation/pushStackScreen';
+import TabMoreMenu from '../../../components/TabMoreMenu';
 
 const BANNER_LANG_KEYS = {
   en: ['en'],
@@ -506,18 +507,7 @@ const index = ({navigation}) => {
       headerUnScrollable={() => (
         <View style={styles.headerContainer}>
           <View style={styles.headerSide}>
-            {/* {isLoggedIn ? (
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => navigation.goBack()}
-                hitSlop={{top: 12, bottom: 12, left: 12, right: 12}}>
-                <ImageFast
-                  source={Images.leftarrow}
-                  style={styles.backIcon}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            ) : null} */}
+            <TabMoreMenu />
           </View>
           <View style={styles.logoCenterWrap}>
             <FadeInView>
@@ -1055,9 +1045,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerSideRight: {
-    width: 62,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
+    minWidth: 62,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 4,
   },
   loginBtn: {
     borderWidth: 1,
